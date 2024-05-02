@@ -1,0 +1,56 @@
+[versions]
+agp = "8.3.1"
+kotlin = "1.9.20"
+arrow = "1.2.0-RC"
+coorutines = "1.8.0"
+appcompat = "1.6.1"
+splashScreen = "1.0.1"
+appcompanistPermissions = "0.31.0-alpha"
+pagging = "3.2.1"
+compose-activity = "1.9.0"
+compose = "1.6.7"
+compsoseMaterial3 = "1.2.1"
+hilt = "2.49"
+hilt-navigation-compose = "1.2.0"
+junit = "4.13.2"
+timber = "5.0.1"
+turbine = "1.1.0"
+kotest = "5.8.1"
+espressoCore = "3.5.1"
+
+[libraries]
+arrow-core = { group = "io.arrow-kt", name = "arrow-core", version.ref = "arrow" }
+
+androidx-activity = { group = "androidx.activity", name = "activity-ktx", version = "1.9.0"}
+androidx-appcompat = { group = "androidx.appcompat", name = "appcompat", version.ref = "appcompat" }
+androidx-splashscreen = { group = "androidx.core", name = "core-splashscreen", version.ref = "splashScreen" }
+appcompanist-permissions = { group = "com.google.accompanist", name = "accompanist-permissions", version.ref = "appcompanistPermissions" }
+
+androidx-compose-activity = { group = "androidx.activity", name = "activity-compose", version.ref = "compose-activity" }
+androidx-pagging-runtime = { group = "androidx.paging", name = "paging-runtime", version.ref = "pagging" }
+androidx-pagging-compose = { group = "androidx.paging", name = "paging-compose", version.ref = "pagging" }
+androidx-compose-material = { group = "androidx.compose.material3", name = "material3", version.ref = "compsoseMaterial3" }
+androidx-compose-runtime = { group = "androidx.compose.runtime", name = "runtime", version.ref = "compose" }
+androidx-compose-ui = { group = "androidx.compose.ui", name = "ui", version.ref = "compose" }
+androidx-compose-foundation = { group = "androidx.compose.foundation", name = "foundation", version.ref = "compose" }
+androidx-compose-ui-tooling = { group = "androidx.compose.ui", name = "ui-tooling", version.ref = "compose" }
+androidx-compose-ui-tooling-preview = { group = "androidx.compose.ui", name = "ui-tooling-preview", version.ref = "compose" }
+
+hilt-android = { group = "com.google.dagger", name = "hilt-android", version.ref = "hilt" }
+hilt-compiler = { group = "com.google.dagger", name = "hilt-compiler", version.ref = "hilt" }
+hilt-navigation-compose = { group = "androidx.hilt", name = "hilt-navigation-compose", version.ref = "hilt-navigation-compose" }
+
+timber = { group = "com.jakewharton.timber", name = "timber", version.ref = "timber" }
+
+junit = { group = "junit", name = "junit", version.ref = "junit" }
+turbine = { group = "app.cash.turbine", name = "turbine", version.ref = "turbine" }
+kotest = { group = "io.kotest", name = "kotest-runner-junit4", version.ref = "kotest" }
+coorutine-test = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-test", version.ref = "coorutines" }
+androidx-espresso-core = { group = "androidx.test.espresso", name = "espresso-core", version.ref = "espressoCore" }
+
+
+[plugins]
+androidApplication = { id = "com.android.application", version.ref = "agp" }
+jetbrainsKotlinAndroid = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
+hilt = { id = "com.google.dagger.hilt.android", version.ref = "hilt" }
+kapt = { id = "org.jetbrains.kotlin.kapt", version.ref = "kotlin" }
