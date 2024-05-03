@@ -34,6 +34,9 @@ android {
     }
     kotlinOptions {
         jvmTarget = "1.8"
+        freeCompilerArgs = listOf(
+            "-opt-in=com.google.accompanist.permissions.ExperimentalPermissionsApi",
+        )
     }
     buildFeatures {
         buildConfig = true
@@ -63,8 +66,8 @@ dependencies {
     implementation(libs.androidx.compose.ui.tooling)
     implementation(libs.androidx.compose.ui.tooling.preview)
 
-    implementation (libs.hilt.android)
-    kapt (libs.hilt.compiler)
+    implementation(libs.hilt.android)
+    kapt(libs.hilt.compiler)
     implementation(libs.hilt.navigation.compose)
 
     implementation(libs.timber)
