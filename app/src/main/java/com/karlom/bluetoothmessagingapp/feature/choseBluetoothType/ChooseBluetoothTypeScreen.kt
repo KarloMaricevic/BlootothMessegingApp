@@ -7,14 +7,18 @@ import android.content.Intent
 import android.os.Build
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Button
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.dp
 import com.google.accompanist.permissions.rememberMultiplePermissionsState
+import com.google.accompanist.permissions.rememberPermissionState
 
 @Composable
 fun ChooseBluetoothTypeScreen() {
@@ -33,7 +37,26 @@ fun ChooseBluetoothTypeScreen() {
             // TODO
         }
     }
-    val bluetoothController = rememberLauncherForActivityResult(
+    val makeDiscoverable =
+        rememberLauncherForActivityResult(contract = ActivityResultContracts.StartActivityForResult()) {
+            if (it.resultCode == RESULT_OK) {
+                // TODO
+            }
+        }
+    val makeDeviceDiscoverablePermission = rememberPermissionState(
+        permission = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            Manifest.permission.BLUETOOTH_ADVERTISE
+        } else {
+            Manifest.permission.BLUETOOTH_ADMIN
+        }
+    ) { permissionAccepted ->
+        if (permissionAccepted) {
+            makeDiscoverable.launch(Intent(BluetoothAdapter.ACTION_REQUEST_DISCOVERABLE).apply {
+                putExtra(BluetoothAdapter.EXTRA_DISCOVERABLE_DURATION, 300)
+            })
+        }
+    }
+    val bluetoothControllerForListening = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.StartActivityForResult(),
         onResult = { result ->
             if (result.resultCode == RESULT_OK) {
@@ -41,13 +64,32 @@ fun ChooseBluetoothTypeScreen() {
             }
         }
     )
-    Box(modifier = Modifier.fillMaxSize()) {
+    val bluetoothControllerForBroadcasting = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.StartActivityForResult(),
+        onResult = { result ->
+            if (result.resultCode == RESULT_OK) {
+                makeDeviceDiscoverablePermission.launchPermissionRequest()
+            }
+        }
+    )
+
+    Column(
+        modifier = Modifier.fillMaxSize(),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center,
+    ) {
         Button(
             onClick = {
                 val enableIntent = Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE)
-                bluetoothController.launch(enableIntent)
+                bluetoothControllerForListening.launch(enableIntent)
             },
-            modifier = Modifier.align(Alignment.Center)
+            modifier = Modifier.padding(bottom = 16.dp),
         ) { Text(text = "Start searching") }
+        Button(onClick = {
+            val enableIntent = Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE)
+            bluetoothControllerForBroadcasting.launch(enableIntent)
+        }) {
+            Text(text = "Make discoverable")
+        }
     }
 }

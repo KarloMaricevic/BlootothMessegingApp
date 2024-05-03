@@ -18,7 +18,9 @@
         android:name="android.permission.BLUETOOTH_SCAN"
         android:minSdkVersion="31"
         android:usesPermissionFlags="neverForLocation" />
-
+    <uses-permission
+        android:name="android.permission.BLUETOOTH_ADVERTISE"
+        android:minSdkVersion="31" />
     <uses-feature
         android:name="android.hardware.bluetooth"
         android:required="true" />
