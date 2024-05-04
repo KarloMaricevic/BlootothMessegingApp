@@ -1,3 +1,10 @@
 <resources>
     <string name="app_name">BluetoothMessagingApp</string>
+
+    <string name="default_icon_content_description" />
+
+    // bluetooth devices screen
+    <string name="bluetooth_devices_screen_start_searching">Start searching</string>
+    <string name="bluetooth_device_screen_no_devices_nearby">No devices nearby</string>
+    <string name="bluetooth_devices_screen_available_devices">Available devices</string>
 </resources>

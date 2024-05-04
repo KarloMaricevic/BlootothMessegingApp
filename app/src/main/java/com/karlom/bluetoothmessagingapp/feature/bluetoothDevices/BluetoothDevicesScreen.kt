@@ -1,18 +1,101 @@
 package com.karlom.bluetoothmessagingapp.feature.bluetoothDevices
 
+import android.Manifest
+import android.app.Activity
+import android.bluetooth.BluetoothAdapter
+import android.content.Intent
+import android.os.Build
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.Button
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.unit.dp
+import androidx.hilt.navigation.compose.hiltViewModel
+import com.google.accompanist.permissions.rememberMultiplePermissionsState
+import com.karlom.bluetoothmessagingapp.R
+import com.karlom.bluetoothmessagingapp.feature.bluetoothDevices.components.BluetoothDeviceItem
+import com.karlom.bluetoothmessagingapp.feature.bluetoothDevices.models.BluetoothDevicesScreenEvent.*
+import com.karlom.bluetoothmessagingapp.feature.bluetoothDevices.viewmodel.BluetoothDevicesViewModel
 
 @Composable
-fun BluetoothDevicesScreen() {
-    Box(Modifier.fillMaxSize()) {
-        Text(
-            text = "Bluetooth devices screen",
-            modifier = Modifier.align(Alignment.Center),
-        )
+fun BluetoothDevicesScreen(
+    viewModel: BluetoothDevicesViewModel = hiltViewModel()
+) {
+    val devices by viewModel.devices.collectAsState()
+    val findBluetoothDevicesPermission = rememberMultiplePermissionsState(
+        permissions = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            listOf(Manifest.permission.BLUETOOTH_SCAN)
+        } else {
+            listOf(
+                Manifest.permission.BLUETOOTH,
+                Manifest.permission.ACCESS_FINE_LOCATION,
+                Manifest.permission.ACCESS_COARSE_LOCATION,
+            )
+        }
+    ) { result ->
+        if (result.filter { entry -> !entry.value }.isEmpty()) {
+            viewModel.onEvent(OnScanForDevicesClicked)
+        }
+    }
+    val bluetoothController =
+        rememberLauncherForActivityResult(contract = ActivityResultContracts.StartActivityForResult(),
+            onResult = { result ->
+                if (result.resultCode == Activity.RESULT_OK) {
+                    findBluetoothDevicesPermission.launchMultiplePermissionRequest()
+                }
+            })
+    if (devices == null) {
+        Box(modifier = Modifier.fillMaxSize()) {
+            Button(
+                onClick = {
+                    val enableIntent = Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE)
+                    bluetoothController.launch(enableIntent)
+                },
+                modifier = Modifier.align(Alignment.Center),
+            ) { Text(text = stringResource(R.string.bluetooth_devices_screen_start_searching)) }
+        }
+    } else {
+        devices?.let { notNullDeviceList ->
+            Box(
+                Modifier
+                    .fillMaxSize()
+                    .padding(vertical = 16.dp),
+            ) {
+                if (notNullDeviceList.isEmpty()) {
+                    Box(modifier = Modifier.fillMaxSize()) {
+                        Text(
+                            text = stringResource(R.string.bluetooth_device_screen_no_devices_nearby),
+                            modifier = Modifier.align(Alignment.Center),
+                        )
+                    }
+                } else {
+                    Column {
+                        Text(
+                            text = stringResource(R.string.bluetooth_devices_screen_available_devices),
+                            modifier = Modifier.padding(bottom = 4.dp, start = 8.dp),
+                            style = MaterialTheme.typography.titleMedium,
+                        )
+                        notNullDeviceList.forEach { device ->
+                            BluetoothDeviceItem(
+                                device = device,
+                                modifier = Modifier.clickable { },
+                            )
+                        }
+                    }
+                }
+            }
+        }
     }
 }
