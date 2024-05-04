@@ -18,7 +18,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
-import com.google.accompanist.permissions.rememberMultiplePermissionsState
 import com.google.accompanist.permissions.rememberPermissionState
 import com.karlom.bluetoothmessagingapp.feature.choseBluetoothType.models.ChooseBluetoothTypeScreenEvent.OnSearchBluetoothDevicesClicked
 import com.karlom.bluetoothmessagingapp.feature.choseBluetoothType.viewmodel.ChooseBluetoothTypeViewModel
@@ -46,14 +45,6 @@ fun ChooseBluetoothTypeScreen(
             })
         }
     }
-    val bluetoothController = rememberLauncherForActivityResult(
-        contract = ActivityResultContracts.StartActivityForResult(),
-        onResult = { result ->
-            if (result.resultCode == RESULT_OK) {
-                makeDeviceDiscoverablePermission.launchPermissionRequest()
-            }
-        }
-    )
 
     Column(
         modifier = Modifier.fillMaxSize(),
@@ -64,10 +55,7 @@ fun ChooseBluetoothTypeScreen(
             onClick = { viewModel.onEvent(OnSearchBluetoothDevicesClicked) },
             modifier = Modifier.padding(bottom = 16.dp),
         ) { Text(text = "Start searching") }
-        Button(onClick = {
-            val enableIntent = Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE)
-            bluetoothController.launch(enableIntent)
-        }) {
+        Button(onClick = { makeDeviceDiscoverablePermission.launchPermissionRequest() }) {
             Text(text = "Make discoverable")
         }
     }
