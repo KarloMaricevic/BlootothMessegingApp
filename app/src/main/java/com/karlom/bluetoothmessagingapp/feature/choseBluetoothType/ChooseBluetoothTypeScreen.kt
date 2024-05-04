@@ -27,21 +27,6 @@ import com.karlom.bluetoothmessagingapp.feature.choseBluetoothType.viewmodel.Cho
 fun ChooseBluetoothTypeScreen(
     viewModel: ChooseBluetoothTypeViewModel = hiltViewModel(),
 ) {
-    val findBluetoothDevicesPermission = rememberMultiplePermissionsState(
-        permissions = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-            listOf(Manifest.permission.BLUETOOTH_SCAN)
-        } else {
-            listOf(
-                Manifest.permission.BLUETOOTH,
-                Manifest.permission.ACCESS_FINE_LOCATION,
-                Manifest.permission.ACCESS_COARSE_LOCATION
-            )
-        }
-    ) { result ->
-        if (result.filter { entry -> !entry.value }.isEmpty()) {
-            viewModel.onEvent(OnSearchBluetoothDevicesClicked)
-        }
-    }
     val makeDiscoverable =
         rememberLauncherForActivityResult(contract = ActivityResultContracts.StartActivityForResult()) {
             if (it.resultCode == RESULT_OK) {
@@ -61,15 +46,7 @@ fun ChooseBluetoothTypeScreen(
             })
         }
     }
-    val bluetoothControllerForListening = rememberLauncherForActivityResult(
-        contract = ActivityResultContracts.StartActivityForResult(),
-        onResult = { result ->
-            if (result.resultCode == RESULT_OK) {
-                findBluetoothDevicesPermission.launchMultiplePermissionRequest()
-            }
-        }
-    )
-    val bluetoothControllerForBroadcasting = rememberLauncherForActivityResult(
+    val bluetoothController = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.StartActivityForResult(),
         onResult = { result ->
             if (result.resultCode == RESULT_OK) {
@@ -84,15 +61,12 @@ fun ChooseBluetoothTypeScreen(
         verticalArrangement = Arrangement.Center,
     ) {
         Button(
-            onClick = {
-                val enableIntent = Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE)
-                bluetoothControllerForListening.launch(enableIntent)
-            },
+            onClick = { viewModel.onEvent(OnSearchBluetoothDevicesClicked) },
             modifier = Modifier.padding(bottom = 16.dp),
         ) { Text(text = "Start searching") }
         Button(onClick = {
             val enableIntent = Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE)
-            bluetoothControllerForBroadcasting.launch(enableIntent)
+            bluetoothController.launch(enableIntent)
         }) {
             Text(text = "Make discoverable")
         }
