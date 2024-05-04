@@ -17,11 +17,16 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import androidx.hilt.navigation.compose.hiltViewModel
 import com.google.accompanist.permissions.rememberMultiplePermissionsState
 import com.google.accompanist.permissions.rememberPermissionState
+import com.karlom.bluetoothmessagingapp.feature.choseBluetoothType.models.ChooseBluetoothTypeScreenEvent.OnSearchBluetoothDevicesClicked
+import com.karlom.bluetoothmessagingapp.feature.choseBluetoothType.viewmodel.ChooseBluetoothTypeViewModel
 
 @Composable
-fun ChooseBluetoothTypeScreen() {
+fun ChooseBluetoothTypeScreen(
+    viewModel: ChooseBluetoothTypeViewModel = hiltViewModel(),
+) {
     val findBluetoothDevicesPermission = rememberMultiplePermissionsState(
         permissions = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
             listOf(Manifest.permission.BLUETOOTH_SCAN)
@@ -34,7 +39,7 @@ fun ChooseBluetoothTypeScreen() {
         }
     ) { result ->
         if (result.filter { entry -> !entry.value }.isEmpty()) {
-            // TODO
+            viewModel.onEvent(OnSearchBluetoothDevicesClicked)
         }
     }
     val makeDiscoverable =
