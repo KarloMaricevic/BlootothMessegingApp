@@ -21,6 +21,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.google.accompanist.permissions.rememberPermissionState
+import com.karlom.bluetoothmessagingapp.designSystem.theme.white
 import com.karlom.bluetoothmessagingapp.feature.choseBluetoothType.models.ChooseBluetoothTypeScreenEvent.OnSearchBluetoothDevicesClicked
 import com.karlom.bluetoothmessagingapp.feature.choseBluetoothType.viewmodel.ChooseBluetoothTypeViewModel
 import kotlinx.coroutines.delay
@@ -62,12 +63,20 @@ fun ChooseBluetoothTypeScreen(
         Button(
             onClick = { viewModel.onEvent(OnSearchBluetoothDevicesClicked) },
             modifier = Modifier.padding(bottom = 16.dp),
-        ) { Text(text = "Start searching") }
+        ) {
+            Text(
+                text = "Start searching",
+                color = white,
+            )
+        }
         Button(
             onClick = { makeDeviceDiscoverablePermission.launchPermissionRequest() },
             enabled = discoverableTime.intValue == 0
         ) {
-            Text(text = "Make discoverable")
+            Text(
+                text = "Make discoverable",
+                color = white,
+            )
         }
         if (discoverableTime.intValue != 0) {
             Text(text = "Device is discoverable for ${discoverableTime.intValue}")

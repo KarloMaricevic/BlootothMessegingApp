@@ -37,7 +37,7 @@ class AppBluetoothManager @Inject constructor(
     suspend fun getAvailableBluetoothDevices(): Either<ErrorMessage, List<BluetoothDeviceResponse>> =
         if (adapter == null) {
             Either.Left(ErrorMessage("Device doesn't have bluetooth feature"))
-        } else if (hasPermissionsToStartBluetoothDiscovery()) {
+        } else if (!hasPermissionsToStartBluetoothDiscovery()) {
             Either.Left(ErrorMessage("Insufficient permissions to start bluetooth discovery"))
         } else {
             suspendCancellableCoroutine<Either<ErrorMessage, List<BluetoothDeviceResponse>>> { continuation ->
