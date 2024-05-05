@@ -1,0 +1,5 @@
+Discoverability:
+1. For now application doesn't know if it was in discoverable bluetooth state when user enters one of the screens
+2. If the user has manually disabled discoverability "Make discoverable" button state should be updated
+
+Solution: Implement monitoring(periodic) of bluetooth discoverability state (doesn't require permission), move enabled logic to VM
