@@ -40,6 +40,7 @@ fun BluetoothDevicesScreen(
         } else {
             listOf(
                 Manifest.permission.BLUETOOTH,
+                Manifest.permission.BLUETOOTH_ADMIN,
                 Manifest.permission.ACCESS_FINE_LOCATION,
                 Manifest.permission.ACCESS_COARSE_LOCATION,
             )
