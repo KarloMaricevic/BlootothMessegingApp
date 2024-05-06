@@ -23,8 +23,8 @@ import androidx.paging.compose.collectAsLazyPagingItems
 import com.google.accompanist.permissions.rememberMultiplePermissionsState
 import com.karlom.bluetoothmessagingapp.R
 import com.karlom.bluetoothmessagingapp.feature.bluetoothDevices.components.BluetoothDeviceItem
-import com.karlom.bluetoothmessagingapp.feature.bluetoothDevices.models.BluetoothDevicesScreenEvent
-import com.karlom.bluetoothmessagingapp.feature.bluetoothDevices.models.BluetoothDevicesScreenEvent.*
+import com.karlom.bluetoothmessagingapp.feature.bluetoothDevices.models.BluetoothDevicesScreenEvent.OnBluetoothDeviceClicked
+import com.karlom.bluetoothmessagingapp.feature.bluetoothDevices.models.BluetoothDevicesScreenEvent.OnScanForDevicesClicked
 import com.karlom.bluetoothmessagingapp.feature.bluetoothDevices.viewmodel.BluetoothDevicesViewModel
 import com.karlom.bluetoothmessagingapp.feature.shared.SimpleLazyColumn
 
