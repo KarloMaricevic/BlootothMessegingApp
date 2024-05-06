@@ -8,6 +8,9 @@
     <string name="bluetooth_device_screen_no_devices_nearby">No devices nearby</string>
     <string name="bluetooth_devices_screen_available_devices">Available devices</string>
 
+    // chat screen
+    <string name="chat_screen_message_hint">Aa</string>
+
     <string name="try_again">Try again</string>
     <string name="unexpected_error_description">Something unexpected happened</string>
     <string name="error">Error</string>
