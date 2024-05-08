@@ -13,34 +13,27 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Button
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.mutableIntStateOf
-import androidx.compose.runtime.remember
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.google.accompanist.permissions.rememberPermissionState
+import com.karlom.bluetoothmessagingapp.feature.choseBluetoothType.models.ChooseBluetoothTypeScreenEvent.OnMakeDiscoverableButtonClicked
 import com.karlom.bluetoothmessagingapp.feature.choseBluetoothType.models.ChooseBluetoothTypeScreenEvent.OnSearchBluetoothDevicesClicked
 import com.karlom.bluetoothmessagingapp.feature.choseBluetoothType.viewmodel.ChooseBluetoothTypeViewModel
-import kotlinx.coroutines.delay
 
 @Composable
 fun ChooseBluetoothTypeScreen(
     viewModel: ChooseBluetoothTypeViewModel = hiltViewModel(),
 ) {
-    val discoverableTime = remember { mutableIntStateOf(0) }
-    LaunchedEffect(key1 = discoverableTime.intValue) {
-        if (discoverableTime.intValue != 0) {
-            delay(1000)
-            discoverableTime.intValue = --discoverableTime.intValue
-        }
-    }
+    val state by viewModel.state.collectAsState()
     val makeDiscoverable =
         rememberLauncherForActivityResult(contract = ActivityResultContracts.StartActivityForResult(),
             onResult = { result ->
                 if (result.resultCode > 0) {
-                    discoverableTime.intValue = result.resultCode
+                    viewModel.onEvent(OnMakeDiscoverableButtonClicked(result.resultCode))
                 }
             })
     val makeDeviceDiscoverablePermission = rememberPermissionState(
@@ -65,12 +58,12 @@ fun ChooseBluetoothTypeScreen(
         ) { Text(text = "Start searching") }
         Button(
             onClick = { makeDeviceDiscoverablePermission.launchPermissionRequest() },
-            enabled = discoverableTime.intValue == 0
+            enabled = state.discoverButtonDisableTime == 0
         ) {
             Text(text = "Make discoverable")
         }
-        if (discoverableTime.intValue != 0) {
-            Text(text = "Device is discoverable for ${discoverableTime.intValue}")
+        if (state.discoverButtonDisableTime != 0) {
+            Text(text = "Device is discoverable for ${state.discoverButtonDisableTime}")
         }
     }
 }
