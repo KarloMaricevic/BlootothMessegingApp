@@ -13,11 +13,10 @@ class ChatService @Inject constructor(
         const val SERVICE_UUID = "d15a630f-cc8e-482b-a023-89f32e515d40"
     }
 
-    suspend fun startServerAndWaitForConnection() =
-        bluetoothManager.startServerAndWaitForConnection(
-            serviceName = SERVICE_NAME,
-            serviceUUID = UUID.fromString(SERVICE_UUID)
-        )
+    suspend fun startServer() = bluetoothManager.startServer(
+        serviceName = SERVICE_NAME,
+        serviceUUID = UUID.fromString(SERVICE_UUID),
+    )
 
     suspend fun connectToServer(address: String) = bluetoothManager.connectToServer(
         serviceUUID = UUID.fromString(SERVICE_UUID),

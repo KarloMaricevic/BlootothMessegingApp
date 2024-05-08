@@ -5,9 +5,8 @@ import com.karlom.bluetoothmessagingapp.core.base.BaseViewModel
 import com.karlom.bluetoothmessagingapp.core.base.TIMEOUT_DELAY
 import com.karlom.bluetoothmessagingapp.core.navigation.NavigationEvent.Destination
 import com.karlom.bluetoothmessagingapp.core.navigation.Navigator
-import com.karlom.bluetoothmessagingapp.domain.chat.usecase.StartChatServerAndWaitForConnection
+import com.karlom.bluetoothmessagingapp.domain.chat.usecase.StartChatServer
 import com.karlom.bluetoothmessagingapp.feature.bluetoothDevices.router.BluetoothDevicesRouter
-import com.karlom.bluetoothmessagingapp.feature.chat.router.ChatRouter
 import com.karlom.bluetoothmessagingapp.feature.choseBluetoothType.models.ChooseBluetoothTypeScreenEvent
 import com.karlom.bluetoothmessagingapp.feature.choseBluetoothType.models.ChooseBluetoothTypeScreenEvent.OnMakeDiscoverableButtonClicked
 import com.karlom.bluetoothmessagingapp.feature.choseBluetoothType.models.ChooseBluetoothTypeScreenEvent.OnSearchBluetoothDevicesClicked
@@ -25,7 +24,7 @@ import javax.inject.Inject
 @HiltViewModel
 class ChooseBluetoothTypeViewModel @Inject constructor(
     private val navigator: Navigator,
-    private val startChatServerAndWaitForConnection: StartChatServerAndWaitForConnection,
+    private val startChatServer: StartChatServer,
 ) : BaseViewModel<ChooseBluetoothTypeScreenEvent>() {
 
     private val discoverButtonDisabledTime = MutableStateFlow(0)
@@ -47,25 +46,25 @@ class ChooseBluetoothTypeViewModel @Inject constructor(
                 navigator.emitDestination(Destination(BluetoothDevicesRouter.route()))
             }
 
-            is OnMakeDiscoverableButtonClicked -> {
+            is OnMakeDiscoverableButtonClicked ->
                 viewModelScope.launch {
                     showDiscoveryError.update { false }
-                    discoverButtonDisabledTime.update { event.discoverableTime }
-                    while (discoverButtonDisabledTime.value != 0) {
-                        delay(1000)
-                        discoverButtonDisabledTime.update { lastValue -> if (lastValue > 0) lastValue - 1 else lastValue }
-                    }
-                }
-                viewModelScope.launch {
-                    startChatServerAndWaitForConnection().fold(
+                    startChatServer().fold(
                         {
                             showDiscoveryError.update { true }
                             discoverButtonDisabledTime.update { 0 }
                         },
-                        { navigator.emitDestination(Destination(ChatRouter.creteChatRoute(""))) },
+                        {
+                            discoverButtonDisabledTime.update { event.discoverableTime }
+                            while (discoverButtonDisabledTime.value != 0) {
+                                delay(1000)
+                                discoverButtonDisabledTime.update { lastValue ->
+                                    if (lastValue > 0) lastValue - 1 else lastValue
+                                }
+                            }
+                        },
                     )
                 }
-            }
         }
     }
 }

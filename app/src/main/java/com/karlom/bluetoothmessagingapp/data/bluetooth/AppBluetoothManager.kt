@@ -20,8 +20,15 @@ import com.karlom.bluetoothmessagingapp.core.models.Failure.ErrorMessage
 import com.karlom.bluetoothmessagingapp.data.bluetooth.models.BluetoothDeviceResponse
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.consumeAsFlow
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.coroutines.withContext
+import timber.log.Timber
 import java.io.Closeable
 import java.io.IOException
 import java.io.InputStream
@@ -44,6 +51,9 @@ class AppBluetoothManager @Inject constructor(
     private var connectionInputStream: InputStream? = null
     private var connectionOutputStream: OutputStream? = null
     private var socket: Closeable? = null
+
+    private val clientConnectedToMyServerEvent = Channel<Unit>(Channel.BUFFERED)
+    private var waitingForClientJob: Job? = null
 
     @SuppressLint("MissingPermission") // checked inside first method call
     suspend fun getAvailableBluetoothDevices(): Either<ErrorMessage, List<BluetoothDeviceResponse>> =
@@ -114,7 +124,7 @@ class AppBluetoothManager @Inject constructor(
     }
 
     @SuppressLint("MissingPermission") // checked inside second condition
-    suspend fun startServerAndWaitForConnection(
+    suspend fun startServer(
         serviceName: String,
         serviceUUID: UUID,
     ): Either<ErrorMessage, Unit> {
@@ -125,6 +135,7 @@ class AppBluetoothManager @Inject constructor(
         } else if (socket != null) {
             Either.Left(ErrorMessage("Socket already started, close it before attempting to start a server"))
         } else {
+            waitingForClientJob?.cancel()
             withContext(Dispatchers.IO) {
                 try {
                     adapter.cancelDiscovery()
@@ -132,11 +143,18 @@ class AppBluetoothManager @Inject constructor(
                         /* name = */ serviceName,
                         /* uuid = */ serviceUUID,
                     )
-                    val connectedSocket = socket.accept()
-                    this@AppBluetoothManager.socket = socket
-                    socket.close()
-                    connectionInputStream = connectedSocket.inputStream
-                    connectionOutputStream = connectedSocket.outputStream
+                    waitingForClientJob = GlobalScope.launch(Dispatchers.IO) {
+                        try {
+                            val connectedSocket = socket.accept()
+                            this@AppBluetoothManager.socket = socket
+                            socket.close()
+                            connectionInputStream = connectedSocket.inputStream
+                            connectionOutputStream = connectedSocket.outputStream
+                            clientConnectedToMyServerEvent.send(Unit)
+                        } catch (e: IOException) {
+                            Timber.d("Error while waiting for client connection")
+                        }
+                    }
                     Either.Right(Unit)
                 } catch (e: IOException) {
                     socket?.close()
@@ -186,4 +204,7 @@ class AppBluetoothManager @Inject constructor(
             /* permission = */ permission,
         ) == PackageManager.PERMISSION_GRANTED
     }
+
+    fun getClientConnectedMyServerEventFlow(): Flow<Unit> =
+        clientConnectedToMyServerEvent.consumeAsFlow()
 }
