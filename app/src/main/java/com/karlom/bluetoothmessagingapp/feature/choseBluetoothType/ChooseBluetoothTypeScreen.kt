@@ -62,6 +62,9 @@ fun ChooseBluetoothTypeScreen(
         ) {
             Text(text = "Make discoverable")
         }
+        if (state.discoveryError) {
+            Text(text = "Error while trying to start discovery")
+        }
         if (state.discoverButtonDisableTime != 0) {
             Text(text = "Device is discoverable for ${state.discoverButtonDisableTime}")
         }
