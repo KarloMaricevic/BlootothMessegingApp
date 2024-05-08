@@ -5,7 +5,8 @@ import android.annotation.SuppressLint
 import android.bluetooth.BluetoothAdapter
 import android.bluetooth.BluetoothAdapter.ACTION_DISCOVERY_FINISHED
 import android.bluetooth.BluetoothDevice
-import android.bluetooth.BluetoothDevice.*
+import android.bluetooth.BluetoothDevice.ACTION_FOUND
+import android.bluetooth.BluetoothDevice.EXTRA_DEVICE
 import android.bluetooth.BluetoothManager
 import android.content.BroadcastReceiver
 import android.content.Context
@@ -18,7 +19,14 @@ import arrow.core.Either
 import com.karlom.bluetoothmessagingapp.core.models.Failure.ErrorMessage
 import com.karlom.bluetoothmessagingapp.data.bluetooth.models.BluetoothDeviceResponse
 import dagger.hilt.android.qualifiers.ApplicationContext
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.suspendCancellableCoroutine
+import kotlinx.coroutines.withContext
+import java.io.Closeable
+import java.io.IOException
+import java.io.InputStream
+import java.io.OutputStream
+import java.util.UUID
 import javax.inject.Inject
 import javax.inject.Singleton
 import kotlin.coroutines.resume
@@ -32,6 +40,10 @@ class AppBluetoothManager @Inject constructor(
         context.getSystemService(BluetoothManager::class.java)
 
     private val adapter: BluetoothAdapter? = bluetoothManager.adapter
+    private val cachedInBluetoothDevices = HashMap<String, BluetoothDevice>()
+    private var connectionInputStream: InputStream? = null
+    private var connectionOutputStream: OutputStream? = null
+    private var socket: Closeable? = null
 
     @SuppressLint("MissingPermission") // checked inside first method call
     suspend fun getAvailableBluetoothDevices(): Either<ErrorMessage, List<BluetoothDeviceResponse>> =
@@ -51,6 +63,7 @@ class AppBluetoothManager @Inject constructor(
                                 val device: BluetoothDevice? =
                                     intent.getParcelableExtra(EXTRA_DEVICE)
                                 device?.let {
+                                    cachedInBluetoothDevices[device.address] = device
                                     discoveredDevices.add(
                                         BluetoothDeviceResponse(
                                             name = device.name,
@@ -98,5 +111,79 @@ class AppBluetoothManager @Inject constructor(
             }
         }
         return true
+    }
+
+    @SuppressLint("MissingPermission") // checked inside second condition
+    suspend fun startServerAndWaitForConnection(
+        serviceName: String,
+        serviceUUID: UUID,
+    ): Either<ErrorMessage, Unit> {
+        return if (adapter == null) {
+            Either.Left(ErrorMessage("Device doesn't have bluetooth feature"))
+        } else if (!hasPermissionsToStartOrConnectToAServer()) {
+            Either.Left(ErrorMessage("Insufficient permissions to start bluetooth server"))
+        } else if (socket != null) {
+            Either.Left(ErrorMessage("Socket already started, close it before attempting to start a server"))
+        } else {
+            withContext(Dispatchers.IO) {
+                try {
+                    adapter.cancelDiscovery()
+                    val socket = adapter.listenUsingRfcommWithServiceRecord(
+                        /* name = */ serviceName,
+                        /* uuid = */ serviceUUID,
+                    )
+                    val connectedSocket = socket.accept()
+                    this@AppBluetoothManager.socket = socket
+                    socket.close()
+                    connectionInputStream = connectedSocket.inputStream
+                    connectionOutputStream = connectedSocket.outputStream
+                    Either.Right(Unit)
+                } catch (e: IOException) {
+                    socket?.close()
+                    socket = null
+                    Either.Left(ErrorMessage(e.message ?: "Unknown"))
+                }
+            }
+        }
+    }
+
+    @SuppressLint("MissingPermission") // checked inside second condition
+    suspend fun connectToServer(serviceUUID: UUID, address: String) =
+        if (adapter == null) {
+            Either.Left(ErrorMessage("Device doesn't have bluetooth feature"))
+        } else if (!hasPermissionsToStartOrConnectToAServer()) {
+            Either.Left(ErrorMessage("Insufficient permissions to connect to a bluetooth server"))
+        } else {
+            val bluetoothDevice = cachedInBluetoothDevices[address]
+            if (bluetoothDevice == null) {
+                Either.Left(ErrorMessage("Unknown MAC address"))
+            } else {
+                withContext(Dispatchers.IO) {
+                    try {
+                        val socket = bluetoothDevice.createRfcommSocketToServiceRecord(serviceUUID)
+                        this@AppBluetoothManager.socket = socket
+                        socket.connect()
+                        connectionInputStream = socket.inputStream
+                        connectionOutputStream = socket.outputStream
+                        Either.Right(Unit)
+                    } catch (e: IOException) {
+                        socket?.close()
+                        socket = null
+                        Either.Left(ErrorMessage(e.message ?: "Unknown"))
+                    }
+                }
+            }
+        }
+
+    private fun hasPermissionsToStartOrConnectToAServer(): Boolean {
+        val permission = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            Manifest.permission.BLUETOOTH_CONNECT
+        } else {
+            Manifest.permission.BLUETOOTH
+        }
+        return ActivityCompat.checkSelfPermission(
+            /* context = */ context,
+            /* permission = */ permission,
+        ) == PackageManager.PERMISSION_GRANTED
     }
 }
