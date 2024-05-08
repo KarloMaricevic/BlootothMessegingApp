@@ -15,14 +15,20 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.paging.compose.collectAsLazyPagingItems
 import com.google.accompanist.permissions.rememberMultiplePermissionsState
+import com.google.accompanist.permissions.rememberPermissionState
 import com.karlom.bluetoothmessagingapp.R
+import com.karlom.bluetoothmessagingapp.domain.bluetooth.models.BluetoothDevice
 import com.karlom.bluetoothmessagingapp.feature.bluetoothDevices.components.BluetoothDeviceItem
+import com.karlom.bluetoothmessagingapp.feature.bluetoothDevices.models.BluetoothDevicesScreenEvent
 import com.karlom.bluetoothmessagingapp.feature.bluetoothDevices.models.BluetoothDevicesScreenEvent.OnBluetoothDeviceClicked
 import com.karlom.bluetoothmessagingapp.feature.bluetoothDevices.models.BluetoothDevicesScreenEvent.OnScanForDevicesClicked
 import com.karlom.bluetoothmessagingapp.feature.bluetoothDevices.viewmodel.BluetoothDevicesViewModel
@@ -50,6 +56,20 @@ fun BluetoothDevicesScreen(
             viewModel.onEvent(OnScanForDevicesClicked)
         }
     }
+
+    var deviceClicked by remember { mutableStateOf<BluetoothDevice?>(null) }
+    val connectToBluetoothServerPermission =
+        rememberPermissionState(
+            permission = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) Manifest.permission.BLUETOOTH_CONNECT
+            else Manifest.permission.BLUETOOTH
+        ) { isPermissionAccepted ->
+            if (isPermissionAccepted) {
+                deviceClicked?.let { bluetoothDevice ->
+                    viewModel.onEvent(OnBluetoothDeviceClicked(bluetoothDevice.address))
+                    deviceClicked = null
+                }
+            }
+        }
     val bluetoothController =
         rememberLauncherForActivityResult(contract = ActivityResultContracts.StartActivityForResult(),
             onResult = { result ->
@@ -76,9 +96,8 @@ fun BluetoothDevicesScreen(
                 BluetoothDeviceItem(
                     device = device,
                     modifier = Modifier.clickable {
-                        viewModel.onEvent(
-                            OnBluetoothDeviceClicked(device.address)
-                        )
+                        deviceClicked = device
+                        connectToBluetoothServerPermission.launchPermissionRequest()
                     },
                 )
             },

@@ -9,6 +9,7 @@ import com.karlom.bluetoothmessagingapp.core.navigation.NavigationEvent
 import com.karlom.bluetoothmessagingapp.core.navigation.Navigator
 import com.karlom.bluetoothmessagingapp.domain.bluetooth.models.BluetoothDevice
 import com.karlom.bluetoothmessagingapp.domain.bluetooth.usecase.GetAvailableBluetoothDevices
+import com.karlom.bluetoothmessagingapp.domain.chat.usecase.ConnectToServer
 import com.karlom.bluetoothmessagingapp.feature.bluetoothDevices.models.BluetoothDevicesScreenEvent
 import com.karlom.bluetoothmessagingapp.feature.bluetoothDevices.models.BluetoothDevicesScreenEvent.OnBluetoothDeviceClicked
 import com.karlom.bluetoothmessagingapp.feature.bluetoothDevices.models.BluetoothDevicesScreenEvent.OnScanForDevicesClicked
@@ -28,6 +29,7 @@ import javax.inject.Inject
 @HiltViewModel
 class BluetoothDevicesViewModel @Inject constructor(
     private val getAvailableBluetoothDevices: GetAvailableBluetoothDevices,
+    private val connectToServer: ConnectToServer,
     private val navigator: Navigator,
 ) : BaseViewModel<BluetoothDevicesScreenEvent>() {
 
@@ -53,6 +55,7 @@ class BluetoothDevicesViewModel @Inject constructor(
             }
 
             is OnBluetoothDeviceClicked -> viewModelScope.launch {
+                connectToServer(event.address)
                 navigator.emitDestination(
                     NavigationEvent.Destination(ChatRouter.creteChatRoute(event.address))
                 )
