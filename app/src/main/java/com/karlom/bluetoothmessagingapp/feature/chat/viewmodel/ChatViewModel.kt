@@ -4,6 +4,8 @@ import androidx.lifecycle.viewModelScope
 import com.karlom.bluetoothmessagingapp.core.base.BaseViewModel
 import com.karlom.bluetoothmessagingapp.core.base.TIMEOUT_DELAY
 import com.karlom.bluetoothmessagingapp.domain.chat.models.TextMessage
+import com.karlom.bluetoothmessagingapp.domain.chat.usecase.GetReceivedMessages
+import com.karlom.bluetoothmessagingapp.domain.chat.usecase.SendMessage
 import com.karlom.bluetoothmessagingapp.feature.chat.models.ChatScreenEvent
 import com.karlom.bluetoothmessagingapp.feature.chat.models.ChatScreenEvent.OnSendClicked
 import com.karlom.bluetoothmessagingapp.feature.chat.models.ChatScreenEvent.OnTextChanged
@@ -14,10 +16,14 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.launch
+import timber.log.Timber
 import javax.inject.Inject
 
 @HiltViewModel
 class ChatViewModel @Inject constructor(
+    private val getReceivedMessages: GetReceivedMessages,
+    private val sendMessage: SendMessage,
 ) : BaseViewModel<ChatScreenEvent>() {
 
     private val textToSend = MutableStateFlow("")
@@ -39,10 +45,45 @@ class ChatViewModel @Inject constructor(
         initialValue = ChatScreenState(),
     )
 
+    init {
+        viewModelScope.launch {
+            getReceivedMessages().collect { message ->
+                messages.update { currentMessages ->
+                    currentMessages.toMutableList().apply {
+                        add(
+                            TextMessage(
+                                id = messages.value.size.toLong(),
+                                message = message,
+                                isFromMe = false,
+                            )
+                        )
+                    }
+                }
+            }
+        }
+    }
+
     override fun onEvent(event: ChatScreenEvent) {
         when (event) {
             is OnTextChanged -> textToSend.update { event.text }
-            is OnSendClicked -> {}
+            is OnSendClicked -> viewModelScope.launch {
+                sendMessage(textToSend.value).fold(
+                    { Timber.d("Failed to send") },
+                    {
+                        messages.update { currentMessages ->
+                            currentMessages.toMutableList().apply {
+                                add(
+                                    TextMessage(
+                                        id = messages.value.size.toLong(),
+                                        message = textToSend.value,
+                                        isFromMe = true,
+                                    )
+                                )
+                            }
+                        }
+                    }
+                )
+            }
         }
     }
 }
