@@ -37,6 +37,7 @@ import java.util.UUID
 import javax.inject.Inject
 import javax.inject.Singleton
 import kotlin.coroutines.resume
+import kotlin.coroutines.suspendCoroutine
 
 @Singleton
 class AppBluetoothManager @Inject constructor(
@@ -54,6 +55,10 @@ class AppBluetoothManager @Inject constructor(
 
     private val clientConnectedToMyServerEvent = Channel<Unit>(Channel.BUFFERED)
     private var waitingForClientJob: Job? = null
+
+    private val inputStreamBuffer = ByteArray(1024)
+    private val inputStreamChannel = Channel<ByteArray>(Channel.BUFFERED)
+    private var readingStreamJob: Job? = null
 
     @SuppressLint("MissingPermission") // checked inside first method call
     suspend fun getAvailableBluetoothDevices(): Either<ErrorMessage, List<BluetoothDeviceResponse>> =
@@ -150,6 +155,12 @@ class AppBluetoothManager @Inject constructor(
                             socket.close()
                             connectionInputStream = connectedSocket.inputStream
                             connectionOutputStream = connectedSocket.outputStream
+                            readingStreamJob = GlobalScope.launch {
+                                while (true) {
+                                    connectionInputStream?.read(inputStreamBuffer)
+                                    inputStreamChannel.send(inputStreamBuffer)
+                                }
+                            }
                             clientConnectedToMyServerEvent.send(Unit)
                         } catch (e: IOException) {
                             Timber.d("Error while waiting for client connection")
@@ -183,6 +194,12 @@ class AppBluetoothManager @Inject constructor(
                         socket.connect()
                         connectionInputStream = socket.inputStream
                         connectionOutputStream = socket.outputStream
+                        readingStreamJob = GlobalScope.launch {
+                            while (true) {
+                                connectionInputStream?.read(inputStreamBuffer)
+                                inputStreamChannel.send(inputStreamBuffer)
+                            }
+                        }
                         Either.Right(Unit)
                     } catch (e: IOException) {
                         socket?.close()
@@ -207,4 +224,18 @@ class AppBluetoothManager @Inject constructor(
 
     fun getClientConnectedMyServerEventFlow(): Flow<Unit> =
         clientConnectedToMyServerEvent.consumeAsFlow()
+
+    suspend fun send(bytes: ByteArray) = suspendCoroutine { continuation ->
+        if (connectionOutputStream == null) {
+            continuation.resume(Either.Left(ErrorMessage("Not connected with anyone")))
+        }
+        try {
+            connectionOutputStream?.write(bytes)
+            continuation.resume(Either.Right(Unit))
+        } catch (error: IOException) {
+            continuation.resume(Either.Left(ErrorMessage(error.message ?: "Unknown")))
+        }
+    }
+
+    fun getDataReceiverFlow() = inputStreamChannel.consumeAsFlow()
 }
