@@ -8,6 +8,8 @@ import android.bluetooth.BluetoothDevice
 import android.bluetooth.BluetoothDevice.ACTION_FOUND
 import android.bluetooth.BluetoothDevice.EXTRA_DEVICE
 import android.bluetooth.BluetoothManager
+import android.bluetooth.BluetoothServerSocket
+import android.bluetooth.BluetoothSocket
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
@@ -39,26 +41,22 @@ import javax.inject.Singleton
 import kotlin.coroutines.resume
 import kotlin.coroutines.suspendCoroutine
 
+// TODO Separate this to multiple classes (e.g. ConnectionManager), for now ok
 @Singleton
 class AppBluetoothManager @Inject constructor(
     @ApplicationContext private val context: Context,
 ) {
 
-    private val bluetoothManager: BluetoothManager =
-        context.getSystemService(BluetoothManager::class.java)
-
-    private val adapter: BluetoothAdapter? = bluetoothManager.adapter
+    private val adapter: BluetoothAdapter? =
+        context.getSystemService(BluetoothManager::class.java)?.adapter
     private val cachedInBluetoothDevices = HashMap<String, BluetoothDevice>()
-    private var connectionInputStream: InputStream? = null
+    private var openedSocket: Closeable? = null
     private var connectionOutputStream: OutputStream? = null
-    private var socket: Closeable? = null
-
     private val clientConnectedToMyServerEvent = Channel<Unit>(Channel.BUFFERED)
-    private var waitingForClientJob: Job? = null
-
     private val inputStreamBuffer = ByteArray(1024)
     private val inputStreamChannel = Channel<ByteArray>(Channel.BUFFERED)
     private var readingStreamJob: Job? = null
+    private var waitingForClientJob: Job? = null
 
     @SuppressLint("MissingPermission") // checked inside first method call
     suspend fun getAvailableBluetoothDevices(): Either<ErrorMessage, List<BluetoothDeviceResponse>> =
@@ -72,7 +70,7 @@ class AppBluetoothManager @Inject constructor(
                 val receiver = object : BroadcastReceiver() {
 
                     override fun onReceive(context: Context, intent: Intent) {
-                        val action = intent.action
+                        val action = intent.action.orEmpty()
                         when (action) {
                             ACTION_FOUND -> {
                                 val device: BluetoothDevice? =
@@ -128,8 +126,9 @@ class AppBluetoothManager @Inject constructor(
         return true
     }
 
+    // TODO This method can only listen one socket at the time, for now it's ok because we only listen for messaging socket
     @SuppressLint("MissingPermission") // checked inside second condition
-    suspend fun startServer(
+    fun startServer(
         serviceName: String,
         serviceUUID: UUID,
     ): Either<ErrorMessage, Unit> {
@@ -137,41 +136,40 @@ class AppBluetoothManager @Inject constructor(
             Either.Left(ErrorMessage("Device doesn't have bluetooth feature"))
         } else if (!hasPermissionsToStartOrConnectToAServer()) {
             Either.Left(ErrorMessage("Insufficient permissions to start bluetooth server"))
-        } else if (socket != null) {
-            Either.Left(ErrorMessage("Socket already started, close it before attempting to start a server"))
+        } else if (openedSocket != null && openedSocket is BluetoothSocket) {
+            Either.Left(ErrorMessage("Client socket opened"))
+        } else if (openedSocket != null && openedSocket is BluetoothServerSocket) {
+            Timber.d("Server socket already opened")
+            Either.Right(Unit)
         } else {
             waitingForClientJob?.cancel()
-            withContext(Dispatchers.IO) {
-                try {
-                    adapter.cancelDiscovery()
-                    val socket = adapter.listenUsingRfcommWithServiceRecord(
-                        /* name = */ serviceName,
-                        /* uuid = */ serviceUUID,
-                    )
-                    waitingForClientJob = GlobalScope.launch(Dispatchers.IO) {
-                        try {
-                            val connectedSocket = socket.accept()
-                            this@AppBluetoothManager.socket = socket
-                            socket.close()
-                            connectionInputStream = connectedSocket.inputStream
-                            connectionOutputStream = connectedSocket.outputStream
-                            readingStreamJob = GlobalScope.launch {
-                                while (true) {
-                                    connectionInputStream?.read(inputStreamBuffer)
-                                    inputStreamChannel.send(inputStreamBuffer)
-                                }
-                            }
-                            clientConnectedToMyServerEvent.send(Unit)
-                        } catch (e: IOException) {
-                            Timber.d("Error while waiting for client connection")
-                        }
-                    }
-                    Either.Right(Unit)
-                } catch (e: IOException) {
-                    socket?.close()
-                    socket = null
-                    Either.Left(ErrorMessage(e.message ?: "Unknown"))
-                }
+            readingStreamJob?.cancel()
+            try {
+                val serverSocket = adapter.listenUsingRfcommWithServiceRecord(
+                    /* name = */ serviceName,
+                    /* uuid = */ serviceUUID,
+                )
+                openedSocket = serverSocket
+                listenForOneConnectionThenClose(serverSocket)
+                Either.Right(Unit)
+            } catch (e: IOException) {
+                Either.Left(ErrorMessage(e.message ?: "Unknown"))
+            }
+        }
+    }
+
+    private fun listenForOneConnectionThenClose(socket: BluetoothServerSocket) {
+        waitingForClientJob?.cancel()
+        waitingForClientJob = GlobalScope.launch(Dispatchers.IO) {
+            try {
+                val connectedSocket = socket.accept()
+                socket.close()
+                connectionOutputStream = connectedSocket.outputStream
+                startReadingInputStream(connectedSocket.inputStream)
+                clientConnectedToMyServerEvent.send(Unit)
+            } catch (e: IOException) {
+                Timber.d(e.message)
+                listenForOneConnectionThenClose(socket)
             }
         }
     }
@@ -188,23 +186,18 @@ class AppBluetoothManager @Inject constructor(
                 Either.Left(ErrorMessage("Unknown MAC address"))
             } else {
                 adapter.cancelDiscovery()
+                readingStreamJob?.cancel()
                 withContext(Dispatchers.IO) {
                     try {
                         val socket = bluetoothDevice.createRfcommSocketToServiceRecord(serviceUUID)
-                        this@AppBluetoothManager.socket = socket
+                        this@AppBluetoothManager.openedSocket = socket
                         socket.connect()
-                        connectionInputStream = socket.inputStream
                         connectionOutputStream = socket.outputStream
-                        readingStreamJob = GlobalScope.launch {
-                            while (true) {
-                                connectionInputStream?.read(inputStreamBuffer)
-                                inputStreamChannel.send(inputStreamBuffer)
-                            }
-                        }
+                        startReadingInputStream(socket.inputStream)
                         Either.Right(Unit)
                     } catch (e: IOException) {
-                        socket?.close()
-                        socket = null
+                        openedSocket?.close()
+                        openedSocket = null
                         Either.Left(ErrorMessage(e.message ?: "Unknown"))
                     }
                 }
@@ -221,6 +214,19 @@ class AppBluetoothManager @Inject constructor(
             /* context = */ context,
             /* permission = */ permission,
         ) == PackageManager.PERMISSION_GRANTED
+    }
+
+    private fun startReadingInputStream(inputStream: InputStream) {
+        readingStreamJob = GlobalScope.launch {
+            while (true) {
+                try {
+                    inputStream.read(inputStreamBuffer)
+                    inputStreamChannel.send(inputStreamBuffer)
+                } catch (_: IOException) {
+                    Timber.d("Error reading input stream")
+                }
+            }
+        }
     }
 
     fun getClientConnectedMyServerEventFlow(): Flow<Unit> =
