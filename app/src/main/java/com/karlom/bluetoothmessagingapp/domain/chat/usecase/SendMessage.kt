@@ -1,12 +1,12 @@
 package com.karlom.bluetoothmessagingapp.domain.chat.usecase
 
-import com.karlom.bluetoothmessagingapp.data.chat.ChatService
+import com.karlom.bluetoothmessagingapp.data.chat.ChatRepository
 import javax.inject.Inject
 
 class SendMessage @Inject constructor(
-    private val chatService: ChatService,
+    private val repository: ChatRepository,
 ) {
 
     suspend operator fun invoke(message: String) =
-        chatService.sendMessage(message)
+        repository.sendMessage(message)
 }

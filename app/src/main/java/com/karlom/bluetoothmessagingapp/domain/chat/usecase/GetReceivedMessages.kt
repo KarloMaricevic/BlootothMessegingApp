@@ -1,11 +1,11 @@
 package com.karlom.bluetoothmessagingapp.domain.chat.usecase
 
-import com.karlom.bluetoothmessagingapp.data.chat.ChatService
+import com.karlom.bluetoothmessagingapp.data.chat.ChatRepository
 import javax.inject.Inject
 
 class GetReceivedMessages @Inject constructor(
-    private val chatService: ChatService,
+    private val repository: ChatRepository,
 ) {
 
-    operator fun invoke() = chatService.getInputReceiver()
+    operator fun invoke() = repository.getMessageReceiver()
 }
