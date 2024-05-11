@@ -15,7 +15,7 @@ class ChatService @Inject constructor(
         val CHARSET_UTF_8 = Charsets.UTF_8
     }
 
-    suspend fun startServer() = bluetoothManager.startServer(
+    fun startServer() = bluetoothManager.startServer(
         serviceName = SERVICE_NAME,
         serviceUUID = UUID.fromString(SERVICE_UUID),
     )

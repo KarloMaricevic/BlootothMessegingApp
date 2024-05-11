@@ -46,25 +46,26 @@ class ChooseBluetoothTypeViewModel @Inject constructor(
                 navigator.emitDestination(Destination(BluetoothDevicesRouter.route()))
             }
 
-            is OnMakeDiscoverableButtonClicked ->
-                viewModelScope.launch {
-                    showDiscoveryError.update { false }
-                    startChatServer().fold(
-                        {
-                            showDiscoveryError.update { true }
-                            discoverButtonDisabledTime.update { 0 }
-                        },
-                        {
-                            discoverButtonDisabledTime.update { event.discoverableTime }
+            is OnMakeDiscoverableButtonClicked -> {
+                showDiscoveryError.update { false }
+                startChatServer().fold(
+                    {
+                        showDiscoveryError.update { true }
+                        discoverButtonDisabledTime.update { 0 }
+                    },
+                    {
+                        discoverButtonDisabledTime.update { event.discoverableTime }
+                        viewModelScope.launch {
                             while (discoverButtonDisabledTime.value != 0) {
                                 delay(1000)
                                 discoverButtonDisabledTime.update { lastValue ->
                                     if (lastValue > 0) lastValue - 1 else lastValue
                                 }
                             }
-                        },
-                    )
-                }
+                        }
+                    },
+                )
+            }
         }
     }
 }

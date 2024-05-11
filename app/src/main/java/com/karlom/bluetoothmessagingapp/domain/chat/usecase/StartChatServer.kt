@@ -7,5 +7,5 @@ class StartChatServer @Inject constructor(
     private val chatService: ChatService,
 ) {
 
-    suspend operator fun invoke() = chatService.startServer()
+    operator fun invoke() = chatService.startServer()
 }
