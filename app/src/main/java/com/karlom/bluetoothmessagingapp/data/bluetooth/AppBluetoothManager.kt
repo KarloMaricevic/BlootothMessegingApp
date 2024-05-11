@@ -187,6 +187,7 @@ class AppBluetoothManager @Inject constructor(
             if (bluetoothDevice == null) {
                 Either.Left(ErrorMessage("Unknown MAC address"))
             } else {
+                adapter.cancelDiscovery()
                 withContext(Dispatchers.IO) {
                     try {
                         val socket = bluetoothDevice.createRfcommSocketToServiceRecord(serviceUUID)
