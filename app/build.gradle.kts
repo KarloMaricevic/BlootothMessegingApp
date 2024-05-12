@@ -54,6 +54,9 @@ dependencies {
     implementation(libs.androidx.appcompat)
     implementation(libs.androidx.splashscreen)
     implementation(libs.appcompanist.permissions)
+    implementation(libs.androidx.room.runtime)
+    kapt(libs.androidx.room.compiler)
+    implementation(libs.androidx.room.ktx)
 
     implementation(libs.androidx.pagging.runtime)
     implementation(libs.androidx.pagging.compose)
