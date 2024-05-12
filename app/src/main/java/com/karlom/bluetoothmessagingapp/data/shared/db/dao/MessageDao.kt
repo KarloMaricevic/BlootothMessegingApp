@@ -8,5 +8,5 @@ import com.karlom.bluetoothmessagingapp.data.shared.db.enteties.MessageEntity
 interface MessageDao {
 
     @Insert
-    fun insertAll(vararg messages: MessageEntity)
+    suspend fun insertAll(vararg messages: MessageEntity)
 }
