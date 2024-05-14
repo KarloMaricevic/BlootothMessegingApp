@@ -42,7 +42,7 @@ fun BluetoothMessagingAppNavigation(
     Scaffold { innerPadding ->
         NavHost(
             navController = navController,
-            startDestination = ChooseBluetoothTypeRouter.route(),
+            startDestination = ContactsRouter.route(),
             modifier = Modifier.padding(innerPadding),
         ) {
             composable(ChooseBluetoothTypeRouter.route()) { ChooseBluetoothTypeScreen() }
