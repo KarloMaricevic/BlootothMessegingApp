@@ -3,6 +3,7 @@ package com.karlom.bluetoothmessagingapp.data.shared.db.di
 import android.content.Context
 import androidx.room.Room
 import com.karlom.bluetoothmessagingapp.data.shared.db.AppDatabase
+import com.karlom.bluetoothmessagingapp.data.shared.db.dao.ContactDao
 import com.karlom.bluetoothmessagingapp.data.shared.db.dao.MessageDao
 import dagger.Module
 import dagger.Provides
@@ -30,6 +31,12 @@ abstract class DatabaseModule {
         @Provides
         fun provideMessageDao(database: AppDatabase): MessageDao {
             return database.messageDao()
+        }
+
+        @Singleton
+        @Provides
+        fun provideContactDao(database: AppDatabase): ContactDao {
+            return database.contactDao()
         }
     }
 }
