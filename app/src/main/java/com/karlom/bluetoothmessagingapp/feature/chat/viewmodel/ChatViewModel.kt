@@ -3,37 +3,32 @@ package com.karlom.bluetoothmessagingapp.feature.chat.viewmodel
 import androidx.lifecycle.viewModelScope
 import com.karlom.bluetoothmessagingapp.core.base.BaseViewModel
 import com.karlom.bluetoothmessagingapp.core.base.TIMEOUT_DELAY
-import com.karlom.bluetoothmessagingapp.domain.chat.models.TextMessage
-import com.karlom.bluetoothmessagingapp.domain.chat.usecase.GetReceivedMessages
+import com.karlom.bluetoothmessagingapp.data.chat.ChatRepository
+import com.karlom.bluetoothmessagingapp.domain.chat.usecase.GetMessages
 import com.karlom.bluetoothmessagingapp.domain.chat.usecase.SendMessage
 import com.karlom.bluetoothmessagingapp.feature.chat.models.ChatScreenEvent
 import com.karlom.bluetoothmessagingapp.feature.chat.models.ChatScreenEvent.OnSendClicked
 import com.karlom.bluetoothmessagingapp.feature.chat.models.ChatScreenEvent.OnTextChanged
 import com.karlom.bluetoothmessagingapp.feature.chat.models.ChatScreenState
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import timber.log.Timber
 import javax.inject.Inject
 
 @HiltViewModel
 class ChatViewModel @Inject constructor(
-    private val getReceivedMessages: GetReceivedMessages,
+    private val getMessages: GetMessages,
     private val sendMessage: SendMessage,
+    private val mesRepository: ChatRepository,
 ) : BaseViewModel<ChatScreenEvent>() {
 
     private val textToSend = MutableStateFlow("")
-    private val messages = MutableStateFlow(
-        listOf(
-            TextMessage(1, "Hi!", false),
-            TextMessage(2, "Hi!", true),
-            TextMessage(3, "How is your day?", false),
-        )
-    )
+    private val messages = MutableStateFlow(getMessages())
 
     val state = combine(
         textToSend,
@@ -47,43 +42,14 @@ class ChatViewModel @Inject constructor(
 
     init {
         viewModelScope.launch {
-            getReceivedMessages().collect { message ->
-                messages.update { currentMessages ->
-                    currentMessages.toMutableList().apply {
-                        add(
-                            TextMessage(
-                                id = messages.value.size.toLong(),
-                                message = message,
-                                isFromMe = false,
-                            )
-                        )
-                    }
-                }
-            }
+            mesRepository.getMessageReceiver().collect {}
         }
     }
 
     override fun onEvent(event: ChatScreenEvent) {
         when (event) {
             is OnTextChanged -> textToSend.update { event.text }
-            is OnSendClicked -> viewModelScope.launch {
-                sendMessage(textToSend.value).fold(
-                    { Timber.d("Failed to send") },
-                    {
-                        messages.update { currentMessages ->
-                            currentMessages.toMutableList().apply {
-                                add(
-                                    TextMessage(
-                                        id = messages.value.size.toLong(),
-                                        message = textToSend.value,
-                                        isFromMe = true,
-                                    )
-                                )
-                            }
-                        }
-                    }
-                )
-            }
+            is OnSendClicked -> viewModelScope.launch { sendMessage(textToSend.value) }
         }
     }
 }
