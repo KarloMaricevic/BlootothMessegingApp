@@ -19,6 +19,8 @@ import com.karlom.bluetoothmessagingapp.feature.chat.ChatScreen
 import com.karlom.bluetoothmessagingapp.feature.chat.router.ChatRouter
 import com.karlom.bluetoothmessagingapp.feature.choseBluetoothType.ChooseBluetoothTypeScreen
 import com.karlom.bluetoothmessagingapp.feature.choseBluetoothType.router.ChooseBluetoothTypeRouter
+import com.karlom.bluetoothmessagingapp.feature.contacts.ContactsScreen
+import com.karlom.bluetoothmessagingapp.feature.contacts.router.ContactsRouter
 
 @Composable
 fun BluetoothMessagingAppNavigation(
@@ -50,6 +52,7 @@ fun BluetoothMessagingAppNavigation(
                     ?: error("${ChatRouter.ADDRESS_PARAM} was not provided to chat screen")
                 ChatScreen(address)
             }
+            composable(ContactsRouter.route()) { ContactsScreen() }
         }
     }
 }
