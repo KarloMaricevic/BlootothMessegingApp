@@ -11,6 +11,9 @@
     // chat screen
     <string name="chat_screen_message_hint">Aa</string>
 
+    // contacts screen
+    <string name="contacts_screen_new_chat">New chat</string>
+
     <string name="try_again">Try again</string>
     <string name="unexpected_error_description">Something unexpected happened</string>
     <string name="error">Error</string>
