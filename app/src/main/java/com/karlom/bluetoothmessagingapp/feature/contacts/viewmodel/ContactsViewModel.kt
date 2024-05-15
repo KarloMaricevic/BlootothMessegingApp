@@ -1,34 +1,22 @@
 package com.karlom.bluetoothmessagingapp.feature.contacts.viewmodel
 
-import androidx.compose.ui.graphics.Color
-import androidx.paging.PagingData
+import androidx.paging.map
 import com.karlom.bluetoothmessagingapp.core.base.BaseViewModel
-import com.karlom.bluetoothmessagingapp.domain.contacts.models.Contact
+import com.karlom.bluetoothmessagingapp.domain.contacts.usecase.GetContacts
+import com.karlom.bluetoothmessagingapp.feature.contacts.mappers.ContactUiMapper
 import com.karlom.bluetoothmessagingapp.feature.contacts.models.ContactScreenEvent
-import com.karlom.bluetoothmessagingapp.feature.contacts.models.ContactUi
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.flow.map
 import javax.inject.Inject
 
 @HiltViewModel
-class ContactsViewModel @Inject constructor() : BaseViewModel<ContactScreenEvent>() {
+class ContactsViewModel @Inject constructor(
+    private val getContacts: GetContacts,
+    private val contactMapper: ContactUiMapper,
+) : BaseViewModel<ContactScreenEvent>() {
 
-    val contacts = flowOf(
-        PagingData.from(
-            listOf(
-                ContactUi(
-                    contact = Contact(name = "Contact 1", address = "FA:11"),
-                    lastMessage = "You: Message sent",
-                    color = Color.Yellow,
-                ),
-                ContactUi(
-                    contact = Contact(name = "Contact 2", address = "EA:77"),
-                    lastMessage = "You: How iss your day?",
-                    color = Color.Blue,
-                )
-            )
-        )
-    )
+    val contacts = getContacts()
+        .map { page -> page.map { contact -> contactMapper.map(contact) } }
 
     override fun onEvent(event: ContactScreenEvent) {
         when (event) {
