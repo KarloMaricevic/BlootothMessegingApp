@@ -13,6 +13,8 @@ import com.karlom.bluetoothmessagingapp.core.navigation.NavigationEvent.Destinat
 import com.karlom.bluetoothmessagingapp.core.navigation.NavigationEvent.NavigateBack
 import com.karlom.bluetoothmessagingapp.core.navigation.NavigationEvent.NavigateUp
 import com.karlom.bluetoothmessagingapp.core.navigation.Navigator
+import com.karlom.bluetoothmessagingapp.feature.addDevice.AddDeviceScreen
+import com.karlom.bluetoothmessagingapp.feature.addDevice.router.AddDeviceScreenRouter
 import com.karlom.bluetoothmessagingapp.feature.bluetoothDevices.BluetoothDevicesScreen
 import com.karlom.bluetoothmessagingapp.feature.bluetoothDevices.router.BluetoothDevicesRouter
 import com.karlom.bluetoothmessagingapp.feature.chat.ChatScreen
@@ -53,6 +55,7 @@ fun BluetoothMessagingAppNavigation(
                 ChatScreen(address)
             }
             composable(ContactsRouter.route()) { ContactsScreen() }
+            composable(AddDeviceScreenRouter.route()) { AddDeviceScreen() }
         }
     }
 }
