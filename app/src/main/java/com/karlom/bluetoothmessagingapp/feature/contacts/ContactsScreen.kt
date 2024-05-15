@@ -11,6 +11,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.paging.compose.collectAsLazyPagingItems
 import com.karlom.bluetoothmessagingapp.feature.contacts.components.Contact
 import com.karlom.bluetoothmessagingapp.feature.contacts.components.NewChatFloatingButton
+import com.karlom.bluetoothmessagingapp.feature.contacts.models.ContactScreenEvent.OnAddContactClicked
 import com.karlom.bluetoothmessagingapp.feature.contacts.viewmodel.ContactsViewModel
 import com.karlom.bluetoothmessagingapp.feature.shared.SimpleLazyColumn
 
@@ -29,7 +30,7 @@ fun ContactsScreen(
             modifier = Modifier.fillMaxSize(),
         )
         NewChatFloatingButton(
-            onClick = {},
+            onClick = { viewModel.onEvent(OnAddContactClicked) },
             modifier = Modifier
                 .align(Alignment.BottomEnd)
                 .padding(24.dp),

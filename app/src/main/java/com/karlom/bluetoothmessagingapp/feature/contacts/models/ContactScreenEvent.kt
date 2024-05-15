@@ -1,3 +1,6 @@
 package com.karlom.bluetoothmessagingapp.feature.contacts.models
 
-sealed interface ContactScreenEvent
+sealed interface ContactScreenEvent {
+
+    data object OnAddContactClicked : ContactScreenEvent
+}
