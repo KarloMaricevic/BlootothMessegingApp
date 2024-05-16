@@ -4,16 +4,24 @@ import androidx.lifecycle.viewModelScope
 import androidx.paging.PagingData
 import com.karlom.bluetoothmessagingapp.core.base.BaseViewModel
 import com.karlom.bluetoothmessagingapp.core.base.TIMEOUT_DELAY
+import com.karlom.bluetoothmessagingapp.core.di.IoDispatcher
+import com.karlom.bluetoothmessagingapp.core.navigation.NavigationEvent.Destination
+import com.karlom.bluetoothmessagingapp.core.navigation.Navigator
 import com.karlom.bluetoothmessagingapp.domain.bluetooth.models.BluetoothDevice
 import com.karlom.bluetoothmessagingapp.domain.bluetooth.usecase.GetAvailableBluetoothDevices
 import com.karlom.bluetoothmessagingapp.domain.bluetooth.usecase.GetIsDeviceDiscoverableNotifier
 import com.karlom.bluetoothmessagingapp.domain.bluetooth.usecase.IsServerStarted
+import com.karlom.bluetoothmessagingapp.domain.chat.usecase.ConnectToServer
 import com.karlom.bluetoothmessagingapp.domain.chat.usecase.StartChatServer
 import com.karlom.bluetoothmessagingapp.feature.addDevice.models.AddDeviceScreenEvent
+import com.karlom.bluetoothmessagingapp.feature.addDevice.models.AddDeviceScreenEvent.OnDeviceClicked
 import com.karlom.bluetoothmessagingapp.feature.addDevice.models.AddDeviceScreenEvent.OnDiscoverableSwitchChecked
 import com.karlom.bluetoothmessagingapp.feature.addDevice.models.AddDeviceScreenEvent.OnScanForDevicesClicked
 import com.karlom.bluetoothmessagingapp.feature.addDevice.models.AddDeviceScreenState
+import com.karlom.bluetoothmessagingapp.feature.chat.router.ChatRouter
+import com.karlom.bluetoothmessagingapp.feature.contacts.router.ContactsRouter
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -31,18 +39,23 @@ class AddDeviceViewModel @Inject constructor(
     private val getAvailableBluetoothDevices: GetAvailableBluetoothDevices,
     private val isServerStarted: IsServerStarted,
     private val startChatServer: StartChatServer,
+    private val connectToServer: ConnectToServer,
+    private val navigator: Navigator,
+    @IoDispatcher private val ioDispatcher: CoroutineDispatcher,
 ) : BaseViewModel<AddDeviceScreenEvent>() {
 
     private val isDiscoverableEnabled = MutableStateFlow(false)
     private val isBluetoothDeviceListShown = MutableStateFlow(false)
     private val bluetoothDevicesList = MutableStateFlow<Flow<PagingData<BluetoothDevice>>>(flowOf())
     private val showMakeDeviceVisibleError = MutableStateFlow(false)
+    private val showConnectingToDeviceError = MutableStateFlow(false)
 
     val state = combine(
         isDiscoverableEnabled,
         isBluetoothDeviceListShown,
         bluetoothDevicesList,
         showMakeDeviceVisibleError,
+        showConnectingToDeviceError,
         ::AddDeviceScreenState,
     ).stateIn(
         scope = viewModelScope,
@@ -56,6 +69,25 @@ class AddDeviceViewModel @Inject constructor(
             is OnScanForDevicesClicked -> {
                 isBluetoothDeviceListShown.update { true }
                 bluetoothDevicesList.update { getAvailableBluetoothDevices() }
+            }
+
+            is OnDeviceClicked -> viewModelScope.launch(ioDispatcher) {
+                val connectToServer = connectToServer(event.address)
+                connectToServer.onLeft { showConnectingToDeviceError.update { true } }
+                connectToServer.onRight {
+                    viewModelScope.launch {
+                        navigator.emitDestination(
+                            Destination(
+                                destination = ChatRouter.creteChatRoute(event.address),
+                                builder = {
+                                    popUpTo(ContactsRouter.route()) {
+                                        this.inclusive = false
+                                    }
+                                }
+                            )
+                        )
+                    }
+                }
             }
         }
     }

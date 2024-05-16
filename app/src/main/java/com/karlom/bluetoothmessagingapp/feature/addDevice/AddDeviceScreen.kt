@@ -6,6 +6,7 @@ import android.content.Intent
 import android.os.Build
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -27,6 +28,8 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.paging.compose.collectAsLazyPagingItems
 import com.google.accompanist.permissions.rememberMultiplePermissionsState
 import com.karlom.bluetoothmessagingapp.R
+import com.karlom.bluetoothmessagingapp.feature.addDevice.models.AddDeviceScreenEvent
+import com.karlom.bluetoothmessagingapp.feature.addDevice.models.AddDeviceScreenEvent.OnDeviceClicked
 import com.karlom.bluetoothmessagingapp.feature.addDevice.models.AddDeviceScreenEvent.OnDiscoverableSwitchChecked
 import com.karlom.bluetoothmessagingapp.feature.addDevice.models.AddDeviceScreenEvent.OnScanForDevicesClicked
 import com.karlom.bluetoothmessagingapp.feature.addDevice.viewmodel.AddDeviceViewModel
@@ -116,7 +119,12 @@ fun AddDeviceScreen(
             SimpleLazyColumn(
                 items = bluetoothDevices,
                 key = { address },
-                uiItemBuilder = { device -> BluetoothDeviceItem(device) },
+                uiItemBuilder = { device ->
+                    BluetoothDeviceItem(
+                        device = device,
+                        modifier = Modifier.clickable { viewModel.onEvent(OnDeviceClicked(device.address)) }
+                    )
+                },
                 noItemsItem = {
                     Box(modifier = Modifier.fillMaxSize()) {
                         Text(

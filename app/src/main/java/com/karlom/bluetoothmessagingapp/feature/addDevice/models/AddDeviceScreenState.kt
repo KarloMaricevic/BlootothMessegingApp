@@ -9,5 +9,6 @@ data class AddDeviceScreenState(
     val isDiscoverable: Boolean = true,
     val isBluetoothDeviceListShown: Boolean = false,
     val bluetoothDevices: Flow<PagingData<BluetoothDevice>> = flowOf(),
-    val showMakeDeviceVisibleError: Boolean = false
+    val showMakeDeviceVisibleError: Boolean = false,
+    val showConnectingToDeviceError: Boolean = false,
 )
