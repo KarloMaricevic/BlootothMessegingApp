@@ -16,6 +16,9 @@
 
     // add devices
     <string name="add_device_screen_visible_label">Visible</string>
+    <string name="add_device_screen_start_search_button">Start search</string>
+    <string name="add_device_screen_bluetooth_devices_title">Bluetooth devices</string>
+    <string name="add_device_screen_no_devices_nearby">No devices nearby</string>
 
     <string name="try_again">Try again</string>
     <string name="unexpected_error_description">Something unexpected happened</string>
