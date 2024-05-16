@@ -1,11 +1,11 @@
 package com.karlom.bluetoothmessagingapp.domain.bluetooth.usecase
 
-import com.karlom.bluetoothmessagingapp.data.bluetooth.AppBluetoothManager
+import com.karlom.bluetoothmessagingapp.data.bluetooth.BluetoothConnectionManager
 import javax.inject.Inject
 
 class GetClientConnectedToMyServerNotifier @Inject constructor(
-    private val bluetoothManager: AppBluetoothManager,
+    private val connectionManager: BluetoothConnectionManager,
 ) {
 
-    operator fun invoke() = bluetoothManager.getClientConnectedMyServerEventFlow()
+    operator fun invoke() = connectionManager.getClientConnectedMyServerNotifier()
 }

@@ -11,7 +11,6 @@ import com.karlom.bluetoothmessagingapp.feature.chat.models.ChatScreenEvent.OnSe
 import com.karlom.bluetoothmessagingapp.feature.chat.models.ChatScreenEvent.OnTextChanged
 import com.karlom.bluetoothmessagingapp.feature.chat.models.ChatScreenState
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.combine
@@ -41,8 +40,10 @@ class ChatViewModel @Inject constructor(
     )
 
     init {
-        viewModelScope.launch {
-            mesRepository.getMessageReceiver().collect {}
+        mesRepository.getMessageReceiver().onRight { messageFlow ->
+            viewModelScope.launch {
+                messageFlow.collect {}
+            }
         }
     }
 

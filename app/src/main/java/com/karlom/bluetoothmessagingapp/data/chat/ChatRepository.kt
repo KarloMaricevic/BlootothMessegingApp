@@ -5,7 +5,7 @@ import androidx.paging.PagingConfig
 import androidx.paging.map
 import arrow.core.Either
 import com.karlom.bluetoothmessagingapp.core.models.Failure
-import com.karlom.bluetoothmessagingapp.data.bluetooth.AppBluetoothManager
+import com.karlom.bluetoothmessagingapp.data.bluetooth.BluetoothConnectionManager
 import com.karlom.bluetoothmessagingapp.data.shared.db.dao.MessageDao
 import com.karlom.bluetoothmessagingapp.data.shared.db.enteties.MessageEntity
 import com.karlom.bluetoothmessagingapp.domain.chat.models.TextMessage
@@ -13,7 +13,7 @@ import kotlinx.coroutines.flow.map
 import javax.inject.Inject
 
 class ChatRepository @Inject constructor(
-    private val bluetoothManager: AppBluetoothManager,
+    private val connectionManager: BluetoothConnectionManager,
     private val messageDao: MessageDao,
 ) {
 
@@ -23,7 +23,7 @@ class ChatRepository @Inject constructor(
     }
 
     suspend fun sendMessage(message: String): Either<Failure.ErrorMessage, Unit> {
-        val result = bluetoothManager.send(message.toByteArray(CHARSET_UTF_8))
+        val result = connectionManager.send(message.toByteArray(CHARSET_UTF_8))
         result.onRight {
             messageDao.insertAll(
                 MessageEntity(
@@ -36,8 +36,8 @@ class ChatRepository @Inject constructor(
     }
 
 
-    fun getMessageReceiver() =
-        bluetoothManager.getDataReceiverFlow()
+    fun getMessageReceiver() = connectionManager.getDataReceiverFlow().map { dataFlow ->
+        dataFlow
             .map { bytes -> bytes.toString(CHARSET_UTF_8) }
             .map { message ->
                 messageDao.insertAll(
@@ -48,6 +48,7 @@ class ChatRepository @Inject constructor(
                 )
                 message
             }
+    }
 
     fun getMessages() = Pager(
         config = PagingConfig(pageSize = PAGE_SIZE, enablePlaceholders = false),
