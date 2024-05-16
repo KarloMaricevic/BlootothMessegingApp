@@ -14,6 +14,9 @@
     // contacts screen
     <string name="contacts_screen_new_chat">New chat</string>
 
+    // add devices
+    <string name="add_device_screen_visible_label">Visible</string>
+
     <string name="try_again">Try again</string>
     <string name="unexpected_error_description">Something unexpected happened</string>
     <string name="error">Error</string>
