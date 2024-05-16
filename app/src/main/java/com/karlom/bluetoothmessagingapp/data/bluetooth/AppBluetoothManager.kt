@@ -25,7 +25,9 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.flow.consumeAsFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.suspendCancellableCoroutine
@@ -245,4 +247,43 @@ class AppBluetoothManager @Inject constructor(
     }
 
     fun getDataReceiverFlow() = inputStreamChannel.consumeAsFlow()
+
+    fun getIsDeviceDiscoverableNotifier(): Either<ErrorMessage, Flow<Boolean>> =
+        if (adapter == null) {
+            Either.Left(ErrorMessage("Device doesn't have bluetooth feature"))
+        } else if (!hasPermissionToListenForBtChanges()) {
+            Either.Left(ErrorMessage("Insufficient permissions for listening for bt changes"))
+        } else {
+            Either.Right(callbackFlow {
+                val receiver = object : BroadcastReceiver() {
+                    override fun onReceive(context: Context?, intent: Intent?) {
+                        if (intent?.action == BluetoothAdapter.ACTION_SCAN_MODE_CHANGED) {
+                            val currentMode = intent.getIntExtra(
+                                BluetoothAdapter.EXTRA_SCAN_MODE,
+                                BluetoothAdapter.SCAN_MODE_NONE
+                            )
+                            trySend(currentMode == BluetoothAdapter.SCAN_MODE_CONNECTABLE_DISCOVERABLE)
+                        }
+                    }
+                }
+                context.registerReceiver(
+                    /* receiver = */ receiver,
+                    /* filter = */ IntentFilter(BluetoothAdapter.ACTION_SCAN_MODE_CHANGED)
+                )
+                awaitClose { context.unregisterReceiver(receiver) }
+            }
+            )
+        }
+
+    private fun hasPermissionToListenForBtChanges(): Boolean {
+        val permission = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            Manifest.permission.BLUETOOTH_SCAN
+        } else {
+            Manifest.permission.BLUETOOTH_ADMIN
+        }
+        return ActivityCompat.checkSelfPermission(
+            /* context = */ context,
+            /* permission = */ permission,
+        ) == PackageManager.PERMISSION_GRANTED
+    }
 }
