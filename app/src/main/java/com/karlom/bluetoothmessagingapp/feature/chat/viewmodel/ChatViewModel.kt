@@ -4,6 +4,7 @@ import androidx.lifecycle.viewModelScope
 import com.karlom.bluetoothmessagingapp.core.base.BaseViewModel
 import com.karlom.bluetoothmessagingapp.core.base.TIMEOUT_DELAY
 import com.karlom.bluetoothmessagingapp.data.chat.ChatRepository
+import com.karlom.bluetoothmessagingapp.domain.bluetooth.usecase.IsConnectedToDevice
 import com.karlom.bluetoothmessagingapp.domain.chat.usecase.GetMessages
 import com.karlom.bluetoothmessagingapp.domain.chat.usecase.SendMessage
 import com.karlom.bluetoothmessagingapp.feature.chat.models.ChatScreenEvent
@@ -26,19 +27,26 @@ class ChatViewModel @AssistedInject constructor(
     private val getMessages: GetMessages,
     private val sendMessage: SendMessage,
     private val mesRepository: ChatRepository,
+    private val isConnectedToDevice: IsConnectedToDevice,
 ) : BaseViewModel<ChatScreenEvent>() {
 
+    private val showConnectToDeviceButton = MutableStateFlow(!isConnectedToDevice(contactAddress))
     private val textToSend = MutableStateFlow("")
     private val messages = MutableStateFlow(getMessages(contactAddress))
 
     val state = combine(
+        showConnectToDeviceButton,
         textToSend,
         messages,
         ::ChatScreenState,
     ).stateIn(
         scope = viewModelScope,
         started = SharingStarted.WhileSubscribed(TIMEOUT_DELAY),
-        initialValue = ChatScreenState(),
+        initialValue = ChatScreenState(
+            showConnectToDeviceButton = !isConnectedToDevice(
+                contactAddress
+            )
+        ),
     )
 
     init {

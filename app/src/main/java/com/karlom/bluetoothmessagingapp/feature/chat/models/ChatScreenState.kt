@@ -6,6 +6,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flowOf
 
 data class ChatScreenState(
+    val showConnectToDeviceButton: Boolean,
     val textToSend: String = "",
     val messages: Flow<PagingData<TextMessage>> = flowOf(PagingData.empty()),
 )

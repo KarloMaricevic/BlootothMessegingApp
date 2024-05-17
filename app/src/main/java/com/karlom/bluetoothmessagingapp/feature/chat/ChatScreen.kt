@@ -26,10 +26,12 @@ fun ChatScreen(address: String) {
     val messages = state.messages.collectAsLazyPagingItems()
     Column(Modifier.fillMaxSize()) {
         Box(Modifier.weight(weight = 1f, fill = true)) {
-            ConnectToButton(
-                onClick = { viewModel.onEvent(OnConnectClicked) },
-                modifier = Modifier.align(Alignment.TopCenter),
-            )
+            if (state.showConnectToDeviceButton) {
+                ConnectToButton(
+                    onClick = { viewModel.onEvent(OnConnectClicked) },
+                    modifier = Modifier.align(Alignment.TopCenter),
+                )
+            }
             SimpleLazyColumn(
                 items = messages,
                 key = { id },
