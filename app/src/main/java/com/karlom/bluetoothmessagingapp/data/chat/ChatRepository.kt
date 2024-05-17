@@ -38,7 +38,7 @@ class ChatRepository @Inject constructor(
 
     fun getMessageReceiver() = connectionManager.getDataReceiverFlow().map { dataFlow ->
         dataFlow
-            .map { bytes -> bytes.toString(CHARSET_UTF_8) }
+            .map { addressAndMessage -> addressAndMessage.second.toString(CHARSET_UTF_8) }
             .map { message ->
                 messageDao.insertAll(
                     MessageEntity(

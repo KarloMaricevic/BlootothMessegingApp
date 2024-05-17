@@ -48,7 +48,8 @@ class BluetoothConnectionManager @Inject constructor(
     private var outputStream: OutputStream? = null
     private var inputStream: InputStream? = null
     private val inputStreamBuffer = ByteArray(INPUT_BUFFER_SIZE)
-    private val inputStreamChannel = Channel<ByteArray>(Channel.BUFFERED)
+    private val inputStreamChannel = Channel<Pair<String, ByteArray>>(Channel.BUFFERED)
+    private var connectedDeviceAddress: String? = null
 
     private var waitingForClientJob: Job? = null
     private var readingInputStreamJob: Job? = null
@@ -103,6 +104,7 @@ class BluetoothConnectionManager @Inject constructor(
                     val socket = bluetoothDevice.createRfcommSocketToServiceRecord(serviceUUID)
                     openedSocket = socket
                     socket.connect()
+                    connectedDeviceAddress = address
                     outputStream = socket.outputStream
                     inputStream = socket.inputStream
                     Right(
@@ -127,6 +129,7 @@ class BluetoothConnectionManager @Inject constructor(
         outputStream = null
         inputStream = null
         openedSocket?.close()
+        connectedDeviceAddress = null
     }
 
     suspend fun send(bytes: ByteArray): Either<ErrorMessage, Unit> =
@@ -157,6 +160,7 @@ class BluetoothConnectionManager @Inject constructor(
         try {
             val connectedSocket = socket.accept()
             socket.close()
+            connectedDeviceAddress = connectedSocket.remoteDevice.address
             openedSocket = connectedSocket
             outputStream = connectedSocket.outputStream
             inputStream = connectedSocket.inputStream
@@ -186,7 +190,13 @@ class BluetoothConnectionManager @Inject constructor(
             while (true) {
                 try {
                     inputStream.read(inputStreamBuffer)
-                    inputStreamChannel.send(inputStreamBuffer)
+                    if (connectedDeviceAddress == null) {
+                        Timber.d("Not saved connected bt address")
+                    } else {
+                        inputStreamChannel.send(
+                            Pair(connectedDeviceAddress ?: "", inputStreamBuffer)
+                        )
+                    }
                 } catch (_: IOException) {
                     // TODO handle this, probably with closing connection and prompting user to connect again
                     Timber.d("Error reading input stream")
