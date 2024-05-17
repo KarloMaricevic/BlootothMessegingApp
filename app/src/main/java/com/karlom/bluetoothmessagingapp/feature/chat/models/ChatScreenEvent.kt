@@ -6,4 +6,6 @@ sealed interface ChatScreenEvent {
     data class OnTextChanged(val text: String) : ChatScreenEvent
 
     data object OnSendClicked : ChatScreenEvent
+
+    data object OnConnectClicked : ChatScreenEvent
 }

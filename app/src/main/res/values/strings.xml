@@ -10,6 +10,7 @@
 
     // chat screen
     <string name="chat_screen_message_hint">Aa</string>
+    <string name="chat_screen_connect_to_device_button">Connect to device</string>
 
     // contacts screen
     <string name="contacts_screen_new_chat">New chat</string>

@@ -7,8 +7,7 @@ import com.karlom.bluetoothmessagingapp.data.chat.ChatRepository
 import com.karlom.bluetoothmessagingapp.domain.chat.usecase.GetMessages
 import com.karlom.bluetoothmessagingapp.domain.chat.usecase.SendMessage
 import com.karlom.bluetoothmessagingapp.feature.chat.models.ChatScreenEvent
-import com.karlom.bluetoothmessagingapp.feature.chat.models.ChatScreenEvent.OnSendClicked
-import com.karlom.bluetoothmessagingapp.feature.chat.models.ChatScreenEvent.OnTextChanged
+import com.karlom.bluetoothmessagingapp.feature.chat.models.ChatScreenEvent.*
 import com.karlom.bluetoothmessagingapp.feature.chat.models.ChatScreenState
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedFactory
@@ -54,6 +53,7 @@ class ChatViewModel @AssistedInject constructor(
         when (event) {
             is OnTextChanged -> textToSend.update { event.text }
             is OnSendClicked -> viewModelScope.launch { sendMessage(textToSend.value) }
+            is OnConnectClicked -> {}
         }
     }
 
