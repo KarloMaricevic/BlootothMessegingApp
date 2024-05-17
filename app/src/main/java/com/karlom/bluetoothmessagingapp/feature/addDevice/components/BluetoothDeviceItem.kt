@@ -1,4 +1,4 @@
-package com.karlom.bluetoothmessagingapp.feature.bluetoothDevices.components
+package com.karlom.bluetoothmessagingapp.feature.addDevice.components
 
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row

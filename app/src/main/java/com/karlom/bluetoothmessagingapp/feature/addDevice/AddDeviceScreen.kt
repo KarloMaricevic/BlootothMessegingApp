@@ -33,7 +33,7 @@ import com.karlom.bluetoothmessagingapp.feature.addDevice.models.AddDeviceScreen
 import com.karlom.bluetoothmessagingapp.feature.addDevice.models.AddDeviceScreenEvent.OnDiscoverableSwitchChecked
 import com.karlom.bluetoothmessagingapp.feature.addDevice.models.AddDeviceScreenEvent.OnScanForDevicesClicked
 import com.karlom.bluetoothmessagingapp.feature.addDevice.viewmodel.AddDeviceViewModel
-import com.karlom.bluetoothmessagingapp.feature.bluetoothDevices.components.BluetoothDeviceItem
+import com.karlom.bluetoothmessagingapp.feature.addDevice.components.BluetoothDeviceItem
 import com.karlom.bluetoothmessagingapp.feature.shared.SimpleLazyColumn
 
 @Composable

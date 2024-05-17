@@ -15,12 +15,8 @@ import com.karlom.bluetoothmessagingapp.core.navigation.NavigationEvent.Navigate
 import com.karlom.bluetoothmessagingapp.core.navigation.Navigator
 import com.karlom.bluetoothmessagingapp.feature.addDevice.AddDeviceScreen
 import com.karlom.bluetoothmessagingapp.feature.addDevice.router.AddDeviceScreenRouter
-import com.karlom.bluetoothmessagingapp.feature.bluetoothDevices.BluetoothDevicesScreen
-import com.karlom.bluetoothmessagingapp.feature.bluetoothDevices.router.BluetoothDevicesRouter
 import com.karlom.bluetoothmessagingapp.feature.chat.ChatScreen
 import com.karlom.bluetoothmessagingapp.feature.chat.router.ChatRouter
-import com.karlom.bluetoothmessagingapp.feature.choseBluetoothType.ChooseBluetoothTypeScreen
-import com.karlom.bluetoothmessagingapp.feature.choseBluetoothType.router.ChooseBluetoothTypeRouter
 import com.karlom.bluetoothmessagingapp.feature.contacts.ContactsScreen
 import com.karlom.bluetoothmessagingapp.feature.contacts.router.ContactsRouter
 
@@ -47,8 +43,6 @@ fun BluetoothMessagingAppNavigation(
             startDestination = ContactsRouter.route(),
             modifier = Modifier.padding(innerPadding),
         ) {
-            composable(ChooseBluetoothTypeRouter.route()) { ChooseBluetoothTypeScreen() }
-            composable(BluetoothDevicesRouter.route()) { BluetoothDevicesScreen() }
             composable(ChatRouter.route()) { entry ->
                 val address = entry.arguments?.getString(ChatRouter.ADDRESS_PARAM)
                     ?: error("${ChatRouter.ADDRESS_PARAM} was not provided to chat screen")
