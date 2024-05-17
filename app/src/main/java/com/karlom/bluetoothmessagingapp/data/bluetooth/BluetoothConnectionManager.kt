@@ -12,6 +12,7 @@ import arrow.core.Either.Left
 import arrow.core.Either.Right
 import com.karlom.bluetoothmessagingapp.core.di.IoDispatcher
 import com.karlom.bluetoothmessagingapp.core.models.Failure.ErrorMessage
+import com.karlom.bluetoothmessagingapp.domain.bluetooth.models.BluetoothDevice
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.DelicateCoroutinesApi
@@ -85,7 +86,10 @@ class BluetoothConnectionManager @Inject constructor(
     }
 
     @SuppressLint("MissingPermission") // checked inside second condition
-    suspend fun connectToServer(serviceUUID: UUID, address: String): Either<ErrorMessage, Unit> {
+    suspend fun connectToServer(
+        serviceUUID: UUID,
+        address: String,
+    ): Either<ErrorMessage, BluetoothDevice> {
         val adapter = bluetoothManager.adapter
         return if (adapter == null) {
             Left(ErrorMessage("Device doesn't have bluetooth feature"))
@@ -101,7 +105,12 @@ class BluetoothConnectionManager @Inject constructor(
                     socket.connect()
                     outputStream = socket.outputStream
                     inputStream = socket.inputStream
-                    Right(Unit)
+                    Right(
+                        BluetoothDevice(
+                            name = bluetoothDevice.name,
+                            address = bluetoothDevice.address,
+                        )
+                    )
                 } catch (e: IOException) {
                     openedSocket?.close()
                     Left(ErrorMessage(e.message ?: "Unknown"))

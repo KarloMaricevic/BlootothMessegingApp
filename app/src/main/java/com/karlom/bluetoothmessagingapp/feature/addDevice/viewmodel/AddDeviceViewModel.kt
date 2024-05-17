@@ -13,6 +13,8 @@ import com.karlom.bluetoothmessagingapp.domain.bluetooth.usecase.GetIsDeviceDisc
 import com.karlom.bluetoothmessagingapp.domain.bluetooth.usecase.IsServerStarted
 import com.karlom.bluetoothmessagingapp.domain.chat.usecase.ConnectToServer
 import com.karlom.bluetoothmessagingapp.domain.chat.usecase.StartChatServer
+import com.karlom.bluetoothmessagingapp.domain.contacts.models.Contact
+import com.karlom.bluetoothmessagingapp.domain.contacts.usecase.AddContact
 import com.karlom.bluetoothmessagingapp.feature.addDevice.models.AddDeviceScreenEvent
 import com.karlom.bluetoothmessagingapp.feature.addDevice.models.AddDeviceScreenEvent.OnDeviceClicked
 import com.karlom.bluetoothmessagingapp.feature.addDevice.models.AddDeviceScreenEvent.OnDiscoverableSwitchChecked
@@ -40,6 +42,7 @@ class AddDeviceViewModel @Inject constructor(
     private val isServerStarted: IsServerStarted,
     private val startChatServer: StartChatServer,
     private val connectToServer: ConnectToServer,
+    private val addContact: AddContact,
     private val navigator: Navigator,
     @IoDispatcher private val ioDispatcher: CoroutineDispatcher,
 ) : BaseViewModel<AddDeviceScreenEvent>() {
@@ -74,19 +77,23 @@ class AddDeviceViewModel @Inject constructor(
             is OnDeviceClicked -> viewModelScope.launch(ioDispatcher) {
                 val connectToServer = connectToServer(event.address)
                 connectToServer.onLeft { showConnectingToDeviceError.update { true } }
-                connectToServer.onRight {
-                    viewModelScope.launch {
-                        navigator.emitDestination(
-                            Destination(
-                                destination = ChatRouter.creteChatRoute(event.address),
-                                builder = {
-                                    popUpTo(ContactsRouter.route()) {
-                                        this.inclusive = false
-                                    }
-                                }
-                            )
+                connectToServer.onRight { device ->
+                    addContact(
+                        Contact(
+                            name = device.name,
+                            address = device.address,
                         )
-                    }
+                    )
+                    navigator.emitDestination(
+                        Destination(
+                            destination = ChatRouter.creteChatRoute(event.address),
+                            builder = {
+                                popUpTo(ContactsRouter.route()) {
+                                    this.inclusive = false
+                                }
+                            }
+                        )
+                    )
                 }
             }
         }
