@@ -1,5 +1,6 @@
 package com.karlom.bluetoothmessagingapp.feature.contacts
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
@@ -12,6 +13,7 @@ import androidx.paging.compose.collectAsLazyPagingItems
 import com.karlom.bluetoothmessagingapp.feature.contacts.components.Contact
 import com.karlom.bluetoothmessagingapp.feature.contacts.components.NewChatFloatingButton
 import com.karlom.bluetoothmessagingapp.feature.contacts.models.ContactScreenEvent.OnAddContactClicked
+import com.karlom.bluetoothmessagingapp.feature.contacts.models.ContactScreenEvent.OnContactClicked
 import com.karlom.bluetoothmessagingapp.feature.contacts.viewmodel.ContactsViewModel
 import com.karlom.bluetoothmessagingapp.feature.shared.SimpleLazyColumn
 
@@ -25,7 +27,13 @@ fun ContactsScreen(
         SimpleLazyColumn(
             items = contacts,
             key = { contact.address },
-            uiItemBuilder = { contact -> Contact(model = contact) },
+            uiItemBuilder = { contactUi ->
+                Contact(
+                    model = contactUi,
+                    modifier = Modifier.clickable {
+                        viewModel.onEvent(OnContactClicked(contactUi.contact.address))
+                    })
+            },
             noItemsItem = { },
             modifier = Modifier.fillMaxSize(),
         )

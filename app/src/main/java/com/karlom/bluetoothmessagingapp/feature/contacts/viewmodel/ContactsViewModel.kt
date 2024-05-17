@@ -7,9 +7,10 @@ import com.karlom.bluetoothmessagingapp.core.navigation.NavigationEvent.Destinat
 import com.karlom.bluetoothmessagingapp.core.navigation.Navigator
 import com.karlom.bluetoothmessagingapp.domain.contacts.usecase.GetContacts
 import com.karlom.bluetoothmessagingapp.feature.addDevice.router.AddDeviceScreenRouter
+import com.karlom.bluetoothmessagingapp.feature.chat.router.ChatRouter
 import com.karlom.bluetoothmessagingapp.feature.contacts.mappers.ContactUiMapper
 import com.karlom.bluetoothmessagingapp.feature.contacts.models.ContactScreenEvent
-import com.karlom.bluetoothmessagingapp.feature.contacts.models.ContactScreenEvent.OnAddContactClicked
+import com.karlom.bluetoothmessagingapp.feature.contacts.models.ContactScreenEvent.*
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
@@ -29,6 +30,10 @@ class ContactsViewModel @Inject constructor(
         when (event) {
             is OnAddContactClicked -> viewModelScope.launch {
                 navigator.emitDestination(Destination(AddDeviceScreenRouter.route()))
+            }
+
+            is OnContactClicked -> viewModelScope.launch {
+                navigator.emitDestination(Destination(ChatRouter.creteChatRoute(event.address)))
             }
         }
     }
