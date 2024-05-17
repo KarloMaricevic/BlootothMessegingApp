@@ -10,6 +10,9 @@ import com.karlom.bluetoothmessagingapp.feature.chat.models.ChatScreenEvent
 import com.karlom.bluetoothmessagingapp.feature.chat.models.ChatScreenEvent.OnSendClicked
 import com.karlom.bluetoothmessagingapp.feature.chat.models.ChatScreenEvent.OnTextChanged
 import com.karlom.bluetoothmessagingapp.feature.chat.models.ChatScreenState
+import dagger.assisted.Assisted
+import dagger.assisted.AssistedFactory
+import dagger.assisted.AssistedInject
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -17,17 +20,17 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import javax.inject.Inject
 
-@HiltViewModel
-class ChatViewModel @Inject constructor(
+@HiltViewModel(assistedFactory = ChatViewModel.ChatViewModelFactory::class)
+class ChatViewModel @AssistedInject constructor(
+    @Assisted private val contactAddress: String,
     private val getMessages: GetMessages,
     private val sendMessage: SendMessage,
     private val mesRepository: ChatRepository,
 ) : BaseViewModel<ChatScreenEvent>() {
 
     private val textToSend = MutableStateFlow("")
-    private val messages = MutableStateFlow(getMessages())
+    private val messages = MutableStateFlow(getMessages(contactAddress))
 
     val state = combine(
         textToSend,
@@ -52,5 +55,11 @@ class ChatViewModel @Inject constructor(
             is OnTextChanged -> textToSend.update { event.text }
             is OnSendClicked -> viewModelScope.launch { sendMessage(textToSend.value) }
         }
+    }
+
+    @AssistedFactory
+    interface ChatViewModelFactory {
+
+        fun create(contactAddress: String): ChatViewModel
     }
 }

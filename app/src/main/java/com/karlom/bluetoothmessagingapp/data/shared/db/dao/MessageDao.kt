@@ -12,6 +12,6 @@ interface MessageDao {
     @Insert
     suspend fun insertAll(vararg messages: MessageEntity)
 
-    @Query("SELECT * FROM MessageEntity ORDER BY id ASC")
-    fun getMessages(): PagingSource<Int, MessageEntity>
+    @Query("SELECT * FROM MessageEntity WHERE withContactAddress = :withContactAddress ORDER BY id ASC")
+    fun getMessages(withContactAddress: String): PagingSource<Int, MessageEntity>
 }

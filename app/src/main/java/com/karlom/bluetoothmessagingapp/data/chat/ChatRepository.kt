@@ -20,6 +20,7 @@ class ChatRepository @Inject constructor(
     private companion object {
         val CHARSET_UTF_8 = Charsets.UTF_8
         const val PAGE_SIZE = 20
+        const val NO_ADDRESS_ERROR = "NO_ADDRESS"
     }
 
     suspend fun sendMessage(message: String): Either<Failure.ErrorMessage, Unit> {
@@ -29,6 +30,8 @@ class ChatRepository @Inject constructor(
                 MessageEntity(
                     isSendByMe = true,
                     message = message,
+                    withContactAddress = connectionManager.connectedDeviceAddress
+                        ?: NO_ADDRESS_ERROR,
                 )
             )
         }
@@ -38,20 +41,22 @@ class ChatRepository @Inject constructor(
 
     fun getMessageReceiver() = connectionManager.getDataReceiverFlow().map { dataFlow ->
         dataFlow
-            .map { addressAndMessage -> addressAndMessage.second.toString(CHARSET_UTF_8) }
+            .map { message -> message.toString(CHARSET_UTF_8) }
             .map { message ->
                 messageDao.insertAll(
                     MessageEntity(
                         isSendByMe = false,
                         message = message,
+                        withContactAddress = connectionManager.connectedDeviceAddress
+                            ?: NO_ADDRESS_ERROR,
                     )
                 )
                 message
             }
     }
 
-    fun getMessages() = Pager(
+    fun getMessages(withContactAddress: String) = Pager(
         config = PagingConfig(pageSize = PAGE_SIZE, enablePlaceholders = false),
-        pagingSourceFactory = { messageDao.getMessages() },
+        pagingSourceFactory = { messageDao.getMessages(withContactAddress) },
     ).flow.map { page -> page.map { entity -> TextMessage.from(entity) } }
 }

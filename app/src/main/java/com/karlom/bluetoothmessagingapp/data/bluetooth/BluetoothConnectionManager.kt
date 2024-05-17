@@ -48,8 +48,9 @@ class BluetoothConnectionManager @Inject constructor(
     private var outputStream: OutputStream? = null
     private var inputStream: InputStream? = null
     private val inputStreamBuffer = ByteArray(INPUT_BUFFER_SIZE)
-    private val inputStreamChannel = Channel<Pair<String, ByteArray>>(Channel.BUFFERED)
-    private var connectedDeviceAddress: String? = null
+    private val inputStreamChannel = Channel<ByteArray>(Channel.BUFFERED)
+    var connectedDeviceAddress: String? = null
+        private set
 
     private var waitingForClientJob: Job? = null
     private var readingInputStreamJob: Job? = null
@@ -193,9 +194,7 @@ class BluetoothConnectionManager @Inject constructor(
                     if (connectedDeviceAddress == null) {
                         Timber.d("Not saved connected bt address")
                     } else {
-                        inputStreamChannel.send(
-                            Pair(connectedDeviceAddress ?: "", inputStreamBuffer)
-                        )
+                        inputStreamChannel.send(inputStreamBuffer)
                     }
                 } catch (_: IOException) {
                     // TODO handle this, probably with closing connection and prompting user to connect again

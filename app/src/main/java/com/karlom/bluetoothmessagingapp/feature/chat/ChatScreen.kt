@@ -17,10 +17,11 @@ import com.karlom.bluetoothmessagingapp.feature.chat.viewmodel.ChatViewModel
 import com.karlom.bluetoothmessagingapp.feature.shared.SimpleLazyColumn
 
 @Composable
-fun ChatScreen(
-    address: String,
-    viewModel: ChatViewModel = hiltViewModel()
-) {
+fun ChatScreen(address: String) {
+    val viewModel =
+        hiltViewModel<ChatViewModel, ChatViewModel.ChatViewModelFactory> { factory ->
+            factory.create((address))
+        }
     val state by viewModel.state.collectAsState()
     val messages = state.messages.collectAsLazyPagingItems()
     Column(Modifier.fillMaxSize()) {
