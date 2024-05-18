@@ -35,7 +35,6 @@ class AppBluetoothManager @Inject constructor(
 
     val adapter: BluetoothAdapter? =
         context.getSystemService(BluetoothManager::class.java)?.adapter
-    private val cachedInBluetoothDevices = HashMap<String, BluetoothDevice>()
 
     @SuppressLint("MissingPermission") // checked inside first method call
     suspend fun getAvailableBluetoothDevices(): Either<ErrorMessage, List<BluetoothDeviceResponse>> =
@@ -45,7 +44,7 @@ class AppBluetoothManager @Inject constructor(
             Either.Left(ErrorMessage("Insufficient permissions to start bluetooth discovery"))
         } else {
             suspendCancellableCoroutine<Either<ErrorMessage, List<BluetoothDeviceResponse>>> { continuation ->
-                val discoveredDevices = mutableListOf<BluetoothDeviceResponse>()
+                val discoveredDevices = hashMapOf<String, BluetoothDeviceResponse>()
                 val receiver = object : BroadcastReceiver() {
 
                     override fun onReceive(context: Context, intent: Intent) {
@@ -55,8 +54,8 @@ class AppBluetoothManager @Inject constructor(
                                 val device: BluetoothDevice? =
                                     intent.getParcelableExtra(EXTRA_DEVICE)
                                 device?.let {
-                                    cachedInBluetoothDevices[device.address] = device
-                                    discoveredDevices.add(
+                                    discoveredDevices.put(
+                                        device.address,
                                         BluetoothDeviceResponse(
                                             name = device.name,
                                             address = device.address,
@@ -67,7 +66,7 @@ class AppBluetoothManager @Inject constructor(
 
                             ACTION_DISCOVERY_FINISHED -> {
                                 context.unregisterReceiver(this)
-                                continuation.resume(Either.Right(discoveredDevices))
+                                continuation.resume(Either.Right(discoveredDevices.values.toList()))
                             }
                         }
                     }
