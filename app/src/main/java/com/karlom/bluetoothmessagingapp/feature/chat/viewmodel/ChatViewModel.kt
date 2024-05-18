@@ -49,14 +49,6 @@ class ChatViewModel @AssistedInject constructor(
         ),
     )
 
-    init {
-        mesRepository.getMessageReceiver().onRight { messageFlow ->
-            viewModelScope.launch {
-                messageFlow.collect {}
-            }
-        }
-    }
-
     override fun onEvent(event: ChatScreenEvent) {
         when (event) {
             is OnTextChanged -> textToSend.update { event.text }

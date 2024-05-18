@@ -147,13 +147,8 @@ class BluetoothConnectionManager @Inject constructor(
             }
         }
 
-    fun getDataReceiverFlow() =
-        if (inputStream == null) {
-            Left(ErrorMessage("Not connected with anyone"))
+    fun getDataReceiverFlow() = inputStreamChannel.consumeAsFlow()
 
-        } else {
-            Right(inputStreamChannel.consumeAsFlow())
-        }
 
     fun getClientConnectedMyServerNotifier() = clientConnectedToMyServerEvent.consumeAsFlow()
 
