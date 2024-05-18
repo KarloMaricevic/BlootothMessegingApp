@@ -5,6 +5,7 @@ import androidx.lifecycle.viewModelScope
 import com.karlom.bluetoothmessagingapp.core.di.IoDispatcher
 import com.karlom.bluetoothmessagingapp.core.navigation.NavigationEvent
 import com.karlom.bluetoothmessagingapp.core.navigation.Navigator
+import com.karlom.bluetoothmessagingapp.domain.bluetooth.usecase.CloseConnection
 import com.karlom.bluetoothmessagingapp.domain.bluetooth.usecase.GetClientConnectedToMyServerNotifier
 import com.karlom.bluetoothmessagingapp.domain.chat.usecase.StartSavingReceivedMessages
 import com.karlom.bluetoothmessagingapp.feature.chat.router.ChatRouter
@@ -15,6 +16,7 @@ import javax.inject.Inject
 
 @HiltViewModel
 class GlobalViewModel @Inject constructor(
+    private val closeConnection: CloseConnection,
     getClientConnectedToMyServerNotifier: GetClientConnectedToMyServerNotifier,
     startSavingReceivedMessages: StartSavingReceivedMessages,
     @IoDispatcher ioDispatcher: CoroutineDispatcher,
@@ -31,5 +33,10 @@ class GlobalViewModel @Inject constructor(
                 navigator.emitDestination(NavigationEvent.Destination(ChatRouter.creteChatRoute("stub")))
             }
         }
+    }
+
+    override fun onCleared() {
+        closeConnection()
+        super.onCleared()
     }
 }
