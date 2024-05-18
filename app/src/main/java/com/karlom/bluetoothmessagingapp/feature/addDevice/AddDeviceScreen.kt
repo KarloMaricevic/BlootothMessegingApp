@@ -1,9 +1,13 @@
 package com.karlom.bluetoothmessagingapp.feature.addDevice
 
 import android.Manifest
+import android.app.Activity
 import android.bluetooth.BluetoothAdapter
+import android.content.Context
 import android.content.Intent
+import android.location.LocationManager
 import android.os.Build
+import android.provider.Settings
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.clickable
@@ -22,24 +26,25 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.paging.compose.collectAsLazyPagingItems
 import com.google.accompanist.permissions.rememberMultiplePermissionsState
 import com.karlom.bluetoothmessagingapp.R
-import com.karlom.bluetoothmessagingapp.feature.addDevice.models.AddDeviceScreenEvent
+import com.karlom.bluetoothmessagingapp.feature.addDevice.components.BluetoothDeviceItem
 import com.karlom.bluetoothmessagingapp.feature.addDevice.models.AddDeviceScreenEvent.OnDeviceClicked
 import com.karlom.bluetoothmessagingapp.feature.addDevice.models.AddDeviceScreenEvent.OnDiscoverableSwitchChecked
 import com.karlom.bluetoothmessagingapp.feature.addDevice.models.AddDeviceScreenEvent.OnScanForDevicesClicked
 import com.karlom.bluetoothmessagingapp.feature.addDevice.viewmodel.AddDeviceViewModel
-import com.karlom.bluetoothmessagingapp.feature.addDevice.components.BluetoothDeviceItem
 import com.karlom.bluetoothmessagingapp.feature.shared.SimpleLazyColumn
 
 @Composable
 fun AddDeviceScreen(
     viewModel: AddDeviceViewModel = hiltViewModel()
 ) {
+    val context = LocalContext.current
     val state by viewModel.state.collectAsState()
     val bluetoothDevices = state.bluetoothDevices.collectAsLazyPagingItems()
     val makeDiscoverable = rememberLauncherForActivityResult(
@@ -63,6 +68,24 @@ fun AddDeviceScreen(
             makeDiscoverable.launch(Intent(BluetoothAdapter.ACTION_REQUEST_DISCOVERABLE))
         }
     }
+    val gpsEnabled = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.StartActivityForResult()
+    ) { _ ->
+        if (isLocationEnabled(context)) {
+            viewModel.onEvent(OnScanForDevicesClicked)
+        }
+    }
+    val enabledBluetooth =
+        rememberLauncherForActivityResult(contract = ActivityResultContracts.StartActivityForResult(),
+            onResult = { result ->
+                if (result.resultCode == Activity.RESULT_OK) {
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S || isLocationEnabled(context)) {
+                        viewModel.onEvent(OnScanForDevicesClicked)
+                    } else
+                        gpsEnabled.launch(Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS))
+                }
+            }
+        )
     val findBluetoothDevicesPermission = rememberMultiplePermissionsState(
         permissions = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
             listOf(Manifest.permission.BLUETOOTH_SCAN)
@@ -76,10 +99,9 @@ fun AddDeviceScreen(
         }
     ) { result ->
         if (result.filter { entry -> !entry.value }.isEmpty()) {
-            viewModel.onEvent(OnScanForDevicesClicked)
+            enabledBluetooth.launch(Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE))
         }
     }
-
     Column(Modifier.fillMaxSize()) {
         Row(
             modifier = Modifier
@@ -136,4 +158,9 @@ fun AddDeviceScreen(
             )
         }
     }
+}
+
+private fun isLocationEnabled(context: Context): Boolean {
+    val locationManager = context.getSystemService(Context.LOCATION_SERVICE) as LocationManager
+    return locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER)
 }
