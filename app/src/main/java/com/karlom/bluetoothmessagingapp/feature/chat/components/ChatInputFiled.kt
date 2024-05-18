@@ -1,11 +1,15 @@
 package com.karlom.bluetoothmessagingapp.feature.chat.components
 
+import android.net.Uri
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
@@ -14,6 +18,10 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -39,10 +47,50 @@ fun ChatInputFiled(
     onInteraction: (ChatScreenEvent) -> Unit,
     modifier: Modifier = Modifier,
 ) {
+    var hasImage by remember {
+        mutableStateOf(false)
+    }
+    var imageUri by remember {
+        mutableStateOf<Uri?>(null)
+    }
+    val imagePicker = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.GetContent(),
+        onResult = { uri ->
+            hasImage = uri != null
+            imageUri = uri        }
+    )
     Row(
         modifier = modifier.padding(4.dp),
         verticalAlignment = Alignment.Bottom,
     ) {
+        if (hasImage && imageUri != null) {
+
+        }
+        Icon(
+            painter = painterResource(id = R.drawable.ic_camera),
+            contentDescription = stringResource(id = R.string.default_icon_content_description),
+            tint = blue,
+            modifier = Modifier
+                .padding(start = 4.dp, end = 8.dp)
+                .align(Alignment.CenterVertically)
+                .clip(CircleShape)
+                .clickable { }
+                .padding(4.dp)
+                .size(24.dp)
+
+        )
+        Icon(
+            painter = painterResource(id = R.drawable.ic_gallery),
+            contentDescription = stringResource(id = R.string.default_icon_content_description),
+            tint = blue,
+            modifier = Modifier
+                .padding(start = 4.dp, end = 8.dp)
+                .align(Alignment.CenterVertically)
+                .clip(CircleShape)
+                .clickable { imagePicker.launch("image/") }
+                .padding(4.dp)
+                .size(24.dp)
+        )
         Box(
             modifier = Modifier
                 .clip(RoundedCornerShape(8.dp))
@@ -76,6 +124,7 @@ fun ChatInputFiled(
             contentDescription = stringResource(R.string.default_icon_content_description),
             modifier = Modifier
                 .padding(4.dp)
+                .align(Alignment.CenterVertically)
                 .clip(CircleShape)
                 .clickable { onInteraction(OnSendClicked) }
                 .padding(4.dp),
