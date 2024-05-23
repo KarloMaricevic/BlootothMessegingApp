@@ -2,10 +2,12 @@ package com.karlom.bluetoothmessagingapp.feature.chat.components
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
@@ -40,37 +42,62 @@ fun ChatInputFiled(
     modifier: Modifier = Modifier,
 ) {
     Row(
-        modifier = modifier.padding(4.dp),
+        modifier = modifier
+            .background(MaterialTheme.colorScheme.background)
+            .padding(8.dp),
         verticalAlignment = Alignment.Bottom,
+        horizontalArrangement = Arrangement.Center,
     ) {
-        Box(
+        Icon(
+            painter = painterResource(R.drawable.ic_camera),
+            contentDescription = stringResource(R.string.default_icon_content_description),
             modifier = Modifier
-                .clip(RoundedCornerShape(8.dp))
-                .background(gray300)
-                .weight(1f, true)
-        ) {
-            BasicTextField(
-                value = text,
-                onValueChange = { newText -> onInteraction(OnTextChanged(newText)) },
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Text),
-                cursorBrush = SolidColor(black),
-                textStyle = MaterialTheme.typography.bodyLarge.copy(color = MaterialTheme.colorScheme.onBackground),
-                modifier = Modifier
-                    .padding(8.dp)
-                    .fillMaxWidth(),
-                decorationBox = { innerTextField ->
-                    Box(Modifier.padding(vertical = 4.dp)) {
-                        if (text.isEmpty()) {
-                            Text(
-                                text = stringResource(R.string.chat_screen_message_hint),
-                                color = gray500,
-                            )
-                        }
-                        innerTextField()
-                    }
+                .padding(4.dp)
+                .clip(CircleShape)
+                .clickable { onInteraction(OnSendClicked) }
+                .padding(6.dp),
+            tint = blue,
+        )
+        Icon(
+            painter = painterResource(R.drawable.ic_gallery),
+            contentDescription = stringResource(R.string.default_icon_content_description),
+            modifier = Modifier
+                .padding(4.dp)
+                .clip(CircleShape)
+                .clickable { onInteraction(OnSendClicked) }
+                .padding(4.dp),
+            tint = blue,
+        )
+        Icon(
+            painter = painterResource(R.drawable.ic_microphone),
+            contentDescription = stringResource(R.string.default_icon_content_description),
+            modifier = Modifier
+                .padding(4.dp)
+                .clip(CircleShape)
+                .clickable { onInteraction(OnSendClicked) }
+                .padding(4.dp),
+            tint = blue,
+        )
+        BasicTextField(
+            value = text,
+            onValueChange = { newText -> onInteraction(OnTextChanged(newText)) },
+            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Text),
+            cursorBrush = SolidColor(black),
+            textStyle = MaterialTheme.typography.bodyLarge.copy(color = MaterialTheme.colorScheme.onBackground),
+            modifier = Modifier
+                .padding(8.dp)
+                .weight(1f, true),
+            decorationBox = { innerTextField ->
+                if (text.isEmpty()) {
+                    Text(
+                        text = stringResource(R.string.chat_screen_message_hint),
+                        color = gray500,
+                    )
                 }
-            )
-        }
+                innerTextField()
+
+            }
+        )
         Icon(
             painter = painterResource(R.drawable.ic_send),
             contentDescription = stringResource(R.string.default_icon_content_description),
