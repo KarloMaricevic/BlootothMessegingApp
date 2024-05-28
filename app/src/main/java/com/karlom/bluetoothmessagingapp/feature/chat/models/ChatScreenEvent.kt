@@ -8,4 +8,6 @@ sealed interface ChatScreenEvent {
     data object OnSendClicked : ChatScreenEvent
 
     data object OnConnectClicked : ChatScreenEvent
+
+    data class OnSendImageClicked(val uri: String) : ChatScreenEvent
 }

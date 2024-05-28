@@ -1,5 +1,11 @@
 package com.karlom.bluetoothmessagingapp.feature.chat
 
+import android.app.Activity
+import android.content.Intent
+import android.content.pm.PackageManager
+import android.net.Uri
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
@@ -8,22 +14,37 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.paging.compose.collectAsLazyPagingItems
 import com.karlom.bluetoothmessagingapp.feature.chat.components.ChatInputFiled
 import com.karlom.bluetoothmessagingapp.feature.chat.components.ConnectToButton
 import com.karlom.bluetoothmessagingapp.feature.chat.components.TextChatBox
+import com.karlom.bluetoothmessagingapp.feature.chat.models.ChatScreenEvent
 import com.karlom.bluetoothmessagingapp.feature.chat.models.ChatScreenEvent.OnConnectClicked
 import com.karlom.bluetoothmessagingapp.feature.chat.viewmodel.ChatViewModel
 import com.karlom.bluetoothmessagingapp.feature.shared.SimpleLazyColumn
 
 @Composable
 fun ChatScreen(address: String) {
+    val context = LocalContext.current
     val viewModel = hiltViewModel<ChatViewModel, ChatViewModel.ChatViewModelFactory> { factory ->
         factory.create((address))
     }
     val state by viewModel.state.collectAsState()
     val messages = state.messages.collectAsLazyPagingItems()
+
+    val galleryLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.StartActivityForResult()
+    ) { result ->
+        if (result.resultCode == Activity.RESULT_OK) {
+            viewModel.onEvent(
+                ChatScreenEvent.OnSendImageClicked(
+                    result.data?.data?.toString() ?: Uri.EMPTY.toString()
+                )
+            )
+        }
+    }
     Column(Modifier.fillMaxSize()) {
         Box(Modifier.weight(weight = 1f, fill = true)) {
             if (state.showConnectToDeviceButton) {
@@ -43,6 +64,12 @@ fun ChatScreen(address: String) {
         ChatInputFiled(
             text = state.textToSend,
             onInteraction = viewModel::onEvent,
+            onGalleryClicked = {
+                val intent = (Intent(Intent.ACTION_PICK).apply { type = "image/*" })
+                if (context.packageManager.queryIntentActivities(intent, 0).size > 0) {
+                    galleryLauncher.launch(intent)
+                }
+            }
         )
     }
 }

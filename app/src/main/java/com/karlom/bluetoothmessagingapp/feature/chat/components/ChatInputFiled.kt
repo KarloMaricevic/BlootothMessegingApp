@@ -3,13 +3,9 @@ package com.karlom.bluetoothmessagingapp.feature.chat.components
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.Icon
@@ -29,7 +25,6 @@ import com.karlom.bluetoothmessagingapp.R
 import com.karlom.bluetoothmessagingapp.designSystem.theme.BluetoothMessagingAppTheme
 import com.karlom.bluetoothmessagingapp.designSystem.theme.black
 import com.karlom.bluetoothmessagingapp.designSystem.theme.blue
-import com.karlom.bluetoothmessagingapp.designSystem.theme.gray300
 import com.karlom.bluetoothmessagingapp.designSystem.theme.gray500
 import com.karlom.bluetoothmessagingapp.feature.chat.models.ChatScreenEvent
 import com.karlom.bluetoothmessagingapp.feature.chat.models.ChatScreenEvent.OnSendClicked
@@ -39,6 +34,7 @@ import com.karlom.bluetoothmessagingapp.feature.chat.models.ChatScreenEvent.OnTe
 fun ChatInputFiled(
     text: String,
     onInteraction: (ChatScreenEvent) -> Unit,
+    onGalleryClicked: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     Row(
@@ -64,7 +60,7 @@ fun ChatInputFiled(
             modifier = Modifier
                 .padding(4.dp)
                 .clip(CircleShape)
-                .clickable { onInteraction(OnSendClicked) }
+                .clickable { onGalleryClicked() }
                 .padding(4.dp),
             tint = blue,
         )
@@ -118,6 +114,7 @@ fun ChatInputFiledPreview() {
         ChatInputFiled(
             text = "Message",
             onInteraction = {},
+            onGalleryClicked = {},
         )
     }
 }

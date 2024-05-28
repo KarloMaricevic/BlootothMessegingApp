@@ -54,6 +54,7 @@ class ChatViewModel @AssistedInject constructor(
             is OnTextChanged -> textToSend.update { event.text }
             is OnSendClicked -> viewModelScope.launch { sendMessage(textToSend.value) }
             is OnConnectClicked -> {}
+            is OnSendImageClicked -> {}
         }
     }
 
