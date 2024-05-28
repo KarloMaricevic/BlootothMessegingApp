@@ -8,6 +8,7 @@ import androidx.paging.map
 import arrow.core.Either
 import com.karlom.bluetoothmessagingapp.core.models.Failure
 import com.karlom.bluetoothmessagingapp.data.bluetooth.BluetoothConnectionManager
+import com.karlom.bluetoothmessagingapp.data.bluetooth.models.ConnectionState.Connected
 import com.karlom.bluetoothmessagingapp.data.shared.db.dao.MessageDao
 import com.karlom.bluetoothmessagingapp.data.shared.db.enteties.MessageEntity
 import com.karlom.bluetoothmessagingapp.domain.chat.models.TextMessage
@@ -37,7 +38,7 @@ class ChatRepository @Inject constructor(
                 MessageEntity(
                     isSendByMe = true,
                     message = message,
-                    withContactAddress = connectionManager.connectedDeviceAddress
+                    withContactAddress = (connectionManager.getConnectionState().value as? Connected)?.device?.address
                         ?: NO_ADDRESS_ERROR,
                 )
             )
@@ -68,7 +69,7 @@ class ChatRepository @Inject constructor(
                 MessageEntity(
                     isSendByMe = false,
                     message = message.toString(CHARSET_UTF_8),
-                    withContactAddress = connectionManager.connectedDeviceAddress
+                    withContactAddress = (connectionManager.getConnectionState().value as? Connected)?.device?.address
                         ?: NO_ADDRESS_ERROR,
                 )
             )

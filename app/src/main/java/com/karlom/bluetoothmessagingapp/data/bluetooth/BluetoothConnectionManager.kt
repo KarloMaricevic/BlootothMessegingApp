@@ -12,6 +12,8 @@ import arrow.core.Either.Left
 import arrow.core.Either.Right
 import com.karlom.bluetoothmessagingapp.core.di.IoDispatcher
 import com.karlom.bluetoothmessagingapp.core.models.Failure.ErrorMessage
+import com.karlom.bluetoothmessagingapp.data.bluetooth.models.ConnectionState
+import com.karlom.bluetoothmessagingapp.data.bluetooth.models.ConnectionState.*
 import com.karlom.bluetoothmessagingapp.domain.bluetooth.models.BluetoothDevice
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.CoroutineDispatcher
@@ -19,7 +21,11 @@ import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.consumeAsFlow
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import timber.log.Timber
@@ -50,8 +56,8 @@ class BluetoothConnectionManager @Inject constructor(
     private var inputStream: InputStream? = null
     private val inputStreamBuffer = ByteArray(INPUT_BUFFER_SIZE)
     private val inputStreamChannel = Channel<ByteArray>(Channel.BUFFERED)
-    var connectedDeviceAddress: String? = null
-        private set
+
+    private var connectionState = MutableStateFlow<ConnectionState>(NotConnected)
 
     private var waitingForClientJob: Job? = null
     private var readingInputStreamJob: Job? = null
@@ -106,15 +112,14 @@ class BluetoothConnectionManager @Inject constructor(
                     val socket = bluetoothDevice.createRfcommSocketToServiceRecord(serviceUUID)
                     openedSocket = socket
                     socket.connect()
-                    connectedDeviceAddress = address
+                    val domainBluetoothDevice = BluetoothDevice(
+                        name = bluetoothDevice.name,
+                        address = bluetoothDevice.address,
+                    )
+                    connectionState.update { Connected(domainBluetoothDevice) }
                     outputStream = socket.outputStream
                     inputStream = socket.inputStream
-                    Right(
-                        BluetoothDevice(
-                            name = bluetoothDevice.name,
-                            address = bluetoothDevice.address,
-                        )
-                    )
+                    Right(domainBluetoothDevice)
                 } catch (e: IOException) {
                     openedSocket?.close()
                     Left(ErrorMessage(e.message ?: "Unknown"))
@@ -131,7 +136,7 @@ class BluetoothConnectionManager @Inject constructor(
         outputStream = null
         inputStream = null
         openedSocket?.close()
-        connectedDeviceAddress = null
+        connectionState.update { NotConnected }
     }
 
     suspend fun send(bytes: ByteArray): Either<ErrorMessage, Unit> =
@@ -165,11 +170,21 @@ class BluetoothConnectionManager @Inject constructor(
 
     fun getClientConnectedMyServerNotifier() = clientConnectedToMyServerEvent.consumeAsFlow()
 
+    fun getConnectionState() = connectionState.asStateFlow()
+
+    @SuppressLint("MissingPermission")
     private suspend fun listenForOneConnectionThenClose(socket: BluetoothServerSocket) {
         try {
             val connectedSocket = socket.accept()
             socket.close()
-            connectedDeviceAddress = connectedSocket.remoteDevice.address
+            connectionState.update {
+                Connected(
+                    BluetoothDevice(
+                        name = connectedSocket.remoteDevice.name,
+                        address = connectedSocket.remoteDevice.address
+                    )
+                )
+            }
             openedSocket = connectedSocket
             outputStream = connectedSocket.outputStream
             inputStream = connectedSocket.inputStream
@@ -199,7 +214,7 @@ class BluetoothConnectionManager @Inject constructor(
             while (true) {
                 try {
                     inputStream.read(inputStreamBuffer)
-                    if (connectedDeviceAddress == null) {
+                    if (connectionState.value == NotConnected) {
                         Timber.d("Not saved connected bt address")
                     } else {
                         inputStreamChannel.send(inputStreamBuffer)

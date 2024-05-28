@@ -1,6 +1,7 @@
 package com.karlom.bluetoothmessagingapp.domain.bluetooth.usecase
 
 import com.karlom.bluetoothmessagingapp.data.bluetooth.BluetoothConnectionManager
+import com.karlom.bluetoothmessagingapp.data.bluetooth.models.ConnectionState.Connected
 import javax.inject.Inject
 
 class IsConnectedToDevice @Inject constructor(
@@ -8,5 +9,5 @@ class IsConnectedToDevice @Inject constructor(
 ) {
 
     operator fun invoke(deviceAddress: String) =
-        connectionManager.connectedDeviceAddress == deviceAddress
+        connectionManager.getConnectionState().value is Connected
 }
