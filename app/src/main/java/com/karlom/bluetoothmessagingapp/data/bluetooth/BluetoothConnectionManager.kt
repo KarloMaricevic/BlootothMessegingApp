@@ -27,6 +27,7 @@ import java.io.Closeable
 import java.io.IOException
 import java.io.InputStream
 import java.io.OutputStream
+import java.lang.Exception
 import java.util.UUID
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -145,6 +146,18 @@ class BluetoothConnectionManager @Inject constructor(
                     Left(ErrorMessage(error.message ?: "Unknown"))
                 }
             }
+        }
+
+    suspend fun send(stream: InputStream) =
+        try {
+            val buffer = ByteArray(1024)
+            var bytesRead: Int
+            while (stream.read(buffer).also { bytesRead = it } != -1) {
+                outputStream?.write(buffer, 0, bytesRead)
+            }
+            Right(Unit)
+        } catch (e: Exception) {
+            Left(ErrorMessage(e.message ?: "Unknown"))
         }
 
     fun getDataReceiverFlow() = inputStreamChannel.consumeAsFlow()
