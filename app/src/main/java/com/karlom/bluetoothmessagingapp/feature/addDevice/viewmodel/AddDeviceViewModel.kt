@@ -7,8 +7,10 @@ import com.karlom.bluetoothmessagingapp.core.base.TIMEOUT_DELAY
 import com.karlom.bluetoothmessagingapp.core.di.IoDispatcher
 import com.karlom.bluetoothmessagingapp.core.navigation.NavigationEvent.Destination
 import com.karlom.bluetoothmessagingapp.core.navigation.Navigator
+import com.karlom.bluetoothmessagingapp.data.bluetooth.models.ConnectionState.Connected
 import com.karlom.bluetoothmessagingapp.domain.bluetooth.models.BluetoothDevice
 import com.karlom.bluetoothmessagingapp.domain.bluetooth.usecase.GetAvailableBluetoothDevices
+import com.karlom.bluetoothmessagingapp.domain.bluetooth.usecase.GetConnectionStateNotifier
 import com.karlom.bluetoothmessagingapp.domain.bluetooth.usecase.GetIsDeviceDiscoverableNotifier
 import com.karlom.bluetoothmessagingapp.domain.bluetooth.usecase.IsServerStarted
 import com.karlom.bluetoothmessagingapp.domain.chat.usecase.ConnectToServer
@@ -33,6 +35,7 @@ import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import javax.inject.Inject
 
 @HiltViewModel
@@ -43,6 +46,7 @@ class AddDeviceViewModel @Inject constructor(
     private val startChatServer: StartChatServer,
     private val connectToServer: ConnectToServer,
     private val addContact: AddContact,
+    private val getConnectionStateNotifier: GetConnectionStateNotifier,
     private val navigator: Navigator,
     @IoDispatcher private val ioDispatcher: CoroutineDispatcher,
 ) : BaseViewModel<AddDeviceScreenEvent>() {
@@ -66,6 +70,33 @@ class AddDeviceViewModel @Inject constructor(
         initialValue = AddDeviceScreenState(),
     )
 
+    init {
+        viewModelScope.launch {
+            getConnectionStateNotifier().collect { connectionState ->
+                if (connectionState is Connected) {
+                    withContext(ioDispatcher) {
+                        addContact(
+                            Contact(
+                                name = connectionState.device.name,
+                                address = connectionState.device.address,
+                            )
+                        )
+                    }
+                    navigator.emitDestination(
+                        Destination(
+                            destination = ChatRouter.creteChatRoute(connectionState.device.address),
+                            builder = {
+                                popUpTo(ContactsRouter.route()) {
+                                    this.inclusive = false
+                                }
+                            }
+                        )
+                    )
+                }
+            }
+        }
+    }
+
     override fun onEvent(event: AddDeviceScreenEvent) {
         when (event) {
             is OnDiscoverableSwitchChecked -> handleDiscoverableSwitchChanged()
@@ -77,24 +108,6 @@ class AddDeviceViewModel @Inject constructor(
             is OnDeviceClicked -> viewModelScope.launch(ioDispatcher) {
                 val connectToServer = connectToServer(event.address)
                 connectToServer.onLeft { showConnectingToDeviceError.update { true } }
-                connectToServer.onRight { device ->
-                    addContact(
-                        Contact(
-                            name = device.name,
-                            address = device.address,
-                        )
-                    )
-                    navigator.emitDestination(
-                        Destination(
-                            destination = ChatRouter.creteChatRoute(event.address),
-                            builder = {
-                                popUpTo(ContactsRouter.route()) {
-                                    this.inclusive = false
-                                }
-                            }
-                        )
-                    )
-                }
             }
         }
     }
