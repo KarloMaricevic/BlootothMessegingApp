@@ -13,7 +13,8 @@ import arrow.core.Either.Right
 import com.karlom.bluetoothmessagingapp.core.di.IoDispatcher
 import com.karlom.bluetoothmessagingapp.core.models.Failure.ErrorMessage
 import com.karlom.bluetoothmessagingapp.data.bluetooth.models.ConnectionState
-import com.karlom.bluetoothmessagingapp.data.bluetooth.models.ConnectionState.*
+import com.karlom.bluetoothmessagingapp.data.bluetooth.models.ConnectionState.Connected
+import com.karlom.bluetoothmessagingapp.data.bluetooth.models.ConnectionState.NotConnected
 import com.karlom.bluetoothmessagingapp.domain.bluetooth.models.BluetoothDevice
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.CoroutineDispatcher
@@ -22,7 +23,6 @@ import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.consumeAsFlow
 import kotlinx.coroutines.flow.update
@@ -33,7 +33,6 @@ import java.io.Closeable
 import java.io.IOException
 import java.io.InputStream
 import java.io.OutputStream
-import java.lang.Exception
 import java.util.UUID
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -153,7 +152,7 @@ class BluetoothConnectionManager @Inject constructor(
             }
         }
 
-    suspend fun send(stream: InputStream) =
+    suspend fun send(stream: InputStream, streamSize: Long) =
         try {
             val buffer = ByteArray(1024)
             var bytesRead: Int

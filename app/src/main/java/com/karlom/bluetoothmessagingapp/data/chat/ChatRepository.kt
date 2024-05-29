@@ -1,6 +1,7 @@
 package com.karlom.bluetoothmessagingapp.data.chat
 
 import android.content.Context
+import android.provider.OpenableColumns
 import androidx.core.net.toUri
 import androidx.paging.Pager
 import androidx.paging.PagingConfig
@@ -53,12 +54,22 @@ class ChatRepository @Inject constructor(
 
     suspend fun sendImage(imageUri: String): Either<Failure.ErrorMessage, Unit> = try {
         val inputImageStream = context.contentResolver.openInputStream(imageUri.toUri())
-        inputImageStream?.let { notNullImageStream ->
-            val result = connectionManager.send(notNullImageStream)
-            inputImageStream.close()
-            return result
+        val cursor = context.contentResolver.query(imageUri.toUri(), null, null, null, null)
+        var result: Either<Failure.ErrorMessage, Unit>? = null
+        if (inputImageStream != null && cursor != null) {
+            val sizeIndex = cursor.getColumnIndex(OpenableColumns.SIZE)
+            result = if (sizeIndex != -1 && cursor.moveToFirst()) {
+                connectionManager.send(
+                    stream = inputImageStream,
+                    streamSize = cursor.getLong(sizeIndex),
+                )
+            } else {
+                Either.Left(Failure.ErrorMessage("Error trying to read file size"))
+            }
         }
-        Either.Left(Failure.ErrorMessage("Content resolver crashed"))
+        inputImageStream?.close()
+        cursor?.close()
+        result ?: Either.Left(Failure.ErrorMessage("Content resolver crashed"))
     } catch (e: FileNotFoundException) {
         Either.Left(Failure.ErrorMessage("Could not open provided uri"))
     }
