@@ -6,5 +6,7 @@ sealed interface AddDeviceScreenEvent {
 
     data object OnScanForDevicesClicked : AddDeviceScreenEvent
 
+    data object OnBackClicked : AddDeviceScreenEvent
+
     data class OnDeviceClicked(val address: String) : AddDeviceScreenEvent
 }
