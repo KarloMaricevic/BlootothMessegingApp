@@ -5,6 +5,7 @@ import androidx.paging.PagingData
 import com.karlom.bluetoothmessagingapp.core.base.BaseViewModel
 import com.karlom.bluetoothmessagingapp.core.base.TIMEOUT_DELAY
 import com.karlom.bluetoothmessagingapp.core.di.IoDispatcher
+import com.karlom.bluetoothmessagingapp.core.navigation.NavigationEvent
 import com.karlom.bluetoothmessagingapp.core.navigation.NavigationEvent.Destination
 import com.karlom.bluetoothmessagingapp.core.navigation.Navigator
 import com.karlom.bluetoothmessagingapp.domain.bluetooth.models.BluetoothDevice
@@ -73,7 +74,9 @@ class AddDeviceViewModel @Inject constructor(
                 isBluetoothDeviceListShown.update { true }
                 bluetoothDevicesList.update { getAvailableBluetoothDevices() }
             }
-
+            is AddDeviceScreenEvent.OnBackClicked -> viewModelScope.launch {
+                navigator.emitDestination(NavigationEvent.NavigateUp)
+            }
             is OnDeviceClicked -> viewModelScope.launch(ioDispatcher) {
                 val connectToServer = connectToServer(event.address)
                 connectToServer.onLeft { showConnectingToDeviceError.update { true } }
