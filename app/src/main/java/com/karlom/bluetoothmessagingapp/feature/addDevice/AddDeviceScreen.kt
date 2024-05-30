@@ -6,28 +6,40 @@ import android.content.Intent
 import android.os.Build
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Switch
+import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.paging.compose.collectAsLazyPagingItems
 import com.google.accompanist.permissions.rememberMultiplePermissionsState
 import com.karlom.bluetoothmessagingapp.R
+import com.karlom.bluetoothmessagingapp.designSystem.theme.blue
+import com.karlom.bluetoothmessagingapp.designSystem.theme.gray500
+import com.karlom.bluetoothmessagingapp.designSystem.theme.white
 import com.karlom.bluetoothmessagingapp.feature.addDevice.models.AddDeviceScreenEvent
 import com.karlom.bluetoothmessagingapp.feature.addDevice.models.AddDeviceScreenEvent.OnDeviceClicked
 import com.karlom.bluetoothmessagingapp.feature.addDevice.models.AddDeviceScreenEvent.OnDiscoverableSwitchChecked
@@ -83,18 +95,41 @@ fun AddDeviceScreen(
     Column(Modifier.fillMaxSize()) {
         Row(
             modifier = Modifier
-                .align(Alignment.End)
+                .fillMaxWidth()
+                .background(MaterialTheme.colorScheme.surface)
+        ){
+            Icon(
+                painter = painterResource(id = R.drawable.ic_back),
+                contentDescription = stringResource(id = R.string.default_icon_content_description),
+                modifier = Modifier
+                    .padding(4.dp)
+                    .clip(CircleShape)
+                    .clickable { viewModel.onEvent(AddDeviceScreenEvent.OnBackClicked) }
+                    .padding(4.dp)
+                    .size(25.dp)
+            )
+        }
+        Row(
+            modifier = Modifier
                 .padding(8.dp),
+            horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically,
         ) {
             Text(
-                text = stringResource(R.string.add_device_screen_visible_label),
-                modifier = Modifier.padding(end = 8.dp),
+                text = stringResource(id = R.string.add_device_screen_make_device_visible_message),
+                modifier = Modifier.weight(1f, true),
+                color = gray500
             )
             Switch(
                 checked = state.isDiscoverable,
                 enabled = !state.isDiscoverable,
                 onCheckedChange = { makeDeviceDiscoverablePermission.launchMultiplePermissionRequest() },
+                colors = SwitchDefaults.colors(
+                    disabledCheckedBorderColor = blue,
+                    disabledCheckedThumbColor = gray500,
+                    disabledCheckedIconColor = blue,
+                    disabledCheckedTrackColor = blue,
+                )
             )
         }
         Text(
@@ -111,6 +146,7 @@ fun AddDeviceScreen(
                 Button(
                     onClick = { findBluetoothDevicesPermission.launchMultiplePermissionRequest() },
                     modifier = Modifier.align(Alignment.Center),
+                    colors = ButtonDefaults.buttonColors(contentColor = white)
                 ) {
                     Text(text = stringResource(R.string.add_device_screen_start_search_button))
                 }
@@ -126,11 +162,32 @@ fun AddDeviceScreen(
                     )
                 },
                 noItemsItem = {
-                    Box(modifier = Modifier.fillMaxSize()) {
+                    Column(
+                        modifier = Modifier.fillMaxSize(),
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        verticalArrangement = Arrangement.Center,
+                    ) {
+                        Icon(
+                            painter = painterResource(id = R.drawable.ic_devices),
+                            contentDescription = stringResource(id = R.string.default_icon_content_description),
+                            tint = MaterialTheme.colorScheme.onSurface,
+                            modifier = Modifier
+                                .size(150.dp)
+                                .align(Alignment.CenterHorizontally),
+                        )
                         Text(
                             text = stringResource(R.string.bluetooth_device_screen_no_devices_nearby),
-                            modifier = Modifier.align(Alignment.Center),
+                            modifier = Modifier.align(Alignment.CenterHorizontally),
                         )
+                        Button(
+                            onClick = { /*TODO*/ },
+                            modifier = Modifier
+                                .align(Alignment.CenterHorizontally)
+                                .padding(top = 10.dp),
+                            colors = ButtonDefaults.buttonColors(contentColor = white, containerColor = blue)
+                            ) {
+                            Text(text = "Retry")
+                        }
                     }
                 },
             )
