@@ -1,8 +1,9 @@
-package com.karlom.bluetoothmessagingapp.data.bluetooth
+package com.karlom.bluetoothmessagingapp.data.bluetooth.connectionManager
 
 import android.Manifest
 import android.annotation.SuppressLint
 import android.bluetooth.BluetoothServerSocket
+import android.bluetooth.BluetoothSocket
 import android.content.Context
 import android.content.pm.PackageManager
 import android.os.Build
@@ -12,6 +13,7 @@ import arrow.core.Either.Left
 import arrow.core.Either.Right
 import com.karlom.bluetoothmessagingapp.core.di.IoDispatcher
 import com.karlom.bluetoothmessagingapp.core.models.Failure.ErrorMessage
+import com.karlom.bluetoothmessagingapp.data.bluetooth.AppBluetoothManager
 import com.karlom.bluetoothmessagingapp.data.bluetooth.models.ConnectionState
 import com.karlom.bluetoothmessagingapp.data.bluetooth.models.ConnectionState.Connected
 import com.karlom.bluetoothmessagingapp.data.bluetooth.models.ConnectionState.NotConnected
@@ -21,7 +23,9 @@ import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.channels.BufferOverflow
 import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.consumeAsFlow
@@ -31,9 +35,6 @@ import kotlinx.coroutines.withContext
 import timber.log.Timber
 import java.io.Closeable
 import java.io.IOException
-import java.io.InputStream
-import java.io.OutputStream
-import java.nio.ByteBuffer
 import java.util.UUID
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -44,23 +45,16 @@ class BluetoothConnectionManager @Inject constructor(
     private val bluetoothManager: AppBluetoothManager,
     @ApplicationContext private val context: Context,
     @IoDispatcher private val ioDispatcher: CoroutineDispatcher,
-) {
-
-    private companion object {
-        const val INPUT_BUFFER_SIZE = 1024
-    }
+) : ConnectionNotifier {
 
     // this can be server or connection socket
     private var openedSocket: Closeable? = null
-    private var outputStream: OutputStream? = null
-    private var inputStream: InputStream? = null
-    private val inputStreamBuffer = ByteArray(INPUT_BUFFER_SIZE)
-    private val inputStreamChannel = Channel<ByteArray>(Channel.BUFFERED)
 
+    private var internalConnectionStateNotifier =
+        Channel<BluetoothSocket?>(capacity = 1, onBufferOverflow = BufferOverflow.DROP_OLDEST)
     private var connectionState = MutableStateFlow<ConnectionState>(NotConnected)
 
     private var waitingForClientJob: Job? = null
-    private var readingInputStreamJob: Job? = null
 
     private val clientConnectedToMyServerEvent = Channel<Unit>(Channel.BUFFERED)
 
@@ -117,8 +111,7 @@ class BluetoothConnectionManager @Inject constructor(
                         address = bluetoothDevice.address,
                     )
                     connectionState.update { Connected(domainBluetoothDevice) }
-                    outputStream = socket.outputStream
-                    inputStream = socket.inputStream
+                    internalConnectionStateNotifier.send(socket)
                     Right(domainBluetoothDevice)
                 } catch (e: IOException) {
                     openedSocket?.close()
@@ -131,48 +124,10 @@ class BluetoothConnectionManager @Inject constructor(
     fun isServerStarted() = openedSocket is BluetoothServerSocket
 
     fun closeConnection() {
-        readingInputStreamJob?.cancel()
         waitingForClientJob?.cancel()
-        outputStream = null
-        inputStream = null
         openedSocket?.close()
         connectionState.update { NotConnected }
     }
-
-    suspend fun send(bytes: ByteArray): Either<ErrorMessage, Unit> =
-        if (outputStream == null) {
-            Left(ErrorMessage("Not connected with anyone"))
-        } else {
-            withContext(ioDispatcher) {
-                try {
-                    val sizeBuffer = ByteBuffer.allocate(Int.SIZE_BYTES)
-                    sizeBuffer.putInt(bytes.size)
-                    outputStream?.write(sizeBuffer.array())
-                    outputStream?.write(bytes)
-                    Right(Unit)
-                } catch (error: IOException) {
-                    Left(ErrorMessage(error.message ?: "Unknown"))
-                }
-            }
-        }
-
-    suspend fun send(stream: InputStream, streamSize: Long) =
-        try {
-            val sizeBuffer = ByteBuffer.allocate(Int.SIZE_BYTES)
-            val dataBuffer = ByteArray(1024)
-            var bytesRead: Int
-            sizeBuffer.putInt(streamSize.toInt())
-            outputStream?.write(sizeBuffer.array())
-            while (stream.read(dataBuffer).also { bytesRead = it } != -1) {
-                outputStream?.write(dataBuffer, 0, bytesRead)
-            }
-            Right(Unit)
-        } catch (e: Exception) {
-            Left(ErrorMessage(e.message ?: "Unknown"))
-        }
-
-    fun getDataReceiverFlow() = inputStreamChannel.consumeAsFlow()
-
 
     fun getClientConnectedMyServerNotifier() = clientConnectedToMyServerEvent.consumeAsFlow()
 
@@ -192,9 +147,7 @@ class BluetoothConnectionManager @Inject constructor(
                 )
             }
             openedSocket = connectedSocket
-            outputStream = connectedSocket.outputStream
-            inputStream = connectedSocket.inputStream
-            startReadingInputStream(connectedSocket.inputStream)
+            internalConnectionStateNotifier.send(connectedSocket)
             clientConnectedToMyServerEvent.send(Unit)
         } catch (e: IOException) {
             Timber.d(e.message)
@@ -214,64 +167,6 @@ class BluetoothConnectionManager @Inject constructor(
         ) == PackageManager.PERMISSION_GRANTED
     }
 
-    @OptIn(DelicateCoroutinesApi::class)
-    private fun startReadingInputStream(inputStream: InputStream) {
-        readingInputStreamJob = GlobalScope.launch(ioDispatcher) {
-            var receivedDataBuffer: ByteArray? = null
-            var dataBitsWritten = 0
-            var dataLength: Int? = null
-            var isFirstChunkOfMessage = true
-            while (true) {
-                try {
-                    val bytesRead = inputStream.read(inputStreamBuffer)
-                    if (isFirstChunkOfMessage) {
-                        dataLength =
-                            bytesToInt(inputStreamBuffer.copyOfRange(0, Int.SIZE_BYTES))
-                        receivedDataBuffer = ByteArray(dataLength.toInt())
-                    }
-                    System.arraycopy(
-                        inputStreamBuffer,
-                        if (isFirstChunkOfMessage) Int.SIZE_BYTES else 0,
-                        receivedDataBuffer!!,
-                        dataBitsWritten,
-                        if (isFirstChunkOfMessage) {
-                            if (inputStreamBuffer.size - Int.SIZE_BYTES > dataLength!!) {
-                                dataLength
-                            } else {
-                                inputStreamBuffer.size - Int.SIZE_BYTES
-                            }
-                        } else {
-                            if (dataBitsWritten + inputStreamBuffer.size < dataLength!!) {
-                                inputStreamBuffer.size
-                            } else {
-                                dataLength - dataBitsWritten
-                            }
-                        }
-                    )
-                    dataBitsWritten += bytesRead - if (isFirstChunkOfMessage) Int.SIZE_BYTES else 0
-                    if (isFirstChunkOfMessage) {
-                        isFirstChunkOfMessage = false
-                    }
-                    if (dataLength == dataBitsWritten) {
-                        inputStreamChannel.send(receivedDataBuffer)
-                        isFirstChunkOfMessage = true
-                        receivedDataBuffer = null
-                        dataBitsWritten = 0
-                        dataLength = null
-                    }
-                } catch (_: IOException) {
-                    // TODO handle this, probably with closing connection and prompting user to connect again
-                    Timber.d("Error reading input stream")
-                }
-            }
-        }
-    }
-
-    private fun bytesToInt(bytes: ByteArray): Int {
-        require(bytes.size == 4) { "Byte array must be of length 4 to convert to Int" }
-        return (bytes[0].toInt() and 0xFF shl 24) or
-                (bytes[1].toInt() and 0xFF shl 16) or
-                (bytes[2].toInt() and 0xFF shl 8) or
-                (bytes[3].toInt() and 0xFF)
-    }
+    override fun getNotifier(): Flow<BluetoothSocket?> =
+        internalConnectionStateNotifier.consumeAsFlow()
 }

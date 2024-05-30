@@ -1,6 +1,6 @@
 package com.karlom.bluetoothmessagingapp.data.chat
 
-import com.karlom.bluetoothmessagingapp.data.bluetooth.BluetoothConnectionManager
+import com.karlom.bluetoothmessagingapp.data.bluetooth.connectionManager.BluetoothConnectionManager
 import java.util.UUID
 import javax.inject.Inject
 

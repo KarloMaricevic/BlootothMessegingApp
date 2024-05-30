@@ -8,7 +8,8 @@ import androidx.paging.PagingConfig
 import androidx.paging.map
 import arrow.core.Either
 import com.karlom.bluetoothmessagingapp.core.models.Failure
-import com.karlom.bluetoothmessagingapp.data.bluetooth.BluetoothConnectionManager
+import com.karlom.bluetoothmessagingapp.data.bluetooth.BluetoothCommunicationManager
+import com.karlom.bluetoothmessagingapp.data.bluetooth.connectionManager.BluetoothConnectionManager
 import com.karlom.bluetoothmessagingapp.data.bluetooth.models.ConnectionState.Connected
 import com.karlom.bluetoothmessagingapp.data.shared.db.dao.MessageDao
 import com.karlom.bluetoothmessagingapp.data.shared.db.enteties.MessageEntity
@@ -21,6 +22,7 @@ import javax.inject.Singleton
 
 @Singleton
 class ChatRepository @Inject constructor(
+    private val communicationManager: BluetoothCommunicationManager,
     private val connectionManager: BluetoothConnectionManager,
     private val messageDao: MessageDao,
     @ApplicationContext private val context: Context,
@@ -33,7 +35,7 @@ class ChatRepository @Inject constructor(
     }
 
     suspend fun sendMessage(message: String): Either<Failure.ErrorMessage, Unit> {
-        val result = connectionManager.send(message.toByteArray(CHARSET_UTF_8))
+        val result = communicationManager.send(message.toByteArray(CHARSET_UTF_8))
         result.onRight {
             messageDao.insertAll(
                 MessageEntity(
@@ -59,7 +61,7 @@ class ChatRepository @Inject constructor(
         if (inputImageStream != null && cursor != null) {
             val sizeIndex = cursor.getColumnIndex(OpenableColumns.SIZE)
             result = if (sizeIndex != -1 && cursor.moveToFirst()) {
-                connectionManager.send(
+                communicationManager.send(
                     stream = inputImageStream,
                     streamSize = cursor.getLong(sizeIndex),
                 )
@@ -75,7 +77,7 @@ class ChatRepository @Inject constructor(
     }
 
     suspend fun startSavingReceivedMessages() {
-        connectionManager.getDataReceiverFlow().collect { message ->
+        communicationManager.receivedMessageEvent.collect { message ->
             messageDao.insertAll(
                 MessageEntity(
                     isSendByMe = false,

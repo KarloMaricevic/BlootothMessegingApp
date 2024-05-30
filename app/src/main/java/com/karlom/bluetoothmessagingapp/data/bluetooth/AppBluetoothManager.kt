@@ -27,7 +27,6 @@ import javax.inject.Inject
 import javax.inject.Singleton
 import kotlin.coroutines.resume
 
-// TODO Separate this to multiple classes (e.g. ConnectionManager), for now ok
 @Singleton
 class AppBluetoothManager @Inject constructor(
     @ApplicationContext private val context: Context,
