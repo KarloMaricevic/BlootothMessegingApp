@@ -27,6 +27,9 @@ fun ContactsScreen(
         SimpleLazyColumn(
             items = contacts,
             key = { contact.address },
+            titleItemBuilder = {
+                Text(text = stringResource(id = R.string.contacts_screen_chat_title))
+            },
             uiItemBuilder = { contactUi ->
                 Contact(
                     model = contactUi,
