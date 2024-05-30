@@ -33,6 +33,7 @@ import java.io.Closeable
 import java.io.IOException
 import java.io.InputStream
 import java.io.OutputStream
+import java.nio.ByteBuffer
 import java.util.UUID
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -144,6 +145,9 @@ class BluetoothConnectionManager @Inject constructor(
         } else {
             withContext(ioDispatcher) {
                 try {
+                    val sizeBuffer = ByteBuffer.allocate(Int.SIZE_BYTES)
+                    sizeBuffer.putInt(bytes.size)
+                    outputStream?.write(sizeBuffer.array())
                     outputStream?.write(bytes)
                     Right(Unit)
                 } catch (error: IOException) {
@@ -154,10 +158,13 @@ class BluetoothConnectionManager @Inject constructor(
 
     suspend fun send(stream: InputStream, streamSize: Long) =
         try {
-            val buffer = ByteArray(1024)
+            val sizeBuffer = ByteBuffer.allocate(Int.SIZE_BYTES)
+            val dataBuffer = ByteArray(1024)
             var bytesRead: Int
-            while (stream.read(buffer).also { bytesRead = it } != -1) {
-                outputStream?.write(buffer, 0, bytesRead)
+            sizeBuffer.putInt(streamSize.toInt())
+            outputStream?.write(sizeBuffer.array())
+            while (stream.read(dataBuffer).also { bytesRead = it } != -1) {
+                outputStream?.write(dataBuffer, 0, bytesRead)
             }
             Right(Unit)
         } catch (e: Exception) {
@@ -210,13 +217,47 @@ class BluetoothConnectionManager @Inject constructor(
     @OptIn(DelicateCoroutinesApi::class)
     private fun startReadingInputStream(inputStream: InputStream) {
         readingInputStreamJob = GlobalScope.launch(ioDispatcher) {
+            var receivedDataBuffer: ByteArray? = null
+            var dataBitsWritten = 0
+            var dataLength: Int? = null
+            var isFirstChunkOfMessage = true
             while (true) {
                 try {
-                    inputStream.read(inputStreamBuffer)
-                    if (connectionState.value == NotConnected) {
-                        Timber.d("Not saved connected bt address")
-                    } else {
-                        inputStreamChannel.send(inputStreamBuffer)
+                    val bytesRead = inputStream.read(inputStreamBuffer)
+                    if (isFirstChunkOfMessage) {
+                        dataLength =
+                            bytesToInt(inputStreamBuffer.copyOfRange(0, Int.SIZE_BYTES))
+                        receivedDataBuffer = ByteArray(dataLength.toInt())
+                    }
+                    System.arraycopy(
+                        inputStreamBuffer,
+                        if (isFirstChunkOfMessage) Int.SIZE_BYTES else 0,
+                        receivedDataBuffer!!,
+                        dataBitsWritten,
+                        if (isFirstChunkOfMessage) {
+                            if (inputStreamBuffer.size - Int.SIZE_BYTES > dataLength!!) {
+                                dataLength
+                            } else {
+                                inputStreamBuffer.size - Int.SIZE_BYTES
+                            }
+                        } else {
+                            if (dataBitsWritten + inputStreamBuffer.size < dataLength!!) {
+                                inputStreamBuffer.size
+                            } else {
+                                dataLength - dataBitsWritten
+                            }
+                        }
+                    )
+                    dataBitsWritten += bytesRead - if (isFirstChunkOfMessage) Int.SIZE_BYTES else 0
+                    if (isFirstChunkOfMessage) {
+                        isFirstChunkOfMessage = false
+                    }
+                    if (dataLength == dataBitsWritten) {
+                        inputStreamChannel.send(receivedDataBuffer)
+                        isFirstChunkOfMessage = true
+                        receivedDataBuffer = null
+                        dataBitsWritten = 0
+                        dataLength = null
                     }
                 } catch (_: IOException) {
                     // TODO handle this, probably with closing connection and prompting user to connect again
@@ -224,5 +265,13 @@ class BluetoothConnectionManager @Inject constructor(
                 }
             }
         }
+    }
+
+    private fun bytesToInt(bytes: ByteArray): Int {
+        require(bytes.size == 4) { "Byte array must be of length 4 to convert to Int" }
+        return (bytes[0].toInt() and 0xFF shl 24) or
+                (bytes[1].toInt() and 0xFF shl 16) or
+                (bytes[2].toInt() and 0xFF shl 8) or
+                (bytes[3].toInt() and 0xFF)
     }
 }
