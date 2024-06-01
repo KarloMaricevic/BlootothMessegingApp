@@ -2,7 +2,6 @@ package com.karlom.bluetoothmessagingapp.feature.chat
 
 import android.app.Activity
 import android.content.Intent
-import android.content.pm.PackageManager
 import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
@@ -47,12 +46,6 @@ fun ChatScreen(address: String) {
     }
     Column(Modifier.fillMaxSize()) {
         Box(Modifier.weight(weight = 1f, fill = true)) {
-            if (state.showConnectToDeviceButton) {
-                ConnectToButton(
-                    onClick = { viewModel.onEvent(OnConnectClicked) },
-                    modifier = Modifier.align(Alignment.TopCenter),
-                )
-            }
             SimpleLazyColumn(
                 items = messages,
                 key = { id },
@@ -60,6 +53,12 @@ fun ChatScreen(address: String) {
                 noItemsItem = { },
                 modifier = Modifier.fillMaxSize()
             )
+            if (state.showConnectToDeviceButton) {
+                ConnectToButton(
+                    onClick = { viewModel.onEvent(OnConnectClicked) },
+                    modifier = Modifier.align(Alignment.TopCenter),
+                )
+            }
         }
         ChatInputFiled(
             text = state.textToSend,
