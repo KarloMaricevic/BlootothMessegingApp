@@ -21,4 +21,11 @@ class ChatConnectionManager @Inject constructor(
         serviceUUID = UUID.fromString(SERVICE_UUID),
         address = address,
     )
+
+    suspend fun startServerAndConnectToDevice(address: String) =
+        connectionManager.startListeningAndTryToConnectToSpecificDevice(
+            serviceName = SERVICE_NAME,
+            serviceUUID = UUID.fromString(SERVICE_UUID),
+            address = address,
+        )
 }
