@@ -4,11 +4,14 @@ import androidx.lifecycle.viewModelScope
 import com.karlom.bluetoothmessagingapp.core.base.BaseViewModel
 import com.karlom.bluetoothmessagingapp.core.base.TIMEOUT_DELAY
 import com.karlom.bluetoothmessagingapp.core.di.IoDispatcher
+import com.karlom.bluetoothmessagingapp.data.bluetooth.models.ConnectionState
 import com.karlom.bluetoothmessagingapp.data.chat.ChatRepository
+import com.karlom.bluetoothmessagingapp.domain.bluetooth.usecase.GetConnectionStateNotifier
 import com.karlom.bluetoothmessagingapp.domain.bluetooth.usecase.IsConnectedToDevice
 import com.karlom.bluetoothmessagingapp.domain.chat.usecase.GetMessages
 import com.karlom.bluetoothmessagingapp.domain.chat.usecase.SendImage
 import com.karlom.bluetoothmessagingapp.domain.chat.usecase.SendMessage
+import com.karlom.bluetoothmessagingapp.domain.chat.usecase.StartChatServerAndConnectToDevice
 import com.karlom.bluetoothmessagingapp.feature.chat.models.ChatScreenEvent
 import com.karlom.bluetoothmessagingapp.feature.chat.models.ChatScreenEvent.OnConnectClicked
 import com.karlom.bluetoothmessagingapp.feature.chat.models.ChatScreenEvent.OnSendClicked
@@ -35,6 +38,8 @@ class ChatViewModel @AssistedInject constructor(
     private val mesRepository: ChatRepository,
     private val isConnectedToDevice: IsConnectedToDevice,
     private val sendImage: SendImage,
+    private val getConnectionStateNotifier: GetConnectionStateNotifier,
+    private val startChatServerAndConnectToDevice: StartChatServerAndConnectToDevice,
     @IoDispatcher private val ioDispatcher: CoroutineDispatcher
 ) : BaseViewModel<ChatScreenEvent>() {
 
@@ -57,11 +62,27 @@ class ChatViewModel @AssistedInject constructor(
         ),
     )
 
+    init {
+        viewModelScope.launch {
+            getConnectionStateNotifier().collect { state ->
+                showConnectToDeviceButton.update {
+                    when (state) {
+                        is ConnectionState.Connected -> contactAddress != state.device.address
+                        is ConnectionState.NotConnected -> true
+                    }
+                }
+            }
+        }
+    }
+
     override fun onEvent(event: ChatScreenEvent) {
         when (event) {
             is OnTextChanged -> textToSend.update { event.text }
             is OnSendClicked -> viewModelScope.launch { sendMessage(textToSend.value) }
-            is OnConnectClicked -> {}
+            is OnConnectClicked -> viewModelScope.launch(ioDispatcher) {
+                startChatServerAndConnectToDevice(contactAddress)
+            }
+
             is OnSendImageClicked -> viewModelScope.launch(ioDispatcher) { sendImage(event.uri) }
         }
     }
