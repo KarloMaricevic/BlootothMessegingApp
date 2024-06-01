@@ -14,6 +14,7 @@ import arrow.core.Either.Right
 import com.karlom.bluetoothmessagingapp.core.di.IoDispatcher
 import com.karlom.bluetoothmessagingapp.core.models.Failure.ErrorMessage
 import com.karlom.bluetoothmessagingapp.data.bluetooth.AppBluetoothManager
+import com.karlom.bluetoothmessagingapp.data.bluetooth.communicationMenager.errorDispatcher.CommunicationErrorDispatcher
 import com.karlom.bluetoothmessagingapp.data.bluetooth.models.ConnectionState
 import com.karlom.bluetoothmessagingapp.data.bluetooth.models.ConnectionState.Connected
 import com.karlom.bluetoothmessagingapp.data.bluetooth.models.ConnectionState.NotConnected
@@ -45,6 +46,7 @@ import javax.inject.Singleton
 @Singleton
 class BluetoothConnectionManager @Inject constructor(
     private val bluetoothManager: AppBluetoothManager,
+    private val errorDispatcher: CommunicationErrorDispatcher,
     @ApplicationContext private val context: Context,
     @IoDispatcher private val ioDispatcher: CoroutineDispatcher,
 ) : ConnectionNotifier {
@@ -62,6 +64,12 @@ class BluetoothConnectionManager @Inject constructor(
     private var waitingForClientJob: Job? = null
 
     private val clientConnectedToMyServerEvent = Channel<Unit>(Channel.BUFFERED)
+
+    init {
+        GlobalScope.launch(ioDispatcher) {
+            errorDispatcher.errorEvent.collect { closeConnection() }
+        }
+    }
 
     @OptIn(DelicateCoroutinesApi::class)
     @SuppressLint("MissingPermission") // checked inside second condition

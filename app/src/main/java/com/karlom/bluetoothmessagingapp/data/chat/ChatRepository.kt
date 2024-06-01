@@ -8,7 +8,7 @@ import androidx.paging.PagingConfig
 import androidx.paging.map
 import arrow.core.Either
 import com.karlom.bluetoothmessagingapp.core.models.Failure
-import com.karlom.bluetoothmessagingapp.data.bluetooth.BluetoothCommunicationManager
+import com.karlom.bluetoothmessagingapp.data.bluetooth.communicationMenager.BluetoothCommunicationManager
 import com.karlom.bluetoothmessagingapp.data.bluetooth.connectionManager.BluetoothConnectionManager
 import com.karlom.bluetoothmessagingapp.data.bluetooth.models.ConnectionState.Connected
 import com.karlom.bluetoothmessagingapp.data.shared.db.dao.MessageDao

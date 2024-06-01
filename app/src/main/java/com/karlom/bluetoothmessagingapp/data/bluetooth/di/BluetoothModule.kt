@@ -1,5 +1,7 @@
 package com.karlom.bluetoothmessagingapp.data.bluetooth.di
 
+import com.karlom.bluetoothmessagingapp.data.bluetooth.communicationMenager.errorDispatcher.CommunicationErrorDispatcher
+import com.karlom.bluetoothmessagingapp.data.bluetooth.communicationMenager.errorDispatcher.CommunicationErrorDispatcherImp
 import com.karlom.bluetoothmessagingapp.data.bluetooth.connectionManager.BluetoothConnectionManager
 import com.karlom.bluetoothmessagingapp.data.bluetooth.connectionManager.ConnectionNotifier
 import dagger.Binds
@@ -15,4 +17,8 @@ interface BluetoothModule {
     @Binds
     @Singleton
     fun bindsConnectionNotifier(connectionManager: BluetoothConnectionManager): ConnectionNotifier
+
+    @Binds
+    @Singleton
+    fun bindsCommunicationErrorDispatcher(errorDispatcher: CommunicationErrorDispatcherImp): CommunicationErrorDispatcher
 }

@@ -1,8 +1,9 @@
-package com.karlom.bluetoothmessagingapp.data.bluetooth
+package com.karlom.bluetoothmessagingapp.data.bluetooth.communicationMenager
 
 import arrow.core.Either
 import com.karlom.bluetoothmessagingapp.core.di.IoDispatcher
 import com.karlom.bluetoothmessagingapp.core.models.Failure
+import com.karlom.bluetoothmessagingapp.data.bluetooth.communicationMenager.errorDispatcher.CommunicationErrorDispatcher
 import com.karlom.bluetoothmessagingapp.data.bluetooth.connectionManager.ConnectionNotifier
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.DelicateCoroutinesApi
@@ -12,7 +13,6 @@ import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import timber.log.Timber
 import java.io.IOException
 import java.io.InputStream
 import java.io.OutputStream
@@ -22,6 +22,7 @@ import javax.inject.Singleton
 
 @Singleton
 class BluetoothCommunicationManager @Inject constructor(
+    private val errorDispatcher: CommunicationErrorDispatcher,
     @IoDispatcher private val ioDispatcher: CoroutineDispatcher,
     connectionNotifier: ConnectionNotifier,
 ) {
@@ -84,6 +85,8 @@ class BluetoothCommunicationManager @Inject constructor(
                 }
                 Either.Right(Unit)
             } catch (e: Exception) {
+                closeCommunication()
+                errorDispatcher.notify()
                 Either.Left(Failure.ErrorMessage(e.message ?: "Unknown"))
             }
         }
@@ -134,8 +137,8 @@ class BluetoothCommunicationManager @Inject constructor(
                         dataLength = null
                     }
                 } catch (_: IOException) {
-                    // TODO handle this, probably with closing connection and prompting user to connect again
-                    Timber.d("Error reading input stream")
+                    closeCommunication()
+                    errorDispatcher.notify()
                 }
             }
         }
@@ -147,5 +150,11 @@ class BluetoothCommunicationManager @Inject constructor(
                 (bytes[1].toInt() and 0xFF shl 16) or
                 (bytes[2].toInt() and 0xFF shl 8) or
                 (bytes[3].toInt() and 0xFF)
+    }
+
+    private fun closeCommunication() {
+        readingInputStreamJob?.cancel()
+        outputStream?.close()
+        inputStream?.close()
     }
 }
