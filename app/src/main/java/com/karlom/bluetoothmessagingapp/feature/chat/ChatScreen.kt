@@ -5,6 +5,11 @@ import android.content.Intent
 import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
@@ -60,15 +65,21 @@ fun ChatScreen(address: String) {
                 )
             }
         }
-        ChatInputFiled(
-            text = state.textToSend,
-            onInteraction = viewModel::onEvent,
-            onGalleryClicked = {
-                val intent = (Intent(Intent.ACTION_PICK).apply { type = "image/*" })
-                if (context.packageManager.queryIntentActivities(intent, 0).size > 0) {
-                    galleryLauncher.launch(intent)
+        AnimatedVisibility(
+            visible = !state.showConnectToDeviceButton,
+            enter = slideInVertically(initialOffsetY = { it }) + fadeIn(),
+            exit = slideOutVertically(targetOffsetY = { it }) + fadeOut(),
+        ) {
+            ChatInputFiled(
+                text = state.textToSend,
+                onInteraction = viewModel::onEvent,
+                onGalleryClicked = {
+                    val intent = (Intent(Intent.ACTION_PICK).apply { type = "image/*" })
+                    if (context.packageManager.queryIntentActivities(intent, 0).size > 0) {
+                        galleryLauncher.launch(intent)
+                    }
                 }
-            }
-        )
+            )
+        }
     }
 }
