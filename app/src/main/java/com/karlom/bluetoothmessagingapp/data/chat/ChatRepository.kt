@@ -9,6 +9,7 @@ import androidx.paging.map
 import arrow.core.Either
 import com.karlom.bluetoothmessagingapp.core.models.Failure
 import com.karlom.bluetoothmessagingapp.data.bluetooth.communicationMenager.BluetoothCommunicationManager
+import com.karlom.bluetoothmessagingapp.data.bluetooth.models.BluetoothMessage
 import com.karlom.bluetoothmessagingapp.data.shared.db.dao.MessageDao
 import com.karlom.bluetoothmessagingapp.data.shared.db.enteties.MessageEntity
 import com.karlom.bluetoothmessagingapp.domain.chat.models.TextMessage
@@ -26,7 +27,6 @@ class ChatRepository @Inject constructor(
 ) {
 
     private companion object {
-        val CHARSET_UTF_8 = Charsets.UTF_8
         const val PAGE_SIZE = 20
     }
 
@@ -34,7 +34,7 @@ class ChatRepository @Inject constructor(
         message: String,
         address: String,
     ): Either<Failure.ErrorMessage, Unit> {
-        val result = communicationManager.send(message.toByteArray(CHARSET_UTF_8), address)
+        val result = communicationManager.sendText(text = message, address = address)
         result.onRight {
             messageDao.insertAll(
                 MessageEntity(
@@ -60,9 +60,9 @@ class ChatRepository @Inject constructor(
             if (inputImageStream != null && cursor != null) {
                 val sizeIndex = cursor.getColumnIndex(OpenableColumns.SIZE)
                 result = if (sizeIndex != -1 && cursor.moveToFirst()) {
-                    communicationManager.send(
+                    communicationManager.sendImage(
                         stream = inputImageStream,
-                        streamSize = cursor.getLong(sizeIndex),
+                        streamSize = cursor.getLong(sizeIndex).toInt(),
                         address = address,
                     )
                 } else {
@@ -78,13 +78,19 @@ class ChatRepository @Inject constructor(
 
     suspend fun startSavingReceivedMessages() {
         communicationManager.receivedMessageEvent.collect { message ->
-            messageDao.insertAll(
-                MessageEntity(
-                    isSendByMe = false,
-                    message = message.second.toString(CHARSET_UTF_8),
-                    withContactAddress = message.first,
-                )
-            )
+            when (message) {
+                is BluetoothMessage.Text -> {
+                    messageDao.insertAll(
+                        MessageEntity(
+                            isSendByMe = false,
+                            message = message.text,
+                            withContactAddress = message.address,
+                        )
+                    )
+                }
+
+                else -> throw NotImplementedError()
+            }
         }
     }
 }
