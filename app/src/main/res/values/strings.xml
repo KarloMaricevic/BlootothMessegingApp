@@ -2,6 +2,7 @@
     <string name="app_name">BluetoothMessagingApp</string>
 
     <string name="default_icon_content_description" />
+    <string name="default_animation_label" />
 
     // bluetooth devices screen
     <string name="bluetooth_devices_screen_start_searching">Start searching</string>
@@ -11,6 +12,7 @@
     // chat screen
     <string name="chat_screen_message_hint">Aa</string>
     <string name="chat_screen_connect_to_device_button">Connect to device</string>
+    <string name="chat_screen_connecting_label">Connecting</string>
 
     // contacts screen
     <string name="contacts_screen_new_chat">New chat</string>

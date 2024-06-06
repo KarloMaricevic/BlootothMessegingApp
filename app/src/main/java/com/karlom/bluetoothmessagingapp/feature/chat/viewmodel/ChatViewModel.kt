@@ -62,6 +62,7 @@ class ChatViewModel @AssistedInject constructor(
 
     val state = combine(
         showConnectToDeviceButton,
+        isTryingToConnect,
         textToSend,
         messages,
         ::ChatScreenState,

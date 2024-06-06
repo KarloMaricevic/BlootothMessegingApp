@@ -60,7 +60,12 @@ fun ChatScreen(address: String) {
             )
             if (state.showConnectToDeviceButton) {
                 ConnectToButton(
-                    onClick = { viewModel.onEvent(OnConnectClicked) },
+                    isConnecting = state.isTryingToConnect,
+                    onClick = if (state.isTryingToConnect) {
+                        null
+                    } else {
+                        { viewModel.onEvent(OnConnectClicked) }
+                    },
                     modifier = Modifier.align(Alignment.TopCenter),
                 )
             }
