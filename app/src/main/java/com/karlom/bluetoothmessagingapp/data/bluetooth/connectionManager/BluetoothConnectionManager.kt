@@ -15,34 +15,30 @@ import com.karlom.bluetoothmessagingapp.core.di.IoDispatcher
 import com.karlom.bluetoothmessagingapp.core.models.Failure.ErrorMessage
 import com.karlom.bluetoothmessagingapp.data.bluetooth.AppBluetoothManager
 import com.karlom.bluetoothmessagingapp.data.bluetooth.communicationMenager.errorDispatcher.CommunicationErrorDispatcher
-import com.karlom.bluetoothmessagingapp.data.bluetooth.models.ConnectionState
-import com.karlom.bluetoothmessagingapp.data.bluetooth.models.ConnectionState.Connected
-import com.karlom.bluetoothmessagingapp.data.bluetooth.models.ConnectionState.NotConnected
+import com.karlom.bluetoothmessagingapp.data.bluetooth.models.SocketConnection
 import com.karlom.bluetoothmessagingapp.domain.bluetooth.models.BluetoothDevice
 import dagger.hilt.android.qualifiers.ApplicationContext
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineDispatcher
-import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.Job
+import kotlinx.coroutines.async
 import kotlinx.coroutines.channels.BufferOverflow
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.coroutineScope
-import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.consumeAsFlow
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.update
-import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
+import kotlinx.coroutines.suspendCancellableCoroutine
 import timber.log.Timber
 import java.io.Closeable
 import java.io.IOException
 import java.util.UUID
 import javax.inject.Inject
 import javax.inject.Singleton
+import kotlin.coroutines.resume
 
-// This works for only one server in whole app, but that's fine for now
 @Singleton
 class BluetoothConnectionManager @Inject constructor(
     private val bluetoothManager: AppBluetoothManager,
@@ -51,52 +47,82 @@ class BluetoothConnectionManager @Inject constructor(
     @IoDispatcher private val ioDispatcher: CoroutineDispatcher,
 ) : ConnectionNotifier {
 
-    // this can be server or connection socket
-    private var listeningSocket: Closeable? = null
 
-    @Volatile
-    private var connectedSocket: Closeable? = null
+    private val connectedSockets = MutableStateFlow<List<BluetoothSocket>>(listOf())
 
-    private var internalConnectionStateNotifier =
-        Channel<BluetoothSocket?>(capacity = 1, onBufferOverflow = BufferOverflow.DROP_OLDEST)
-    private var connectionState = MutableStateFlow<ConnectionState>(NotConnected)
-
-    private var waitingForClientJob: Job? = null
-
-    private val clientConnectedToMyServerEvent = Channel<Unit>(Channel.BUFFERED)
-
-    init {
-        GlobalScope.launch(ioDispatcher) {
-            errorDispatcher.errorEvent.collect { closeConnection() }
+    @SuppressLint("MissingPermission")
+    val connectedDevices = connectedSockets.map { sockets ->
+        sockets.map { socket ->
+            BluetoothDevice(
+                socket.remoteDevice.name,
+                socket.remoteDevice.address
+            )
         }
     }
 
-    @OptIn(DelicateCoroutinesApi::class)
+    private val _connectionNotifier = Channel<SocketConnection>(24, BufferOverflow.DROP_OLDEST)
+    override val connectedDeviceNotifier = _connectionNotifier.consumeAsFlow()
+
+    init {
+        GlobalScope.launch(ioDispatcher) {
+            errorDispatcher.errorEvent.collect { address ->
+                connectedSockets.value.firstOrNull { item -> item.remoteDevice.address == address }
+                    ?.let { socketInError ->
+                        socketInError.close()
+                        _connectionNotifier.trySend(SocketConnection(socketInError, false))
+                        connectedSockets.update { it - socketInError }
+                    }
+            }
+        }
+    }
+
     @SuppressLint("MissingPermission") // checked inside second condition
-    fun startServerAndListenForConnection(
+    suspend fun startServerAndWaitForConnection(
         serviceName: String,
         serviceUUID: UUID,
-    ): Either<ErrorMessage, Unit> {
+    ): Either<ErrorMessage, BluetoothDevice> {
         val adapter = bluetoothManager.adapter
         return if (adapter == null) {
             Left(ErrorMessage("Device doesn't have bluetooth feature"))
         } else if (!hasPermissionsToStartOrConnectToAServer()) {
             Left(ErrorMessage("Insufficient permissions to start bluetooth server"))
-        } else if (listeningSocket != null) {
-            Left(ErrorMessage("Socket already opened"))
         } else {
-            try {
-                val serverSocket = adapter.listenUsingRfcommWithServiceRecord(
-                    /* name = */ serviceName,
-                    /* uuid = */ serviceUUID,
-                )
-                listeningSocket = serverSocket
-                waitingForClientJob = GlobalScope.launch(ioDispatcher) {
-                    listenForOneConnectionThenClose(serverSocket)
+            coroutineScope {
+                var serverSocket: BluetoothServerSocket? = null
+                try {
+                    serverSocket = adapter.listenUsingRfcommWithServiceRecord(
+                        /* name = */ serviceName,
+                        /* uuid = */ serviceUUID,
+                    )
+                    val connectedSocketDeferred = async {
+                        return@async try {
+                            Right(serverSocket.accept())
+                        } catch (e: IOException) {
+                            Left(ErrorMessage(e.message ?: "Unknown"))
+                        }
+                    }
+                    val connectedSocket = connectedSocketDeferred.await()
+                    serverSocket.close()
+                    when (connectedSocket) {
+                        is Right -> {
+                            connectedSockets.update { it + connectedSocket.value }
+                            _connectionNotifier.send(SocketConnection(connectedSocket.value, true))
+                            return@coroutineScope Right(
+                                BluetoothDevice(
+                                    connectedSocket.value.remoteDevice.name,
+                                    connectedSocket.value.remoteDevice.address,
+                                )
+                            )
+                        }
+
+                        is Left -> return@coroutineScope connectedSocket
+                    }
+                } catch (e: CancellationException) {
+                    serverSocket?.close()
+                    Left(ErrorMessage("Canceled"))
+                } catch (e: IOException) {
+                    Left(ErrorMessage(e.message ?: "Unknown"))
                 }
-                Right(Unit)
-            } catch (e: IOException) {
-                Left(ErrorMessage(e.message ?: "Unknown"))
             }
         }
     }
@@ -113,99 +139,38 @@ class BluetoothConnectionManager @Inject constructor(
             Left(ErrorMessage("Insufficient permissions to connect to a bluetooth server"))
         } else {
             adapter.cancelDiscovery()
-            val bluetoothDevice = adapter.getRemoteDevice(address)
-            withContext(ioDispatcher) {
+            return coroutineScope {
+                var socket: BluetoothSocket? = null
                 try {
-                    val socket = bluetoothDevice.createRfcommSocketToServiceRecord(serviceUUID)
-                    synchronized(this) {
-                        if (connectedSocket == null) {
+                    val bluetoothDevice = adapter.getRemoteDevice(address)
+                    socket = bluetoothDevice.createRfcommSocketToServiceRecord(serviceUUID)
+                    val connectedSocketDeferred = async {
+                        return@async try {
                             socket.connect()
-                            connectedSocket = socket
+                            Right(socket)
+                        } catch (e: IOException) {
+                            Left(ErrorMessage(e.message ?: "Unknown"))
+                        }
+                    }
+                    val connectedSocket = connectedSocketDeferred.await()
+                    return@coroutineScope when (connectedSocket) {
+                        is Right -> {
                             val domainBluetoothDevice = BluetoothDevice(
                                 name = bluetoothDevice.name,
                                 address = bluetoothDevice.address,
                             )
-                            internalConnectionStateNotifier.trySend(socket)
-                            connectionState.update { Connected(domainBluetoothDevice) }
+                            connectedSockets.update { it + socket }
+                            _connectionNotifier.send(SocketConnection(socket, true))
                             Right(domainBluetoothDevice)
-                        } else {
-                            Left(ErrorMessage("Already connected to some device"))
                         }
+
+                        is Left -> connectedSocket
                     }
+                } catch (e: CancellationException) {
+                    socket?.close()
+                    Left(ErrorMessage("Canceled"))
                 } catch (e: IOException) {
-                    connectedSocket?.close()
                     Left(ErrorMessage(e.message ?: "Unknown"))
-                }
-            }
-        }
-    }
-
-    suspend fun startListeningAndTryToConnectToSpecificDevice(
-        serviceName: String,
-        serviceUUID: UUID,
-        address: String,
-    ): Either<ErrorMessage, BluetoothDevice> {
-        closeConnection()
-        startServerAndListenForConnection(
-            serviceName,
-            serviceUUID,
-        )
-        val isConnected = connectToServer(serviceUUID, address)
-        isConnected.onRight { closeListeningServer() }
-        return isConnected
-    }
-
-    fun isServerStarted() = connectedSocket is BluetoothServerSocket
-
-    fun closeConnection() {
-        waitingForClientJob?.cancel()
-        listeningSocket?.close()
-        connectedSocket?.close()
-        connectionState.update { NotConnected }
-    }
-
-    private suspend fun closeListeningServer() {
-        waitingForClientJob?.cancel()
-        listeningSocket?.close()
-        waitingForClientJob?.join()
-        waitingForClientJob = null
-        listeningSocket = null
-    }
-
-    fun getClientConnectedMyServerNotifier() = clientConnectedToMyServerEvent.consumeAsFlow()
-
-    fun getConnectionState() = connectionState.asStateFlow()
-
-    @SuppressLint("MissingPermission")
-    private suspend fun listenForOneConnectionThenClose(socket: BluetoothServerSocket) {
-        coroutineScope {
-            try {
-                val connectedSocket = socket.accept()
-                socket.close()
-                synchronized(this) {
-                    if (this@BluetoothConnectionManager.connectedSocket == null) {
-                        this@BluetoothConnectionManager.connectedSocket = connectedSocket
-                        internalConnectionStateNotifier.trySend(connectedSocket)
-                        connectionState.update {
-                            Connected(
-                                BluetoothDevice(
-                                    name = connectedSocket.remoteDevice.name,
-                                    address = connectedSocket.remoteDevice.address,
-                                )
-                            )
-                        }
-                        clientConnectedToMyServerEvent.trySend(Unit)
-                    } else {
-                        Timber.d("Device is already connected")
-                        connectedSocket.close()
-                    }
-                }
-            } catch (e: IOException) {
-                if (!this.isActive) {
-                    Timber.d("Exception thrown in closed listening coroutine")
-                } else {
-                    Timber.d("Unexpected error occurred while listening for client")
-                    listenForOneConnectionThenClose(socket)
                 }
             }
         }
@@ -223,6 +188,18 @@ class BluetoothConnectionManager @Inject constructor(
         ) == PackageManager.PERMISSION_GRANTED
     }
 
-    override fun getNotifier(): Flow<BluetoothSocket?> =
-        internalConnectionStateNotifier.consumeAsFlow()
+    fun closeAllConnections() {
+        connectedSockets.value.forEach { socket ->
+            _connectionNotifier.trySend(
+                SocketConnection(
+                    bluetoothSocket = socket,
+                    isConnected = false
+                )
+            )
+            socket.close()
+        }
+    }
+
+    fun isConnectedToDevice(address: String) =
+        connectedSockets.value.firstOrNull { it.remoteDevice.address == address } != null
 }

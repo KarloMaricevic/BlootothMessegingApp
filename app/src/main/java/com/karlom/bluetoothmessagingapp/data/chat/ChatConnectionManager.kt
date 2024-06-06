@@ -12,20 +12,14 @@ class ChatConnectionManager @Inject constructor(
         const val SERVICE_UUID = "d15a630f-cc8e-482b-a023-89f32e515d40"
     }
 
-    fun startServer() = connectionManager.startServerAndListenForConnection(
-        serviceName = SERVICE_NAME,
-        serviceUUID = UUID.fromString(SERVICE_UUID),
-    )
-
     suspend fun connectToServer(address: String) = connectionManager.connectToServer(
         serviceUUID = UUID.fromString(SERVICE_UUID),
         address = address,
     )
 
-    suspend fun startServerAndConnectToDevice(address: String) =
-        connectionManager.startListeningAndTryToConnectToSpecificDevice(
+    suspend fun startServerAndWaitForConnection() =
+        connectionManager.startServerAndWaitForConnection(
             serviceName = SERVICE_NAME,
             serviceUUID = UUID.fromString(SERVICE_UUID),
-            address = address,
         )
 }

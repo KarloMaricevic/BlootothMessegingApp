@@ -6,10 +6,10 @@ import javax.inject.Inject
 
 class CommunicationErrorDispatcherImp @Inject constructor() : CommunicationErrorDispatcher {
 
-    private val _errorEvent = Channel<Unit>(Channel.BUFFERED)
+    private val _errorEvent = Channel<String>(Channel.BUFFERED)
     override val errorEvent = _errorEvent.receiveAsFlow()
 
-    override suspend fun notify() {
-        _errorEvent.send(Unit)
+    override suspend fun notify(address: String) {
+        _errorEvent.send(address)
     }
 }

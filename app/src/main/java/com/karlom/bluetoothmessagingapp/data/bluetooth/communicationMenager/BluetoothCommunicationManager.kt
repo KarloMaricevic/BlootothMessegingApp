@@ -5,17 +5,17 @@ import com.karlom.bluetoothmessagingapp.core.di.IoDispatcher
 import com.karlom.bluetoothmessagingapp.core.models.Failure
 import com.karlom.bluetoothmessagingapp.data.bluetooth.communicationMenager.errorDispatcher.CommunicationErrorDispatcher
 import com.karlom.bluetoothmessagingapp.data.bluetooth.connectionManager.ConnectionNotifier
+import com.karlom.bluetoothmessagingapp.data.bluetooth.models.CommunicationEntry
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.Job
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import timber.log.Timber
 import java.io.IOException
 import java.io.InputStream
-import java.io.OutputStream
 import java.nio.ByteBuffer
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -32,46 +32,62 @@ class BluetoothCommunicationManager @Inject constructor(
         const val CHUNK_SIZE = 1024
     }
 
-    private var outputStream: OutputStream? = null
-    private var inputStream: InputStream? = null
-    private val inputStreamBuffer = ByteArray(CHUNK_SIZE)
-    private val _receivedMessageEvent = Channel<ByteArray>(Channel.BUFFERED)
+    private val _receivedMessageEvent = Channel<Pair<String, ByteArray>>(Channel.BUFFERED)
     val receivedMessageEvent = _receivedMessageEvent.receiveAsFlow()
 
-    private var readingInputStreamJob: Job? = null
+    private val communicationEntries = mutableMapOf<String, CommunicationEntry>()
 
     init {
         GlobalScope.launch(ioDispatcher) {
-            connectionNotifier.getNotifier().collect { socket ->
-                readingInputStreamJob?.cancel()
-                outputStream = socket?.outputStream
-                inputStream = socket?.inputStream
-                if (socket?.inputStream != null) {
-                    startReadingInputStream(socket.inputStream)
+            connectionNotifier.connectedDeviceNotifier.collect { socket ->
+                if (socket.isConnected) {
+                    communicationEntries[socket.bluetoothSocket.remoteDevice.address] =
+                        CommunicationEntry(
+                            socket = socket.bluetoothSocket,
+                            readingJob = startReadingInputStream(
+                                inputStream = socket.bluetoothSocket.inputStream,
+                                address = socket.bluetoothSocket.remoteDevice.address,
+                            )
+                        )
+                } else {
+                    val entry = communicationEntries[socket.bluetoothSocket.remoteDevice.address]
+                    entry?.socket?.inputStream?.close()
+                    entry?.socket?.outputStream?.close()
+                    communicationEntries.remove(socket.bluetoothSocket.remoteDevice.address)
                 }
             }
         }
     }
 
-    suspend fun send(bytes: ByteArray): Either<Failure.ErrorMessage, Unit> =
-        if (outputStream == null) {
+    suspend fun send(
+        bytes: ByteArray,
+        address: String,
+    ): Either<Failure.ErrorMessage, Unit> {
+        val outputStream = communicationEntries[address]?.socket?.outputStream
+        return if (outputStream == null) {
             Either.Left(Failure.ErrorMessage("Not connected with anyone"))
         } else {
             withContext(ioDispatcher) {
                 try {
                     val sizeBuffer = ByteBuffer.allocate(Int.SIZE_BYTES)
                     sizeBuffer.putInt(bytes.size)
-                    outputStream?.write(sizeBuffer.array())
-                    outputStream?.write(bytes)
+                    outputStream.write(sizeBuffer.array())
+                    outputStream.write(bytes)
                     Either.Right(Unit)
                 } catch (error: IOException) {
                     Either.Left(Failure.ErrorMessage(error.message ?: "Unknown"))
                 }
             }
         }
+    }
 
-    suspend fun send(stream: InputStream, streamSize: Long) =
-        if (outputStream == null)
+    suspend fun send(
+        stream: InputStream,
+        streamSize: Long,
+        address: String,
+    ): Either<Failure.ErrorMessage, Unit> {
+        val outputStream = communicationEntries[address]?.socket?.outputStream
+        return if (outputStream == null)
             Either.Left(Failure.ErrorMessage("Not connected with anyone"))
         else {
             try {
@@ -79,67 +95,71 @@ class BluetoothCommunicationManager @Inject constructor(
                 val dataBuffer = ByteArray(CHUNK_SIZE)
                 var bytesRead: Int
                 sizeBuffer.putInt(streamSize.toInt())
-                outputStream?.write(sizeBuffer.array())
+                outputStream.write(sizeBuffer.array())
                 while (stream.read(dataBuffer).also { bytesRead = it } != -1) {
-                    outputStream?.write(dataBuffer, 0, bytesRead)
+                    outputStream.write(dataBuffer, 0, bytesRead)
                 }
                 Either.Right(Unit)
             } catch (e: Exception) {
-                closeCommunication()
-                errorDispatcher.notify()
+                closeCommunication(address)
+                errorDispatcher.notify(address)
                 Either.Left(Failure.ErrorMessage(e.message ?: "Unknown"))
             }
         }
+    }
 
     @OptIn(DelicateCoroutinesApi::class)
-    private fun startReadingInputStream(inputStream: InputStream) {
-        readingInputStreamJob = GlobalScope.launch(ioDispatcher) {
-            var receivedDataBuffer: ByteArray? = null
-            var dataBitsWritten = 0
-            var dataLength: Int? = null
-            var isFirstChunkOfMessage = true
-            while (true) {
-                try {
-                    val bytesRead = inputStream.read(inputStreamBuffer)
-                    if (isFirstChunkOfMessage) {
-                        dataLength =
-                            bytesToInt(inputStreamBuffer.copyOfRange(0, LENGTH_PREFIX_SIZE))
-                        receivedDataBuffer = ByteArray(dataLength.toInt())
-                    }
-                    System.arraycopy(
-                        inputStreamBuffer,
-                        if (isFirstChunkOfMessage) LENGTH_PREFIX_SIZE else 0,
-                        receivedDataBuffer!!,
-                        dataBitsWritten,
-                        if (isFirstChunkOfMessage) {
-                            if (inputStreamBuffer.size - LENGTH_PREFIX_SIZE > dataLength!!) {
-                                dataLength
-                            } else {
-                                inputStreamBuffer.size - LENGTH_PREFIX_SIZE
-                            }
-                        } else {
-                            if (dataBitsWritten + inputStreamBuffer.size < dataLength!!) {
-                                inputStreamBuffer.size
-                            } else {
-                                dataLength - dataBitsWritten
-                            }
-                        }
-                    )
-                    dataBitsWritten += bytesRead - if (isFirstChunkOfMessage) LENGTH_PREFIX_SIZE else 0
-                    if (isFirstChunkOfMessage) {
-                        isFirstChunkOfMessage = false
-                    }
-                    if (dataLength == dataBitsWritten) {
-                        _receivedMessageEvent.send(receivedDataBuffer)
-                        isFirstChunkOfMessage = true
-                        receivedDataBuffer = null
-                        dataBitsWritten = 0
-                        dataLength = null
-                    }
-                } catch (_: IOException) {
-                    closeCommunication()
-                    errorDispatcher.notify()
+    private fun startReadingInputStream(
+        inputStream: InputStream,
+        address: String,
+    ) = GlobalScope.launch(ioDispatcher) {
+        val inputBuffer = ByteArray(CHUNK_SIZE)
+        var dataBuffer: ByteArray? = null
+        var dataBitsWritten = 0
+        var dataLength: Int? = null
+        var isFirstChunkOfMessage = true
+        while (true) {
+            try {
+                val bytesRead = inputStream.read(inputBuffer)
+                if (isFirstChunkOfMessage) {
+                    dataLength =
+                        bytesToInt(inputBuffer.copyOfRange(0, LENGTH_PREFIX_SIZE))
+                    dataBuffer = ByteArray(dataLength.toInt())
                 }
+                System.arraycopy(
+                    inputBuffer,
+                    if (isFirstChunkOfMessage) LENGTH_PREFIX_SIZE else 0,
+                    dataBuffer!!,
+                    dataBitsWritten,
+                    if (isFirstChunkOfMessage) {
+                        if (inputBuffer.size - LENGTH_PREFIX_SIZE > dataLength!!) {
+                            dataLength
+                        } else {
+                            inputBuffer.size - LENGTH_PREFIX_SIZE
+                        }
+                    } else {
+                        if (dataBitsWritten + inputBuffer.size < dataLength!!) {
+                            inputBuffer.size
+                        } else {
+                            dataLength - dataBitsWritten
+                        }
+                    }
+                )
+                dataBitsWritten += bytesRead - if (isFirstChunkOfMessage) LENGTH_PREFIX_SIZE else 0
+                if (isFirstChunkOfMessage) {
+                    isFirstChunkOfMessage = false
+                }
+                if (dataLength == dataBitsWritten) {
+                    _receivedMessageEvent.send(Pair(address, dataBuffer))
+                    isFirstChunkOfMessage = true
+                    dataBuffer = null
+                    dataBitsWritten = 0
+                    dataLength = null
+                }
+            } catch (_: IOException) {
+                closeCommunication(address)
+                errorDispatcher.notify(address)
+                break
             }
         }
     }
@@ -152,9 +172,11 @@ class BluetoothCommunicationManager @Inject constructor(
                 (bytes[3].toInt() and 0xFF)
     }
 
-    private fun closeCommunication() {
-        readingInputStreamJob?.cancel()
-        outputStream?.close()
-        inputStream?.close()
+    private fun closeCommunication(address: String) {
+        val entry = communicationEntries[address]
+        entry?.readingJob?.cancel()
+        entry?.socket?.inputStream?.close()
+        entry?.socket?.outputStream?.close()
+        communicationEntries.remove(address)
     }
 }

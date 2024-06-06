@@ -4,7 +4,7 @@ import kotlinx.coroutines.flow.Flow
 
 interface CommunicationErrorDispatcher {
 
-    val errorEvent: Flow<Unit>
+    val errorEvent: Flow<String>
 
-    suspend fun notify()
+    suspend fun notify(address: String)
 }

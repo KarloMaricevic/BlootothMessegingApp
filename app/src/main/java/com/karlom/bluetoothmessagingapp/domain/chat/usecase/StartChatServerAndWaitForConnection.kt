@@ -3,9 +3,9 @@ package com.karlom.bluetoothmessagingapp.domain.chat.usecase
 import com.karlom.bluetoothmessagingapp.data.chat.ChatConnectionManager
 import javax.inject.Inject
 
-class StartChatServer @Inject constructor(
+class StartChatServerAndWaitForConnection @Inject constructor(
     private val connectionManager: ChatConnectionManager,
 ) {
 
-    operator fun invoke() = connectionManager.startServer()
+    suspend operator fun invoke() = connectionManager.startServerAndWaitForConnection()
 }

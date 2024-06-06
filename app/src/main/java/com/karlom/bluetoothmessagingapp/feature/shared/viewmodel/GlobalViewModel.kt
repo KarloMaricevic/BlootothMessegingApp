@@ -3,7 +3,7 @@ package com.karlom.bluetoothmessagingapp.feature.shared.viewmodel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.karlom.bluetoothmessagingapp.core.di.IoDispatcher
-import com.karlom.bluetoothmessagingapp.domain.bluetooth.usecase.CloseConnection
+import com.karlom.bluetoothmessagingapp.domain.bluetooth.usecase.CloseAllConnections
 import com.karlom.bluetoothmessagingapp.domain.chat.usecase.StartSavingReceivedMessages
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CoroutineDispatcher
@@ -12,7 +12,7 @@ import javax.inject.Inject
 
 @HiltViewModel
 class GlobalViewModel @Inject constructor(
-    private val closeConnection: CloseConnection,
+    private val closeAllConnections: CloseAllConnections,
     startSavingReceivedMessages: StartSavingReceivedMessages,
     @IoDispatcher ioDispatcher: CoroutineDispatcher,
 ) : ViewModel() {
@@ -23,7 +23,7 @@ class GlobalViewModel @Inject constructor(
     }
 
     override fun onCleared() {
-        closeConnection()
+        closeAllConnections()
         super.onCleared()
     }
 }

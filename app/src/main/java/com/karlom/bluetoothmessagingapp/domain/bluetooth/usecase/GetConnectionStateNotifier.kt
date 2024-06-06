@@ -3,9 +3,9 @@ package com.karlom.bluetoothmessagingapp.domain.bluetooth.usecase
 import com.karlom.bluetoothmessagingapp.data.bluetooth.connectionManager.BluetoothConnectionManager
 import javax.inject.Inject
 
-class GetConnectionStateNotifier @Inject constructor(
+class GetConnectedDevicesNotifier @Inject constructor(
     private val connectionManager: BluetoothConnectionManager
 ) {
 
-    operator fun invoke() = connectionManager.getConnectionState()
+    operator fun invoke() = connectionManager.connectedDevices
 }
