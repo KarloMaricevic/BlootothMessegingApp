@@ -11,44 +11,31 @@ import androidx.core.app.ActivityCompat
 import arrow.core.Either
 import arrow.core.Either.Left
 import arrow.core.Either.Right
-import com.karlom.bluetoothmessagingapp.core.di.IoDispatcher
 import com.karlom.bluetoothmessagingapp.core.models.Failure.ErrorMessage
 import com.karlom.bluetoothmessagingapp.data.bluetooth.AppBluetoothManager
-import com.karlom.bluetoothmessagingapp.data.bluetooth.communicationMenager.errorDispatcher.CommunicationErrorDispatcher
-import com.karlom.bluetoothmessagingapp.data.bluetooth.models.SocketConnection
 import com.karlom.bluetoothmessagingapp.domain.bluetooth.models.BluetoothDevice
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.CancellationException
-import kotlinx.coroutines.CoroutineDispatcher
-import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.async
-import kotlinx.coroutines.channels.BufferOverflow
-import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.consumeAsFlow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.update
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.suspendCancellableCoroutine
-import timber.log.Timber
-import java.io.Closeable
 import java.io.IOException
+import java.io.OutputStream
 import java.util.UUID
 import javax.inject.Inject
 import javax.inject.Singleton
-import kotlin.coroutines.resume
 
 @Singleton
 class BluetoothConnectionManager @Inject constructor(
     private val bluetoothManager: AppBluetoothManager,
-    private val errorDispatcher: CommunicationErrorDispatcher,
     @ApplicationContext private val context: Context,
-    @IoDispatcher private val ioDispatcher: CoroutineDispatcher,
-) : ConnectionNotifier {
-
+) {
 
     private val connectedSockets = MutableStateFlow<List<BluetoothSocket>>(listOf())
+
+    private val connectionListeners = mutableListOf<ConnectionStateListener>()
 
     @SuppressLint("MissingPermission")
     val connectedDevices = connectedSockets.map { sockets ->
@@ -57,22 +44,6 @@ class BluetoothConnectionManager @Inject constructor(
                 socket.remoteDevice.name,
                 socket.remoteDevice.address
             )
-        }
-    }
-
-    private val _connectionNotifier = Channel<SocketConnection>(24, BufferOverflow.DROP_OLDEST)
-    override val connectedDeviceNotifier = _connectionNotifier.consumeAsFlow()
-
-    init {
-        GlobalScope.launch(ioDispatcher) {
-            errorDispatcher.errorEvent.collect { address ->
-                connectedSockets.value.firstOrNull { item -> item.remoteDevice.address == address }
-                    ?.let { socketInError ->
-                        socketInError.close()
-                        _connectionNotifier.trySend(SocketConnection(socketInError, false))
-                        connectedSockets.update { it - socketInError }
-                    }
-            }
         }
     }
 
@@ -106,7 +77,6 @@ class BluetoothConnectionManager @Inject constructor(
                     when (connectedSocket) {
                         is Right -> {
                             connectedSockets.update { it + connectedSocket.value }
-                            _connectionNotifier.send(SocketConnection(connectedSocket.value, true))
                             return@coroutineScope Right(
                                 BluetoothDevice(
                                     connectedSocket.value.remoteDevice.name,
@@ -160,7 +130,6 @@ class BluetoothConnectionManager @Inject constructor(
                                 address = bluetoothDevice.address,
                             )
                             connectedSockets.update { it + socket }
-                            _connectionNotifier.send(SocketConnection(socket, true))
                             Right(domainBluetoothDevice)
                         }
 
@@ -189,17 +158,36 @@ class BluetoothConnectionManager @Inject constructor(
     }
 
     fun closeAllConnections() {
-        connectedSockets.value.forEach { socket ->
-            _connectionNotifier.trySend(
-                SocketConnection(
-                    bluetoothSocket = socket,
-                    isConnected = false
-                )
-            )
-            socket.close()
+        connectionListeners.forEach { listener ->
+            connectedSockets.value.forEach { socket ->
+                listener.onConnectionClosed(socket.remoteDevice.address)
+            }
         }
+        connectedSockets.value.forEach { socket -> socket.close() }
+        connectedSockets.update { listOf() }
+    }
+
+    fun closeConnection(address: String) {
+        val socket = connectedSockets.value.firstOrNull { it.remoteDevice.address == address }
+        socket?.close()
+        connectedSockets.update { sockets -> sockets.toMutableList().apply { remove(socket) } }
+        connectionListeners.forEach { listener -> listener.onConnectionClosed(address) }
     }
 
     fun isConnectedToDevice(address: String) =
         connectedSockets.value.firstOrNull { it.remoteDevice.address == address } != null
+
+    fun getOutputStream(address: String): Either<ErrorMessage, OutputStream> {
+        val inputStream =
+            connectedSockets.value.firstOrNull { it.remoteDevice.address == address }?.outputStream
+        return if (inputStream == null) {
+            Left(ErrorMessage("No device connected with that address"))
+        } else {
+            Right(inputStream)
+        }
+    }
+
+    fun registerConnectionStateListener(listener: ConnectionStateListener) {
+        connectionListeners.add(listener)
+    }
 }

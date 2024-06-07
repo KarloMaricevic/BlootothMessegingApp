@@ -4,13 +4,14 @@ import android.media.UnsupportedSchemeException
 import arrow.core.Either
 import com.karlom.bluetoothmessagingapp.core.di.IoDispatcher
 import com.karlom.bluetoothmessagingapp.core.models.Failure
-import com.karlom.bluetoothmessagingapp.data.bluetooth.communicationMenager.errorDispatcher.CommunicationErrorDispatcher
-import com.karlom.bluetoothmessagingapp.data.bluetooth.connectionManager.ConnectionNotifier
+import com.karlom.bluetoothmessagingapp.data.bluetooth.connectionManager.BluetoothConnectionManager
+import com.karlom.bluetoothmessagingapp.data.bluetooth.connectionManager.ConnectionStateListener
 import com.karlom.bluetoothmessagingapp.data.bluetooth.models.BluetoothMessage
-import com.karlom.bluetoothmessagingapp.data.bluetooth.models.CommunicationEntry
+import com.karlom.bluetoothmessagingapp.data.bluetooth.models.SocketStreams
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.launch
@@ -23,10 +24,9 @@ import javax.inject.Singleton
 
 @Singleton
 class BluetoothCommunicationManager @Inject constructor(
-    private val errorDispatcher: CommunicationErrorDispatcher,
+    private val connectionManager: BluetoothConnectionManager,
     @IoDispatcher private val ioDispatcher: CoroutineDispatcher,
-    connectionNotifier: ConnectionNotifier,
-) {
+) : ConnectionStateListener {
 
     private companion object {
         const val DATA_SIZE_PREFIX_SIZE = Int.SIZE_BYTES
@@ -41,50 +41,44 @@ class BluetoothCommunicationManager @Inject constructor(
     private val _receivedMessageEvent = Channel<BluetoothMessage>(Channel.BUFFERED)
     val receivedMessageEvent = _receivedMessageEvent.receiveAsFlow()
 
-    private val communicationEntries = mutableMapOf<String, CommunicationEntry>()
+    private val readingJob = mutableMapOf<String, Job>()
 
     init {
-        GlobalScope.launch(ioDispatcher) {
-            connectionNotifier.connectedDeviceNotifier.collect { socket ->
-                if (socket.isConnected) {
-                    communicationEntries[socket.bluetoothSocket.remoteDevice.address] =
-                        CommunicationEntry(
-                            socket = socket.bluetoothSocket,
-                            readingJob = startReadingInputStream(
-                                inputStream = socket.bluetoothSocket.inputStream,
-                                address = socket.bluetoothSocket.remoteDevice.address,
-                            )
-                        )
-                } else {
-                    val entry = communicationEntries[socket.bluetoothSocket.remoteDevice.address]
-                    entry?.socket?.inputStream?.close()
-                    entry?.socket?.outputStream?.close()
-                    communicationEntries.remove(socket.bluetoothSocket.remoteDevice.address)
-                }
-            }
-        }
+        connectionManager.registerConnectionStateListener(this)
+    }
+
+    override fun onConnectionOpened(address: String, streams: SocketStreams) {
+        readingJob[address] = startReadingInputStream(
+            inputStream = streams.inputStream,
+            address = address,
+        )
+    }
+
+    override fun onConnectionClosed(address: String) {
+        readingJob[address]?.cancel()
     }
 
     suspend fun sendText(
         text: String,
         address: String,
     ): Either<Failure.ErrorMessage, Unit> {
-        val outputStream = communicationEntries[address]?.socket?.outputStream
-        return if (outputStream == null) {
-            Either.Left(Failure.ErrorMessage("Not connected with device"))
-        } else {
-            withContext(ioDispatcher) {
-                try {
-                    val dataArray = text.toByteArray(CHARSET_UTF_8)
-                    val sizeBuffer = ByteBuffer.allocate(Int.SIZE_BYTES).putInt(dataArray.size)
-                    val typeArray =
-                        ByteBuffer.allocate(Int.SIZE_BYTES).putInt(MESSAGE_TYPE_TEXT_INDICATOR)
-                    outputStream.write(sizeBuffer.array())
-                    outputStream.write(typeArray.array())
-                    outputStream.write(dataArray)
-                    Either.Right(Unit)
-                } catch (error: IOException) {
-                    Either.Left(Failure.ErrorMessage(error.message ?: "Unknown"))
+        return when (val outputStream = connectionManager.getOutputStream(address)) {
+            is Either.Left -> outputStream
+            is Either.Right -> {
+                withContext(ioDispatcher) {
+                    try {
+                        val dataArray = text.toByteArray(CHARSET_UTF_8)
+                        val sizeBuffer = ByteBuffer.allocate(Int.SIZE_BYTES).putInt(dataArray.size)
+                        val typeArray =
+                            ByteBuffer.allocate(Int.SIZE_BYTES).putInt(MESSAGE_TYPE_TEXT_INDICATOR)
+                        outputStream.value.write(sizeBuffer.array())
+                        outputStream.value.write(typeArray.array())
+                        outputStream.value.write(dataArray)
+                        Either.Right(Unit)
+                    } catch (error: IOException) {
+                        connectionManager.closeConnection(address)
+                        Either.Left(Failure.ErrorMessage(error.message ?: "Unknown"))
+                    }
                 }
             }
         }
@@ -95,30 +89,29 @@ class BluetoothCommunicationManager @Inject constructor(
         streamSize: Int,
         address: String,
     ): Either<Failure.ErrorMessage, Unit> {
-        val outputStream = communicationEntries[address]?.socket?.outputStream
-        return if (outputStream == null)
-            Either.Left(Failure.ErrorMessage("Not connected with device"))
-        else {
-            withContext(ioDispatcher) {
-                try {
-                    val sizeArray =
-                        ByteBuffer.allocate(DATA_SIZE_PREFIX_SIZE).putInt(streamSize).array()
-                    val typeArray =
-                        ByteBuffer.allocate(MESSAGE_TYPE_PREFIX_SIZE)
-                            .putInt(MESSAGE_TYPE_IMAGE_INDICATOR)
-                            .array()
-                    val dataBuffer = ByteArray(CHUNK_SIZE)
-                    var bytesRead: Int
-                    outputStream.write(sizeArray)
-                    outputStream.write(typeArray)
-                    while (stream.read(dataBuffer).also { bytesRead = it } != -1) {
-                        outputStream.write(dataBuffer, 0, bytesRead)
+        return when (val outputStream = connectionManager.getOutputStream(address)) {
+            is Either.Left -> outputStream
+            is Either.Right -> {
+                withContext(ioDispatcher) {
+                    try {
+                        val sizeArray =
+                            ByteBuffer.allocate(DATA_SIZE_PREFIX_SIZE).putInt(streamSize).array()
+                        val typeArray =
+                            ByteBuffer.allocate(MESSAGE_TYPE_PREFIX_SIZE)
+                                .putInt(MESSAGE_TYPE_IMAGE_INDICATOR)
+                                .array()
+                        val dataBuffer = ByteArray(CHUNK_SIZE)
+                        var bytesRead: Int
+                        outputStream.value.write(sizeArray)
+                        outputStream.value.write(typeArray)
+                        while (stream.read(dataBuffer).also { bytesRead = it } != -1) {
+                            outputStream.value.write(dataBuffer, 0, bytesRead)
+                        }
+                        Either.Right(Unit)
+                    } catch (e: Exception) {
+                        connectionManager.closeConnection(address)
+                        Either.Left(Failure.ErrorMessage(e.message ?: "Unknown"))
                     }
-                    Either.Right(Unit)
-                } catch (e: Exception) {
-                    closeCommunication(address)
-                    errorDispatcher.notify(address)
-                    Either.Left(Failure.ErrorMessage(e.message ?: "Unknown"))
                 }
             }
         }
@@ -204,8 +197,8 @@ class BluetoothCommunicationManager @Inject constructor(
                     dataLength = null
                 }
             } catch (_: IOException) {
-                closeCommunication(address)
-                errorDispatcher.notify(address)
+                readingJob[address]?.cancel()
+                connectionManager.closeConnection(address)
                 break
             }
         }
@@ -217,13 +210,5 @@ class BluetoothCommunicationManager @Inject constructor(
                 (bytes[1].toInt() and 0xFF shl 16) or
                 (bytes[2].toInt() and 0xFF shl 8) or
                 (bytes[3].toInt() and 0xFF)
-    }
-
-    private fun closeCommunication(address: String) {
-        val entry = communicationEntries[address]
-        entry?.readingJob?.cancel()
-        entry?.socket?.inputStream?.close()
-        entry?.socket?.outputStream?.close()
-        communicationEntries.remove(address)
     }
 }
