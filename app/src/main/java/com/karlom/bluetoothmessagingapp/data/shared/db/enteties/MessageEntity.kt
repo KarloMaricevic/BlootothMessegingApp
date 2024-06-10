@@ -15,7 +15,15 @@ import androidx.room.PrimaryKey
 )
 data class MessageEntity(
     @PrimaryKey(autoGenerate = true) val id: Long = 0,
-    val message: String,
+    val textContent: String?,
+    val filePath: String?,
+    val messageType: MessageType,
     val isSendByMe: Boolean,
     @ColumnInfo(index = true) val withContactAddress: String
 )
+
+enum class MessageType {
+    TEXT,
+    IMAGE,
+    AUDIO,
+}

@@ -12,7 +12,8 @@ import com.karlom.bluetoothmessagingapp.data.bluetooth.communicationMenager.Blue
 import com.karlom.bluetoothmessagingapp.data.bluetooth.models.BluetoothMessage
 import com.karlom.bluetoothmessagingapp.data.shared.db.dao.MessageDao
 import com.karlom.bluetoothmessagingapp.data.shared.db.enteties.MessageEntity
-import com.karlom.bluetoothmessagingapp.domain.chat.models.TextMessage
+import com.karlom.bluetoothmessagingapp.data.shared.db.enteties.MessageType
+import com.karlom.bluetoothmessagingapp.domain.chat.models.Message
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.map
 import java.io.FileNotFoundException
@@ -39,7 +40,9 @@ class ChatRepository @Inject constructor(
             messageDao.insertAll(
                 MessageEntity(
                     isSendByMe = true,
-                    message = message,
+                    textContent = message,
+                    filePath = null,
+                    messageType = MessageType.TEXT,
                     withContactAddress = address,
                 )
             )
@@ -50,7 +53,15 @@ class ChatRepository @Inject constructor(
     fun getMessages(withContactAddress: String) = Pager(
         config = PagingConfig(pageSize = PAGE_SIZE, enablePlaceholders = false),
         pagingSourceFactory = { messageDao.getMessages(withContactAddress) },
-    ).flow.map { page -> page.map { entity -> TextMessage.from(entity) } }
+    ).flow.map { page ->
+        page.map { entity ->
+            when (entity.messageType) {
+                MessageType.TEXT -> Message.TextMessage.from(entity)
+                MessageType.IMAGE -> Message.ImageMessage.from(entity)
+                MessageType.AUDIO -> Message.AudioMessage.from(entity)
+            }
+        }
+    }
 
     suspend fun sendImage(imageUri: String, address: String): Either<Failure.ErrorMessage, Unit> =
         try {
@@ -83,7 +94,9 @@ class ChatRepository @Inject constructor(
                     messageDao.insertAll(
                         MessageEntity(
                             isSendByMe = false,
-                            message = message.text,
+                            textContent = message.text,
+                            filePath = null,
+                            messageType = MessageType.TEXT,
                             withContactAddress = message.address,
                         )
                     )

@@ -13,7 +13,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import com.karlom.bluetoothmessagingapp.domain.chat.models.TextMessage
+import com.karlom.bluetoothmessagingapp.domain.chat.models.Message.TextMessage
 
 @Composable
 fun TextChatBox(

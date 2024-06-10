@@ -21,6 +21,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.paging.compose.collectAsLazyPagingItems
+import com.karlom.bluetoothmessagingapp.domain.chat.models.Message
 import com.karlom.bluetoothmessagingapp.feature.chat.components.ChatInputFiled
 import com.karlom.bluetoothmessagingapp.feature.chat.components.ConnectToButton
 import com.karlom.bluetoothmessagingapp.feature.chat.components.TextChatBox
@@ -54,7 +55,13 @@ fun ChatScreen(address: String) {
             SimpleLazyColumn(
                 items = messages,
                 key = { id },
-                uiItemBuilder = { message -> TextChatBox(message) },
+                uiItemBuilder = { message ->
+                    when (message) {
+                        is Message.TextMessage -> TextChatBox(message)
+                        else -> { // TODO
+                        }
+                    }
+                },
                 noItemsItem = { },
                 modifier = Modifier.fillMaxSize()
             )
