@@ -80,5 +80,5 @@ dependencies {
     testImplementation(libs.coorutine.test)
     testImplementation(libs.turbine)
     testImplementation(libs.kotest)
-    androidTestImplementation(libs.androidx.espresso.core)
+    testImplementation(libs.mockK)
 }

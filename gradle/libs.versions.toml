@@ -17,7 +17,8 @@ junit = "4.13.2"
 timber = "5.0.1"
 turbine = "1.1.0"
 kotest = "5.8.1"
-espressoCore = "3.5.1"
+robolectric = "4.9"
+mockK = "1.13.11"
 
 [libraries]
 arrow-core = { group = "io.arrow-kt", name = "arrow-core", version.ref = "arrow" }
@@ -51,8 +52,7 @@ junit = { group = "junit", name = "junit", version.ref = "junit" }
 turbine = { group = "app.cash.turbine", name = "turbine", version.ref = "turbine" }
 kotest = { group = "io.kotest", name = "kotest-runner-junit4", version.ref = "kotest" }
 coorutine-test = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-test", version.ref = "coorutines" }
-androidx-espresso-core = { group = "androidx.test.espresso", name = "espresso-core", version.ref = "espressoCore" }
-
+mockK = { group = "io.mockk", name = "mockk", version.ref = "mockK" }
 
 [plugins]
 androidApplication = { id = "com.android.application", version.ref = "agp" }
