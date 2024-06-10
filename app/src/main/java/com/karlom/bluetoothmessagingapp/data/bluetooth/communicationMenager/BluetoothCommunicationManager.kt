@@ -4,6 +4,7 @@ import android.media.UnsupportedSchemeException
 import arrow.core.Either
 import com.karlom.bluetoothmessagingapp.core.di.IoDispatcher
 import com.karlom.bluetoothmessagingapp.core.models.Failure
+import com.karlom.bluetoothmessagingapp.core.utils.bytesToInt
 import com.karlom.bluetoothmessagingapp.data.bluetooth.connectionManager.BluetoothConnectionManager
 import com.karlom.bluetoothmessagingapp.data.bluetooth.connectionManager.ConnectionStateListener
 import com.karlom.bluetoothmessagingapp.data.bluetooth.models.BluetoothMessage
@@ -131,9 +132,11 @@ class BluetoothCommunicationManager @Inject constructor(
         while (true) {
             try {
                 val bytesRead = inputStream.read(inputBuffer)
+                if (bytesRead == -1) {
+                    throw IOException()
+                }
                 if (isFirstChunkOfMessage) {
-                    dataLength =
-                        bytesToInt(inputBuffer.copyOfRange(0, DATA_SIZE_PREFIX_SIZE))
+                    dataLength = bytesToInt(inputBuffer.copyOfRange(0, DATA_SIZE_PREFIX_SIZE))
                     dataType = bytesToInt(
                         inputBuffer.copyOfRange(
                             DATA_SIZE_PREFIX_SIZE,
@@ -143,15 +146,19 @@ class BluetoothCommunicationManager @Inject constructor(
                     dataBuffer = ByteArray(dataLength.toInt())
                 }
                 System.arraycopy(
-                    inputBuffer,
+                    /* src = */ inputBuffer,
+                    /* srcPos = */
                     if (isFirstChunkOfMessage) DATA_SIZE_PREFIX_SIZE + MESSAGE_TYPE_PREFIX_SIZE else 0,
+                    /* dest = */
                     dataBuffer!!,
+                    /* destPos = */
                     dataBitsWritten,
+                    /* length = */
                     if (isFirstChunkOfMessage) {
-                        if (inputBuffer.size - DATA_SIZE_PREFIX_SIZE + MESSAGE_TYPE_PREFIX_SIZE > dataLength!!) {
+                        if (inputBuffer.size - DATA_SIZE_PREFIX_SIZE - MESSAGE_TYPE_PREFIX_SIZE > dataLength!!) {
                             dataLength
                         } else {
-                            inputBuffer.size - DATA_SIZE_PREFIX_SIZE + MESSAGE_TYPE_PREFIX_SIZE
+                            inputBuffer.size - DATA_SIZE_PREFIX_SIZE - MESSAGE_TYPE_PREFIX_SIZE
                         }
                     } else {
                         if (dataBitsWritten + inputBuffer.size < dataLength!!) {
@@ -161,7 +168,7 @@ class BluetoothCommunicationManager @Inject constructor(
                         }
                     }
                 )
-                dataBitsWritten += bytesRead - if (isFirstChunkOfMessage) DATA_SIZE_PREFIX_SIZE + MESSAGE_TYPE_PREFIX_SIZE else 0
+                dataBitsWritten += bytesRead - if (isFirstChunkOfMessage) (DATA_SIZE_PREFIX_SIZE + MESSAGE_TYPE_PREFIX_SIZE) else 0
                 if (isFirstChunkOfMessage) {
                     isFirstChunkOfMessage = false
                 }
@@ -202,13 +209,5 @@ class BluetoothCommunicationManager @Inject constructor(
                 break
             }
         }
-    }
-
-    private fun bytesToInt(bytes: ByteArray): Int {
-        require(bytes.size == 4) { "Byte array must be of length 4 to convert to Int" }
-        return (bytes[0].toInt() and 0xFF shl 24) or
-                (bytes[1].toInt() and 0xFF shl 16) or
-                (bytes[2].toInt() and 0xFF shl 8) or
-                (bytes[3].toInt() and 0xFF)
     }
 }
