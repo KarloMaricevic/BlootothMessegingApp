@@ -36,6 +36,7 @@ android {
         jvmTarget = "1.8"
         freeCompilerArgs = listOf(
             "-opt-in=com.google.accompanist.permissions.ExperimentalPermissionsApi",
+            "-opt-in=kotlinx.coroutines.ExperimentalCoroutinesApi",
         )
     }
     buildFeatures {
