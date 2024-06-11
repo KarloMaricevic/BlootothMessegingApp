@@ -24,7 +24,6 @@ import coil.request.ImageRequest
 import coil.request.SuccessResult
 import com.karlom.bluetoothmessagingapp.R
 import com.karlom.bluetoothmessagingapp.domain.chat.models.Message
-import timber.log.Timber
 
 @Composable
 fun ImageChatBox(
@@ -66,9 +65,6 @@ fun ImageChatBox(
                 )
                 .height(200.dp)
                 .aspectRatio(aspectRatio),
-            onError = { e ->
-                Timber.d(e.result.throwable.toString())
-            }
         )
     }
 }
