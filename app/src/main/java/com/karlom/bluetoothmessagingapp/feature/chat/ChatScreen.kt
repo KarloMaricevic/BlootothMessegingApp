@@ -24,6 +24,7 @@ import androidx.paging.compose.collectAsLazyPagingItems
 import com.karlom.bluetoothmessagingapp.domain.chat.models.Message
 import com.karlom.bluetoothmessagingapp.feature.chat.components.ChatInputFiled
 import com.karlom.bluetoothmessagingapp.feature.chat.components.ConnectToButton
+import com.karlom.bluetoothmessagingapp.feature.chat.components.ImageChatBox
 import com.karlom.bluetoothmessagingapp.feature.chat.components.TextChatBox
 import com.karlom.bluetoothmessagingapp.feature.chat.models.ChatScreenEvent
 import com.karlom.bluetoothmessagingapp.feature.chat.models.ChatScreenEvent.OnConnectClicked
@@ -58,6 +59,7 @@ fun ChatScreen(address: String) {
                 uiItemBuilder = { message ->
                     when (message) {
                         is Message.TextMessage -> TextChatBox(message)
+                        is Message.ImageMessage -> ImageChatBox(message)
                         else -> { // TODO
                         }
                     }
