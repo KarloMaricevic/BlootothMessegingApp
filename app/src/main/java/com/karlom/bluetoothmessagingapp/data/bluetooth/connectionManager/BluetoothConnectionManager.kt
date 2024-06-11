@@ -13,6 +13,7 @@ import arrow.core.Either.Left
 import arrow.core.Either.Right
 import com.karlom.bluetoothmessagingapp.core.models.Failure.ErrorMessage
 import com.karlom.bluetoothmessagingapp.data.bluetooth.AppBluetoothManager
+import com.karlom.bluetoothmessagingapp.data.bluetooth.models.SocketStreams
 import com.karlom.bluetoothmessagingapp.domain.bluetooth.models.BluetoothDevice
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.CancellationException
@@ -77,6 +78,15 @@ class BluetoothConnectionManager @Inject constructor(
                     when (connectedSocket) {
                         is Right -> {
                             connectedSockets.update { it + connectedSocket.value }
+                            connectionListeners.forEach {
+                                it.onConnectionOpened(
+                                    address = connectedSocket.value.remoteDevice.address,
+                                    streams = SocketStreams(
+                                        outputStream = connectedSocket.value.outputStream,
+                                        inputStream = connectedSocket.value.inputStream,
+                                    )
+                                )
+                            }
                             return@coroutineScope Right(
                                 BluetoothDevice(
                                     connectedSocket.value.remoteDevice.name,
@@ -130,6 +140,15 @@ class BluetoothConnectionManager @Inject constructor(
                                 address = bluetoothDevice.address,
                             )
                             connectedSockets.update { it + socket }
+                            connectionListeners.forEach {
+                                it.onConnectionOpened(
+                                    address = address,
+                                    streams = SocketStreams(
+                                        outputStream = connectedSocket.value.outputStream,
+                                        inputStream = connectedSocket.value.inputStream,
+                                    )
+                                )
+                            }
                             Right(domainBluetoothDevice)
                         }
 
