@@ -11,6 +11,7 @@ pagging = "3.2.1"
 compose-activity = "1.9.0"
 compose = "1.6.7"
 compsoseMaterial3 = "1.2.1"
+coilCompose = "2.6.0"
 hilt = "2.49"
 hilt-navigation-compose = "1.2.0"
 junit = "4.13.2"
@@ -23,7 +24,7 @@ mockK = "1.13.11"
 [libraries]
 arrow-core = { group = "io.arrow-kt", name = "arrow-core", version.ref = "arrow" }
 
-androidx-activity = { group = "androidx.activity", name = "activity-ktx", version = "1.9.0"}
+androidx-activity = { group = "androidx.activity", name = "activity-ktx", version = "1.9.0" }
 androidx-appcompat = { group = "androidx.appcompat", name = "appcompat", version.ref = "appcompat" }
 androidx-splashscreen = { group = "androidx.core", name = "core-splashscreen", version.ref = "splashScreen" }
 appcompanist-permissions = { group = "com.google.accompanist", name = "accompanist-permissions", version.ref = "appcompanistPermissions" }
@@ -36,6 +37,7 @@ androidx-compose-activity = { group = "androidx.activity", name = "activity-comp
 androidx-pagging-runtime = { group = "androidx.paging", name = "paging-runtime", version.ref = "pagging" }
 androidx-pagging-compose = { group = "androidx.paging", name = "paging-compose", version.ref = "pagging" }
 androidx-compose-material = { group = "androidx.compose.material3", name = "material3", version.ref = "compsoseMaterial3" }
+coil-compose = { group = "io.coil-kt", name = "coil-compose", version.ref = "coilCompose" }
 androidx-compose-runtime = { group = "androidx.compose.runtime", name = "runtime", version.ref = "compose" }
 androidx-compose-ui = { group = "androidx.compose.ui", name = "ui", version.ref = "compose" }
 androidx-compose-foundation = { group = "androidx.compose.foundation", name = "foundation", version.ref = "compose" }
