@@ -114,6 +114,22 @@ class ChatRepository @Inject constructor(
                     )
                 }
 
+                is BluetoothMessage.Image -> {
+                    val imagePathResult =
+                        internalStorage.save(message.image, UUID.randomUUID().toString())
+                    imagePathResult.onRight { imagePath ->
+                        messageDao.insertAll(
+                            MessageEntity(
+                                isSendByMe = false,
+                                textContent = null,
+                                filePath = imagePath,
+                                messageType = MessageType.IMAGE,
+                                withContactAddress = message.address,
+                            )
+                        )
+                    }
+                }
+
                 else -> throw NotImplementedError()
             }
         }
