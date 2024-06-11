@@ -13,16 +13,19 @@ import com.karlom.bluetoothmessagingapp.data.bluetooth.models.BluetoothMessage
 import com.karlom.bluetoothmessagingapp.data.shared.db.dao.MessageDao
 import com.karlom.bluetoothmessagingapp.data.shared.db.enteties.MessageEntity
 import com.karlom.bluetoothmessagingapp.data.shared.db.enteties.MessageType
+import com.karlom.bluetoothmessagingapp.data.shared.interanlStorage.InternalStorage
 import com.karlom.bluetoothmessagingapp.domain.chat.models.Message
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.map
 import java.io.FileNotFoundException
+import java.util.UUID
 import javax.inject.Inject
 import javax.inject.Singleton
 
 @Singleton
 class ChatRepository @Inject constructor(
     private val communicationManager: BluetoothCommunicationManager,
+    private val internalStorage: InternalStorage,
     private val messageDao: MessageDao,
     @ApplicationContext private val context: Context,
 ) {
@@ -63,29 +66,43 @@ class ChatRepository @Inject constructor(
         }
     }
 
-    suspend fun sendImage(imageUri: String, address: String): Either<Failure.ErrorMessage, Unit> =
-        try {
-            val inputImageStream = context.contentResolver.openInputStream(imageUri.toUri())
-            val cursor = context.contentResolver.query(imageUri.toUri(), null, null, null, null)
-            var result: Either<Failure.ErrorMessage, Unit>? = null
-            if (inputImageStream != null && cursor != null) {
-                val sizeIndex = cursor.getColumnIndex(OpenableColumns.SIZE)
-                result = if (sizeIndex != -1 && cursor.moveToFirst()) {
-                    communicationManager.sendImage(
-                        stream = inputImageStream,
-                        streamSize = cursor.getLong(sizeIndex).toInt(),
-                        address = address,
-                    )
-                } else {
-                    Either.Left(Failure.ErrorMessage("Error trying to read file size"))
-                }
-            }
-            inputImageStream?.close()
-            cursor?.close()
-            result ?: Either.Left(Failure.ErrorMessage("Content resolver crashed"))
-        } catch (e: FileNotFoundException) {
-            Either.Left(Failure.ErrorMessage("Could not open provided uri"))
+    suspend fun sendImage(imageUri: String, address: String): Either<Failure.ErrorMessage, Unit> {
+        val savedImageUri = internalStorage.saveImage(imageUri, UUID.randomUUID().toString())
+        savedImageUri.onRight {
+            messageDao.insertAll(
+                MessageEntity(
+                    isSendByMe = true,
+                    textContent = null,
+                    filePath = it,
+                    messageType = MessageType.IMAGE,
+                    withContactAddress = address,
+                )
+            )
         }
+        return savedImageUri.map { }
+        /*            return try {
+                        val inputImageStream = context.contentResolver.openInputStream(imageUri.toUri())
+                        val cursor = context.contentResolver.query(imageUri.toUri(), null, null, null, null)
+                        var result: Either<Failure.ErrorMessage, Unit>? = null
+                        if (inputImageStream != null && cursor != null) {
+                            val sizeIndex = cursor.getColumnIndex(OpenableColumns.SIZE)
+                            result = if (sizeIndex != -1 && cursor.moveToFirst()) {
+                                communicationManager.sendImage(
+                                    stream = inputImageStream,
+                                    streamSize = cursor.getLong(sizeIndex).toInt(),
+                                    address = address,
+                                )
+                            } else {
+                                Either.Left(Failure.ErrorMessage("Error trying to read file size"))
+                            }
+                        }
+                        inputImageStream?.close()
+                        cursor?.close()
+                        result ?: Either.Left(Failure.ErrorMessage("Content resolver crashed"))
+                    } catch (e: FileNotFoundException) {
+                        Either.Left(Failure.ErrorMessage("Could not open provided uri"))
+                    }*/
+    }
 
     suspend fun startSavingReceivedMessages() {
         communicationManager.receivedMessageEvent.collect { message ->
