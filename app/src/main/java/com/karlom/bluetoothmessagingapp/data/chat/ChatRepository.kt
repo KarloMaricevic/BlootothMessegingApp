@@ -1,8 +1,6 @@
 package com.karlom.bluetoothmessagingapp.data.chat
 
 import android.content.Context
-import android.provider.OpenableColumns
-import androidx.core.net.toUri
 import androidx.paging.Pager
 import androidx.paging.PagingConfig
 import androidx.paging.map
@@ -17,7 +15,6 @@ import com.karlom.bluetoothmessagingapp.data.shared.interanlStorage.InternalStor
 import com.karlom.bluetoothmessagingapp.domain.chat.models.Message
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.map
-import java.io.FileNotFoundException
 import java.util.UUID
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -68,40 +65,38 @@ class ChatRepository @Inject constructor(
 
     suspend fun sendImage(imageUri: String, address: String): Either<Failure.ErrorMessage, Unit> {
         val savedImageUri = internalStorage.saveImage(imageUri, UUID.randomUUID().toString())
-        savedImageUri.onRight {
-            messageDao.insertAll(
-                MessageEntity(
-                    isSendByMe = true,
-                    textContent = null,
-                    filePath = it,
-                    messageType = MessageType.IMAGE,
-                    withContactAddress = address,
+        val inputStream = internalStorage.getFileInputStream(imageUri)
+        val imageSize = internalStorage.getFileSize(imageUri)
+        return if (inputStream is Either.Right && imageSize is Either.Right && savedImageUri is Either.Right) {
+            val result =
+                communicationManager.sendImage(
+                    stream = inputStream.value,
+                    streamSize = imageSize.value.toInt(),
+                    address = address,
                 )
+            inputStream.value.close()
+            result.onRight {
+                messageDao.insertAll(
+                    MessageEntity(
+                        isSendByMe = true,
+                        textContent = null,
+                        filePath = savedImageUri.value,
+                        messageType = MessageType.IMAGE,
+                        withContactAddress = address,
+                    )
+                )
+            }
+            Either.Right(Unit)
+        } else {
+            inputStream.onRight { it.close() }
+            listOf(
+                savedImageUri,
+                inputStream,
+                imageSize,
+            ).firstOrNull { it is Either.Left } as? Either.Left ?: Either.Left(
+                Failure.ErrorMessage("Error sending image")
             )
         }
-        return savedImageUri.map { }
-        /*            return try {
-                        val inputImageStream = context.contentResolver.openInputStream(imageUri.toUri())
-                        val cursor = context.contentResolver.query(imageUri.toUri(), null, null, null, null)
-                        var result: Either<Failure.ErrorMessage, Unit>? = null
-                        if (inputImageStream != null && cursor != null) {
-                            val sizeIndex = cursor.getColumnIndex(OpenableColumns.SIZE)
-                            result = if (sizeIndex != -1 && cursor.moveToFirst()) {
-                                communicationManager.sendImage(
-                                    stream = inputImageStream,
-                                    streamSize = cursor.getLong(sizeIndex).toInt(),
-                                    address = address,
-                                )
-                            } else {
-                                Either.Left(Failure.ErrorMessage("Error trying to read file size"))
-                            }
-                        }
-                        inputImageStream?.close()
-                        cursor?.close()
-                        result ?: Either.Left(Failure.ErrorMessage("Content resolver crashed"))
-                    } catch (e: FileNotFoundException) {
-                        Either.Left(Failure.ErrorMessage("Could not open provided uri"))
-                    }*/
     }
 
     suspend fun startSavingReceivedMessages() {
