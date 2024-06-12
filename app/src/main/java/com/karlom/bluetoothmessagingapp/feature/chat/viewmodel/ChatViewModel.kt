@@ -5,6 +5,7 @@ import arrow.core.Either
 import com.karlom.bluetoothmessagingapp.core.base.BaseViewModel
 import com.karlom.bluetoothmessagingapp.core.base.TIMEOUT_DELAY
 import com.karlom.bluetoothmessagingapp.core.di.IoDispatcher
+import com.karlom.bluetoothmessagingapp.core.extensions.combine
 import com.karlom.bluetoothmessagingapp.core.models.Failure
 import com.karlom.bluetoothmessagingapp.domain.bluetooth.models.BluetoothDevice
 import com.karlom.bluetoothmessagingapp.domain.bluetooth.usecase.GetConnectedDevicesNotifier
@@ -14,11 +15,9 @@ import com.karlom.bluetoothmessagingapp.domain.chat.usecase.GetMessages
 import com.karlom.bluetoothmessagingapp.domain.chat.usecase.SendImage
 import com.karlom.bluetoothmessagingapp.domain.chat.usecase.SendMessage
 import com.karlom.bluetoothmessagingapp.domain.chat.usecase.StartChatServerAndWaitForConnection
+import com.karlom.bluetoothmessagingapp.feature.chat.models.ChatInputMode.*
 import com.karlom.bluetoothmessagingapp.feature.chat.models.ChatScreenEvent
-import com.karlom.bluetoothmessagingapp.feature.chat.models.ChatScreenEvent.OnConnectClicked
-import com.karlom.bluetoothmessagingapp.feature.chat.models.ChatScreenEvent.OnSendClicked
-import com.karlom.bluetoothmessagingapp.feature.chat.models.ChatScreenEvent.OnSendImageClicked
-import com.karlom.bluetoothmessagingapp.feature.chat.models.ChatScreenEvent.OnTextChanged
+import com.karlom.bluetoothmessagingapp.feature.chat.models.ChatScreenEvent.*
 import com.karlom.bluetoothmessagingapp.feature.chat.models.ChatScreenState
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedFactory
@@ -30,12 +29,10 @@ import kotlinx.coroutines.cancelAndJoin
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
-import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.selects.select
-import timber.log.Timber
 
 @HiltViewModel(assistedFactory = ChatViewModel.ChatViewModelFactory::class)
 class ChatViewModel @AssistedInject constructor(
@@ -58,12 +55,16 @@ class ChatViewModel @AssistedInject constructor(
     private val showConnectToDeviceButton = MutableStateFlow(!isConnectedToDevice(contactAddress))
     private val isTryingToConnect = MutableStateFlow(false)
     private val textToSend = MutableStateFlow("")
+    private val inputMode = MutableStateFlow(TEXT)
+    private val isRecordingVoice = MutableStateFlow(false)
     private val messages = MutableStateFlow(getMessages(contactAddress))
 
     val state = combine(
         showConnectToDeviceButton,
         isTryingToConnect,
         textToSend,
+        inputMode,
+        isRecordingVoice,
         messages,
         ::ChatScreenState,
     ).stateIn(
@@ -93,6 +94,20 @@ class ChatViewModel @AssistedInject constructor(
 
             is OnSendImageClicked -> viewModelScope.launch(ioDispatcher) {
                 sendImage(imageUri = event.uri, address = contactAddress)
+            }
+
+            is OnStartRecordingVoiceClicked -> {
+                inputMode.update { VOICE }
+                isRecordingVoice.update { true }
+            }
+
+            is OnStopRecordingVoiceClicked -> {
+                isRecordingVoice.update { false }
+            }
+
+            is OnDeleteVoiceRecordingClicked -> {
+                isRecordingVoice.update { false }
+                inputMode.update { TEXT }
             }
         }
     }

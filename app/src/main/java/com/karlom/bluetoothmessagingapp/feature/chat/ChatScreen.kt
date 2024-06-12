@@ -26,9 +26,9 @@ import com.karlom.bluetoothmessagingapp.feature.chat.components.ChatInputFiled
 import com.karlom.bluetoothmessagingapp.feature.chat.components.ConnectToButton
 import com.karlom.bluetoothmessagingapp.feature.chat.components.ImageChatBox
 import com.karlom.bluetoothmessagingapp.feature.chat.components.TextChatBox
-import com.karlom.bluetoothmessagingapp.feature.chat.models.ChatInputMode.TEXT
-import com.karlom.bluetoothmessagingapp.feature.chat.models.ChatScreenEvent
 import com.karlom.bluetoothmessagingapp.feature.chat.models.ChatScreenEvent.OnConnectClicked
+import com.karlom.bluetoothmessagingapp.feature.chat.models.ChatScreenEvent.OnSendImageClicked
+import com.karlom.bluetoothmessagingapp.feature.chat.models.ChatScreenEvent.OnStartRecordingVoiceClicked
 import com.karlom.bluetoothmessagingapp.feature.chat.viewmodel.ChatViewModel
 import com.karlom.bluetoothmessagingapp.feature.shared.SimpleLazyColumn
 
@@ -46,7 +46,7 @@ fun ChatScreen(address: String) {
     ) { result ->
         if (result.resultCode == Activity.RESULT_OK) {
             viewModel.onEvent(
-                ChatScreenEvent.OnSendImageClicked(
+                OnSendImageClicked(
                     result.data?.data?.toString() ?: Uri.EMPTY.toString()
                 )
             )
@@ -88,14 +88,15 @@ fun ChatScreen(address: String) {
             ChatInputFiled(
                 text = state.textToSend,
                 onInteraction = viewModel::onEvent,
-                inputMode = TEXT,
-                isRecording = false,
+                inputMode = state.inputMode,
+                isRecording = state.isRecordingVoice,
                 onGalleryClicked = {
                     val intent = (Intent(Intent.ACTION_PICK).apply { type = "image/*" })
                     if (context.packageManager.queryIntentActivities(intent, 0).size > 0) {
                         galleryLauncher.launch(intent)
                     }
                 },
+                onMicrophoneClicked = { viewModel.onEvent(OnStartRecordingVoiceClicked) }
             )
         }
     }

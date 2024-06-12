@@ -31,7 +31,9 @@ import com.karlom.bluetoothmessagingapp.feature.chat.models.ChatInputMode
 import com.karlom.bluetoothmessagingapp.feature.chat.models.ChatInputMode.TEXT
 import com.karlom.bluetoothmessagingapp.feature.chat.models.ChatInputMode.VOICE
 import com.karlom.bluetoothmessagingapp.feature.chat.models.ChatScreenEvent
+import com.karlom.bluetoothmessagingapp.feature.chat.models.ChatScreenEvent.OnDeleteVoiceRecordingClicked
 import com.karlom.bluetoothmessagingapp.feature.chat.models.ChatScreenEvent.OnSendClicked
+import com.karlom.bluetoothmessagingapp.feature.chat.models.ChatScreenEvent.OnStopRecordingVoiceClicked
 import com.karlom.bluetoothmessagingapp.feature.chat.models.ChatScreenEvent.OnTextChanged
 
 @Composable
@@ -41,6 +43,7 @@ fun ChatInputFiled(
     isRecording: Boolean,
     onInteraction: (ChatScreenEvent) -> Unit,
     onGalleryClicked: () -> Unit,
+    onMicrophoneClicked: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     Row(
@@ -55,9 +58,13 @@ fun ChatInputFiled(
                 text = text,
                 onInteraction = onInteraction,
                 onGalleryClicked = onGalleryClicked,
+                onMicrophoneClicked = onMicrophoneClicked,
             )
 
-            VOICE -> VoiceInputBox(isRecording)
+            VOICE -> VoiceInputBox(
+                isRecording = isRecording,
+                onInteraction = onInteraction,
+            )
         }
         Icon(
             painter = painterResource(R.drawable.ic_send),
@@ -77,6 +84,7 @@ private fun TextInputBox(
     text: String,
     onInteraction: (ChatScreenEvent) -> Unit,
     onGalleryClicked: () -> Unit,
+    onMicrophoneClicked: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     Row(
@@ -109,7 +117,7 @@ private fun TextInputBox(
             modifier = Modifier
                 .padding(4.dp)
                 .clip(CircleShape)
-                .clickable { onInteraction(OnSendClicked) }
+                .clickable { onMicrophoneClicked() }
                 .padding(4.dp),
             tint = blue,
         )
@@ -138,6 +146,7 @@ private fun TextInputBox(
 @Composable
 private fun VoiceInputBox(
     isRecording: Boolean,
+    onInteraction: (ChatScreenEvent) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     Row(
@@ -147,7 +156,9 @@ private fun VoiceInputBox(
         Icon(
             painter = painterResource(id = R.drawable.ic_delete),
             contentDescription = stringResource(R.string.default_icon_content_description),
-            modifier = Modifier.padding(end = 4.dp),
+            modifier = Modifier
+                .padding(end = 4.dp)
+                .clickable { onInteraction(OnDeleteVoiceRecordingClicked) },
             tint = blue,
         )
         Row(
@@ -160,7 +171,9 @@ private fun VoiceInputBox(
             Icon(
                 painter = painterResource(id = R.drawable.ic_pause),
                 contentDescription = stringResource(R.string.default_icon_content_description),
-                modifier = Modifier.padding(horizontal = 4.dp),
+                modifier = Modifier
+                    .padding(horizontal = 4.dp)
+                    .clickable { onInteraction(OnStopRecordingVoiceClicked) },
                 tint = if (isRecording) blue else gray500,
             )
             Text(
@@ -182,6 +195,7 @@ fun ChatTextInputPreview() {
             onGalleryClicked = {},
             inputMode = TEXT,
             isRecording = false,
+            onMicrophoneClicked = {},
         )
     }
 }
@@ -196,6 +210,7 @@ private fun ChatVoiceInputPreview() {
             onGalleryClicked = {},
             inputMode = VOICE,
             isRecording = false,
+            onMicrophoneClicked = {},
         )
     }
 }

@@ -10,4 +10,10 @@ sealed interface ChatScreenEvent {
     data object OnConnectClicked : ChatScreenEvent
 
     data class OnSendImageClicked(val uri: String) : ChatScreenEvent
+
+    data object OnStartRecordingVoiceClicked : ChatScreenEvent
+
+    data object OnStopRecordingVoiceClicked : ChatScreenEvent
+
+    data object OnDeleteVoiceRecordingClicked : ChatScreenEvent
 }
