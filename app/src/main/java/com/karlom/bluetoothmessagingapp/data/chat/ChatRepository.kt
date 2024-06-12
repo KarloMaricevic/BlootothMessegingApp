@@ -99,6 +99,19 @@ class ChatRepository @Inject constructor(
         }
     }
 
+    suspend fun sendAudio(audioUri: String, address: String): Either<Failure.ErrorMessage, Unit> {
+        messageDao.insertAll(
+            MessageEntity(
+                isSendByMe = true,
+                textContent = null,
+                filePath = audioUri,
+                messageType = MessageType.AUDIO,
+                withContactAddress = address,
+            )
+        )
+        return Either.Right(Unit)
+    }
+
     suspend fun startSavingReceivedMessages() {
         communicationManager.receivedMessageEvent.collect { message ->
             when (message) {

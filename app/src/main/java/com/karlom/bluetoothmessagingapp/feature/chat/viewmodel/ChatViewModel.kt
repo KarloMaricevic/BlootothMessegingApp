@@ -12,14 +12,22 @@ import com.karlom.bluetoothmessagingapp.domain.bluetooth.usecase.GetConnectedDev
 import com.karlom.bluetoothmessagingapp.domain.bluetooth.usecase.IsConnectedToDevice
 import com.karlom.bluetoothmessagingapp.domain.chat.usecase.ConnectToServer
 import com.karlom.bluetoothmessagingapp.domain.chat.usecase.GetMessages
+import com.karlom.bluetoothmessagingapp.domain.chat.usecase.SendAudio
 import com.karlom.bluetoothmessagingapp.domain.chat.usecase.SendImage
 import com.karlom.bluetoothmessagingapp.domain.chat.usecase.SendMessage
 import com.karlom.bluetoothmessagingapp.domain.chat.usecase.StartChatServerAndWaitForConnection
 import com.karlom.bluetoothmessagingapp.domain.voice.StartRecordingVoice
 import com.karlom.bluetoothmessagingapp.domain.voice.StopRecordingVoice
-import com.karlom.bluetoothmessagingapp.feature.chat.models.ChatInputMode.*
+import com.karlom.bluetoothmessagingapp.feature.chat.models.ChatInputMode.TEXT
+import com.karlom.bluetoothmessagingapp.feature.chat.models.ChatInputMode.VOICE
 import com.karlom.bluetoothmessagingapp.feature.chat.models.ChatScreenEvent
-import com.karlom.bluetoothmessagingapp.feature.chat.models.ChatScreenEvent.*
+import com.karlom.bluetoothmessagingapp.feature.chat.models.ChatScreenEvent.OnConnectClicked
+import com.karlom.bluetoothmessagingapp.feature.chat.models.ChatScreenEvent.OnDeleteVoiceRecordingClicked
+import com.karlom.bluetoothmessagingapp.feature.chat.models.ChatScreenEvent.OnSendClicked
+import com.karlom.bluetoothmessagingapp.feature.chat.models.ChatScreenEvent.OnSendImageClicked
+import com.karlom.bluetoothmessagingapp.feature.chat.models.ChatScreenEvent.OnStartRecordingVoiceClicked
+import com.karlom.bluetoothmessagingapp.feature.chat.models.ChatScreenEvent.OnStopRecordingVoiceClicked
+import com.karlom.bluetoothmessagingapp.feature.chat.models.ChatScreenEvent.OnTextChanged
 import com.karlom.bluetoothmessagingapp.feature.chat.models.ChatScreenState
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedFactory
@@ -48,6 +56,7 @@ class ChatViewModel @AssistedInject constructor(
     private val startChatServerAndWaitForConnection: StartChatServerAndWaitForConnection,
     private val startRecordingVoice: StartRecordingVoice,
     private val stopRecordingVoice: StopRecordingVoice,
+    private val sendAudio: SendAudio,
     private val connectToServer: ConnectToServer,
     @IoDispatcher private val ioDispatcher: CoroutineDispatcher
 ) : BaseViewModel<ChatScreenEvent>() {
@@ -94,7 +103,15 @@ class ChatViewModel @AssistedInject constructor(
         when (event) {
             is OnTextChanged -> textToSend.update { event.text }
             is OnSendClicked -> viewModelScope.launch {
-                sendMessage(message = textToSend.value, address = contactAddress)
+                when (inputMode.value) {
+                    TEXT -> sendMessage(message = textToSend.value, address = contactAddress)
+                    VOICE -> voiceFileUri?.let { notNullFileUri ->
+                        sendAudio(
+                            imageUri = notNullFileUri,
+                            address = contactAddress,
+                        )
+                    }
+                }
             }
 
             is OnConnectClicked -> startServerAndPeriodicallyTryToConnectToAddress()
