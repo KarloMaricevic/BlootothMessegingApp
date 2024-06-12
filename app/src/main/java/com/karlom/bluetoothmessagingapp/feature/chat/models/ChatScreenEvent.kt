@@ -1,5 +1,7 @@
 package com.karlom.bluetoothmessagingapp.feature.chat.models
 
+import com.karlom.bluetoothmessagingapp.domain.chat.models.Message
+
 sealed interface ChatScreenEvent {
 
 
@@ -16,4 +18,8 @@ sealed interface ChatScreenEvent {
     data object OnStopRecordingVoiceClicked : ChatScreenEvent
 
     data object OnDeleteVoiceRecordingClicked : ChatScreenEvent
+
+    data class OnPlayAudioMessage(val message: Message.AudioMessage) : ChatScreenEvent
+
+    data object OnPausePlayingAudioMessage : ChatScreenEvent
 }

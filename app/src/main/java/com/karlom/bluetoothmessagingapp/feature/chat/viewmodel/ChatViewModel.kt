@@ -21,13 +21,7 @@ import com.karlom.bluetoothmessagingapp.domain.voice.StopRecordingVoice
 import com.karlom.bluetoothmessagingapp.feature.chat.models.ChatInputMode.TEXT
 import com.karlom.bluetoothmessagingapp.feature.chat.models.ChatInputMode.VOICE
 import com.karlom.bluetoothmessagingapp.feature.chat.models.ChatScreenEvent
-import com.karlom.bluetoothmessagingapp.feature.chat.models.ChatScreenEvent.OnConnectClicked
-import com.karlom.bluetoothmessagingapp.feature.chat.models.ChatScreenEvent.OnDeleteVoiceRecordingClicked
-import com.karlom.bluetoothmessagingapp.feature.chat.models.ChatScreenEvent.OnSendClicked
-import com.karlom.bluetoothmessagingapp.feature.chat.models.ChatScreenEvent.OnSendImageClicked
-import com.karlom.bluetoothmessagingapp.feature.chat.models.ChatScreenEvent.OnStartRecordingVoiceClicked
-import com.karlom.bluetoothmessagingapp.feature.chat.models.ChatScreenEvent.OnStopRecordingVoiceClicked
-import com.karlom.bluetoothmessagingapp.feature.chat.models.ChatScreenEvent.OnTextChanged
+import com.karlom.bluetoothmessagingapp.feature.chat.models.ChatScreenEvent.*
 import com.karlom.bluetoothmessagingapp.feature.chat.models.ChatScreenState
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedFactory
@@ -140,6 +134,9 @@ class ChatViewModel @AssistedInject constructor(
                 isRecordingVoice.update { false }
                 inputMode.update { TEXT }
             }
+
+            is OnPausePlayingAudioMessage -> {}
+            is OnPlayAudioMessage -> {}
         }
     }
 

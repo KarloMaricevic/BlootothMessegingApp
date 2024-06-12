@@ -24,6 +24,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.paging.compose.collectAsLazyPagingItems
 import com.google.accompanist.permissions.rememberPermissionState
 import com.karlom.bluetoothmessagingapp.domain.chat.models.Message
+import com.karlom.bluetoothmessagingapp.feature.chat.components.AudioChatBox
 import com.karlom.bluetoothmessagingapp.feature.chat.components.ChatInputFiled
 import com.karlom.bluetoothmessagingapp.feature.chat.components.ConnectToButton
 import com.karlom.bluetoothmessagingapp.feature.chat.components.ImageChatBox
@@ -70,8 +71,10 @@ fun ChatScreen(address: String) {
                     when (message) {
                         is Message.TextMessage -> TextChatBox(message)
                         is Message.ImageMessage -> ImageChatBox(message)
-                        else -> { // TODO
-                        }
+                        is Message.AudioMessage -> AudioChatBox(
+                            message = message,
+                            onInteraction = viewModel::onEvent,
+                        )
                     }
                 },
                 noItemsItem = { },
