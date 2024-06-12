@@ -15,6 +15,8 @@ import com.karlom.bluetoothmessagingapp.domain.chat.usecase.GetMessages
 import com.karlom.bluetoothmessagingapp.domain.chat.usecase.SendImage
 import com.karlom.bluetoothmessagingapp.domain.chat.usecase.SendMessage
 import com.karlom.bluetoothmessagingapp.domain.chat.usecase.StartChatServerAndWaitForConnection
+import com.karlom.bluetoothmessagingapp.domain.voice.StartRecordingVoice
+import com.karlom.bluetoothmessagingapp.domain.voice.StopRecordingVoice
 import com.karlom.bluetoothmessagingapp.feature.chat.models.ChatInputMode.*
 import com.karlom.bluetoothmessagingapp.feature.chat.models.ChatScreenEvent
 import com.karlom.bluetoothmessagingapp.feature.chat.models.ChatScreenEvent.*
@@ -33,6 +35,7 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.selects.select
+import java.util.UUID
 
 @HiltViewModel(assistedFactory = ChatViewModel.ChatViewModelFactory::class)
 class ChatViewModel @AssistedInject constructor(
@@ -43,6 +46,8 @@ class ChatViewModel @AssistedInject constructor(
     private val sendImage: SendImage,
     private val getConnectionStateNotifier: GetConnectedDevicesNotifier,
     private val startChatServerAndWaitForConnection: StartChatServerAndWaitForConnection,
+    private val startRecordingVoice: StartRecordingVoice,
+    private val stopRecordingVoice: StopRecordingVoice,
     private val connectToServer: ConnectToServer,
     @IoDispatcher private val ioDispatcher: CoroutineDispatcher
 ) : BaseViewModel<ChatScreenEvent>() {
@@ -58,6 +63,8 @@ class ChatViewModel @AssistedInject constructor(
     private val inputMode = MutableStateFlow(TEXT)
     private val isRecordingVoice = MutableStateFlow(false)
     private val messages = MutableStateFlow(getMessages(contactAddress))
+
+    private var voiceFileUri: String? = null
 
     val state = combine(
         showConnectToDeviceButton,
@@ -97,15 +104,22 @@ class ChatViewModel @AssistedInject constructor(
             }
 
             is OnStartRecordingVoiceClicked -> {
-                inputMode.update { VOICE }
-                isRecordingVoice.update { true }
+                val recording = startRecordingVoice(UUID.randomUUID().toString())
+                recording.onRight { fileUri ->
+                    voiceFileUri = fileUri
+                    inputMode.update { VOICE }
+                    isRecordingVoice.update { true }
+                }
             }
 
             is OnStopRecordingVoiceClicked -> {
+                stopRecordingVoice()
                 isRecordingVoice.update { false }
             }
 
             is OnDeleteVoiceRecordingClicked -> {
+                stopRecordingVoice()
+                voiceFileUri = null
                 isRecordingVoice.update { false }
                 inputMode.update { TEXT }
             }
