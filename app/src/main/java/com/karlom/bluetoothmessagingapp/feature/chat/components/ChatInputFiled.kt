@@ -6,6 +6,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.Icon
@@ -26,6 +27,9 @@ import com.karlom.bluetoothmessagingapp.designSystem.theme.BluetoothMessagingApp
 import com.karlom.bluetoothmessagingapp.designSystem.theme.black
 import com.karlom.bluetoothmessagingapp.designSystem.theme.blue
 import com.karlom.bluetoothmessagingapp.designSystem.theme.gray500
+import com.karlom.bluetoothmessagingapp.feature.chat.models.ChatInputMode
+import com.karlom.bluetoothmessagingapp.feature.chat.models.ChatInputMode.TEXT
+import com.karlom.bluetoothmessagingapp.feature.chat.models.ChatInputMode.VOICE
 import com.karlom.bluetoothmessagingapp.feature.chat.models.ChatScreenEvent
 import com.karlom.bluetoothmessagingapp.feature.chat.models.ChatScreenEvent.OnSendClicked
 import com.karlom.bluetoothmessagingapp.feature.chat.models.ChatScreenEvent.OnTextChanged
@@ -33,6 +37,8 @@ import com.karlom.bluetoothmessagingapp.feature.chat.models.ChatScreenEvent.OnTe
 @Composable
 fun ChatInputFiled(
     text: String,
+    inputMode: ChatInputMode,
+    isRecording: Boolean,
     onInteraction: (ChatScreenEvent) -> Unit,
     onGalleryClicked: () -> Unit,
     modifier: Modifier = Modifier,
@@ -43,6 +49,39 @@ fun ChatInputFiled(
             .padding(8.dp),
         verticalAlignment = Alignment.Bottom,
         horizontalArrangement = Arrangement.Center,
+    ) {
+        when (inputMode) {
+            TEXT -> TextInputBox(
+                text = text,
+                onInteraction = onInteraction,
+                onGalleryClicked = onGalleryClicked,
+            )
+
+            VOICE -> VoiceInputBox(isRecording)
+        }
+        Icon(
+            painter = painterResource(R.drawable.ic_send),
+            contentDescription = stringResource(R.string.default_icon_content_description),
+            modifier = Modifier
+                .padding(4.dp)
+                .clip(CircleShape)
+                .clickable { onInteraction(OnSendClicked) }
+                .padding(4.dp),
+            tint = blue,
+        )
+    }
+}
+
+@Composable
+private fun TextInputBox(
+    text: String,
+    onInteraction: (ChatScreenEvent) -> Unit,
+    onGalleryClicked: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    Row(
+        modifier = modifier,
+        verticalAlignment = Alignment.CenterVertically,
     ) {
         Icon(
             painter = painterResource(R.drawable.ic_camera),
@@ -91,30 +130,72 @@ fun ChatInputFiled(
                     )
                 }
                 innerTextField()
-
             }
         )
+    }
+}
+
+@Composable
+private fun VoiceInputBox(
+    isRecording: Boolean,
+    modifier: Modifier = Modifier,
+) {
+    Row(
+        modifier = modifier.padding(vertical = 6.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
         Icon(
-            painter = painterResource(R.drawable.ic_send),
+            painter = painterResource(id = R.drawable.ic_delete),
             contentDescription = stringResource(R.string.default_icon_content_description),
-            modifier = Modifier
-                .padding(4.dp)
-                .clip(CircleShape)
-                .clickable { onInteraction(OnSendClicked) }
-                .padding(4.dp),
+            modifier = Modifier.padding(end = 4.dp),
             tint = blue,
+        )
+        Row(
+            Modifier
+                .clip(RoundedCornerShape(10.dp))
+                .background(MaterialTheme.colorScheme.surface)
+                .weight(1f, true)
+                .padding(vertical = 2.dp),
+        ) {
+            Icon(
+                painter = painterResource(id = R.drawable.ic_pause),
+                contentDescription = stringResource(R.string.default_icon_content_description),
+                modifier = Modifier.padding(horizontal = 4.dp),
+                tint = if (isRecording) blue else gray500,
+            )
+            Text(
+                text = if (isRecording) stringResource(R.string.chat_screen_recording_indicator) else stringResource(
+                    R.string.chat_screen_stopped_recording_indicator
+                ),
+            )
+        }
+    }
+}
+
+@Preview
+@Composable
+fun ChatTextInputPreview() {
+    BluetoothMessagingAppTheme {
+        ChatInputFiled(
+            text = "Message",
+            onInteraction = {},
+            onGalleryClicked = {},
+            inputMode = TEXT,
+            isRecording = false,
         )
     }
 }
 
 @Preview
 @Composable
-fun ChatInputFiledPreview() {
+private fun ChatVoiceInputPreview() {
     BluetoothMessagingAppTheme {
         ChatInputFiled(
-            text = "Message",
+            text = "",
             onInteraction = {},
             onGalleryClicked = {},
+            inputMode = VOICE,
+            isRecording = false,
         )
     }
 }

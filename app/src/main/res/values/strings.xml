@@ -13,6 +13,8 @@
     <string name="chat_screen_message_hint">Aa</string>
     <string name="chat_screen_connect_to_device_button">Connect to device</string>
     <string name="chat_screen_connecting_label">Connecting</string>
+    <string name="chat_screen_recording_indicator">Recording</string>
+    <string name="chat_screen_stopped_recording_indicator">Stopped recording</string>
 
     // contacts screen
     <string name="contacts_screen_new_chat">New chat</string>

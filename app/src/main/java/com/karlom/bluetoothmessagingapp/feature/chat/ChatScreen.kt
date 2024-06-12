@@ -26,6 +26,7 @@ import com.karlom.bluetoothmessagingapp.feature.chat.components.ChatInputFiled
 import com.karlom.bluetoothmessagingapp.feature.chat.components.ConnectToButton
 import com.karlom.bluetoothmessagingapp.feature.chat.components.ImageChatBox
 import com.karlom.bluetoothmessagingapp.feature.chat.components.TextChatBox
+import com.karlom.bluetoothmessagingapp.feature.chat.models.ChatInputMode.TEXT
 import com.karlom.bluetoothmessagingapp.feature.chat.models.ChatScreenEvent
 import com.karlom.bluetoothmessagingapp.feature.chat.models.ChatScreenEvent.OnConnectClicked
 import com.karlom.bluetoothmessagingapp.feature.chat.viewmodel.ChatViewModel
@@ -87,12 +88,14 @@ fun ChatScreen(address: String) {
             ChatInputFiled(
                 text = state.textToSend,
                 onInteraction = viewModel::onEvent,
+                inputMode = TEXT,
+                isRecording = false,
                 onGalleryClicked = {
                     val intent = (Intent(Intent.ACTION_PICK).apply { type = "image/*" })
                     if (context.packageManager.queryIntentActivities(intent, 0).size > 0) {
                         galleryLauncher.launch(intent)
                     }
-                }
+                },
             )
         }
     }
