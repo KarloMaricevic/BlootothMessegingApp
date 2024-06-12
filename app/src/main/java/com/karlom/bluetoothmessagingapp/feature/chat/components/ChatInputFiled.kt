@@ -59,11 +59,13 @@ fun ChatInputFiled(
                 onInteraction = onInteraction,
                 onGalleryClicked = onGalleryClicked,
                 onMicrophoneClicked = onMicrophoneClicked,
+                modifier = Modifier.weight(1f, true),
             )
 
             VOICE -> VoiceInputBox(
                 isRecording = isRecording,
                 onInteraction = onInteraction,
+                modifier = Modifier.weight(1f, true),
             )
         }
         Icon(
