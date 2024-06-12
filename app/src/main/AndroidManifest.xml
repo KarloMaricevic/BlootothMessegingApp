@@ -25,6 +25,8 @@
         android:name="android.hardware.bluetooth"
         android:required="true" />
 
+    <uses-permission android:name="android.permission.RECORD_AUDIO" />
+
     <application
         android:name=".BluetoothMessagingApplication"
         android:allowBackup="true"

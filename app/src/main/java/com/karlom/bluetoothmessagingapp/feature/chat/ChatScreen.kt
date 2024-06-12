@@ -1,5 +1,6 @@
 package com.karlom.bluetoothmessagingapp.feature.chat
 
+import android.Manifest
 import android.app.Activity
 import android.content.Intent
 import android.net.Uri
@@ -21,6 +22,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.paging.compose.collectAsLazyPagingItems
+import com.google.accompanist.permissions.rememberPermissionState
 import com.karlom.bluetoothmessagingapp.domain.chat.models.Message
 import com.karlom.bluetoothmessagingapp.feature.chat.components.ChatInputFiled
 import com.karlom.bluetoothmessagingapp.feature.chat.components.ConnectToButton
@@ -50,6 +52,13 @@ fun ChatScreen(address: String) {
                     result.data?.data?.toString() ?: Uri.EMPTY.toString()
                 )
             )
+        }
+    }
+    val voicePermissionLauncher = rememberPermissionState(
+        permission = Manifest.permission.RECORD_AUDIO,
+    ) { permissionAccepted ->
+        if (permissionAccepted) {
+            viewModel.onEvent(OnStartRecordingVoiceClicked)
         }
     }
     Column(Modifier.fillMaxSize()) {
@@ -96,7 +105,7 @@ fun ChatScreen(address: String) {
                         galleryLauncher.launch(intent)
                     }
                 },
-                onMicrophoneClicked = { viewModel.onEvent(OnStartRecordingVoiceClicked) }
+                onMicrophoneClicked = { voicePermissionLauncher.launchPermissionRequest() }
             )
         }
     }
