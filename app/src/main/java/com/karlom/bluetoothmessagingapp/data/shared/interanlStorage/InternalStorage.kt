@@ -80,4 +80,6 @@ class InternalStorage @Inject constructor(
             Either.Left(Failure.ErrorMessage("Cursor of a file is empty"))
         }
     }
+
+    fun createEmptyFile(uri: String) = save(byteArrayOf(), uri)
 }
