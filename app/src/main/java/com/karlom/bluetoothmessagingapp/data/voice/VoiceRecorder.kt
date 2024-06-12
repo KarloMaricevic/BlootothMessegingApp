@@ -14,10 +14,14 @@ class VoiceRecorder @Inject constructor(
     @ApplicationContext private val context: Context,
 ) {
 
+    private companion object {
+        const val RECORDER_SAMPLE_RATE = 44100
+    }
+
     private var mediaRecorder: MediaRecorder? = null
 
     fun startRecording(outUri: String) =
-        if (mediaRecorder == null) {
+        if (mediaRecorder != null) {
             Either.Left(Failure.ErrorMessage("Recording already in progress"))
         } else {
             mediaRecorder = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
@@ -26,7 +30,12 @@ class VoiceRecorder @Inject constructor(
                 MediaRecorder()
             }.apply {
                 setAudioSource(MediaRecorder.AudioSource.MIC)
+                setAudioSamplingRate(RECORDER_SAMPLE_RATE)
+                setOutputFormat(MediaRecorder.OutputFormat.MPEG_4)
                 setOutputFile(outUri)
+                setAudioEncoder(MediaRecorder.AudioEncoder.AMR_WB)
+                prepare()
+                start()
             }
             Either.Right(outUri)
         }
