@@ -16,12 +16,21 @@ import com.karlom.bluetoothmessagingapp.domain.chat.usecase.SendAudio
 import com.karlom.bluetoothmessagingapp.domain.chat.usecase.SendImage
 import com.karlom.bluetoothmessagingapp.domain.chat.usecase.SendMessage
 import com.karlom.bluetoothmessagingapp.domain.chat.usecase.StartChatServerAndWaitForConnection
+import com.karlom.bluetoothmessagingapp.domain.voice.PlayAudioFile
 import com.karlom.bluetoothmessagingapp.domain.voice.StartRecordingVoice
 import com.karlom.bluetoothmessagingapp.domain.voice.StopRecordingVoice
 import com.karlom.bluetoothmessagingapp.feature.chat.models.ChatInputMode.TEXT
 import com.karlom.bluetoothmessagingapp.feature.chat.models.ChatInputMode.VOICE
 import com.karlom.bluetoothmessagingapp.feature.chat.models.ChatScreenEvent
-import com.karlom.bluetoothmessagingapp.feature.chat.models.ChatScreenEvent.*
+import com.karlom.bluetoothmessagingapp.feature.chat.models.ChatScreenEvent.OnConnectClicked
+import com.karlom.bluetoothmessagingapp.feature.chat.models.ChatScreenEvent.OnDeleteVoiceRecordingClicked
+import com.karlom.bluetoothmessagingapp.feature.chat.models.ChatScreenEvent.OnPausePlayingAudioMessage
+import com.karlom.bluetoothmessagingapp.feature.chat.models.ChatScreenEvent.OnPlayAudioMessage
+import com.karlom.bluetoothmessagingapp.feature.chat.models.ChatScreenEvent.OnSendClicked
+import com.karlom.bluetoothmessagingapp.feature.chat.models.ChatScreenEvent.OnSendImageClicked
+import com.karlom.bluetoothmessagingapp.feature.chat.models.ChatScreenEvent.OnStartRecordingVoiceClicked
+import com.karlom.bluetoothmessagingapp.feature.chat.models.ChatScreenEvent.OnStopRecordingVoiceClicked
+import com.karlom.bluetoothmessagingapp.feature.chat.models.ChatScreenEvent.OnTextChanged
 import com.karlom.bluetoothmessagingapp.feature.chat.models.ChatScreenState
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedFactory
@@ -52,6 +61,7 @@ class ChatViewModel @AssistedInject constructor(
     private val stopRecordingVoice: StopRecordingVoice,
     private val sendAudio: SendAudio,
     private val connectToServer: ConnectToServer,
+    private val playAudio: PlayAudioFile,
     @IoDispatcher private val ioDispatcher: CoroutineDispatcher
 ) : BaseViewModel<ChatScreenEvent>() {
 
@@ -136,7 +146,7 @@ class ChatViewModel @AssistedInject constructor(
             }
 
             is OnPausePlayingAudioMessage -> {}
-            is OnPlayAudioMessage -> {}
+            is OnPlayAudioMessage -> viewModelScope.launch { playAudio(event.message.audioUri) }
         }
     }
 
