@@ -1,22 +1,26 @@
 package com.karlom.bluetoothmessagingapp.domain.chat.models
 
 import com.karlom.bluetoothmessagingapp.data.shared.db.enteties.MessageEntity
+import com.karlom.bluetoothmessagingapp.data.shared.db.enteties.MessageState as MessageStateData
 
 sealed class Message(
     open val id: Long,
     open val isFromMe: Boolean,
+    open val state: MessageState
 ) {
     data class TextMessage(
         override val id: Long,
         val message: String,
         override val isFromMe: Boolean,
-    ) : Message(id, isFromMe) {
+        override val state: MessageState,
+    ) : Message(id, isFromMe, state) {
 
         companion object {
             fun from(entity: MessageEntity) = TextMessage(
                 id = entity.id,
                 message = entity.textContent ?: "",
                 isFromMe = entity.isSendByMe,
+                state = mapToMessageState(entity.state)
             )
         }
     }
@@ -25,13 +29,15 @@ sealed class Message(
         override val id: Long,
         val imageUri: String,
         override val isFromMe: Boolean,
-    ) : Message(id, isFromMe) {
+        override val state: MessageState,
+    ) : Message(id, isFromMe, state) {
 
         companion object {
             fun from(entity: MessageEntity) = ImageMessage(
                 id = entity.id,
                 imageUri = entity.filePath ?: "",
                 isFromMe = entity.isSendByMe,
+                state = mapToMessageState(entity.state)
             )
         }
     }
@@ -40,14 +46,28 @@ sealed class Message(
         override val id: Long,
         val audioUri: String,
         override val isFromMe: Boolean,
-    ) : Message(id, isFromMe) {
+        override val state: MessageState,
+    ) : Message(id, isFromMe, state) {
 
         companion object {
             fun from(entity: MessageEntity) = AudioMessage(
                 id = entity.id,
                 audioUri = entity.filePath ?: "",
                 isFromMe = entity.isSendByMe,
+                state = mapToMessageState(entity.state)
             )
         }
     }
+}
+
+enum class MessageState {
+    SENDING,
+    SENT,
+    NOT_SENT,
+}
+
+private fun mapToMessageState(state: MessageStateData) = when (state) {
+    MessageStateData.SENT -> MessageState.SENT
+    MessageStateData.NOT_SENT -> MessageState.NOT_SENT
+    MessageStateData.SENDING -> MessageState.SENDING
 }
