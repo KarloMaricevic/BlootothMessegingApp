@@ -1,6 +1,7 @@
 package com.karlom.bluetoothmessagingapp.feature.chat.components
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -14,6 +15,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
@@ -36,6 +38,29 @@ fun AudioChatBox(
             contentDescription = stringResource(R.string.default_icon_content_description),
             modifier = Modifier
                 .align(if (message.isFromMe) Alignment.CenterEnd else Alignment.CenterStart)
+                .then(if (message.state == MessageState.SENDING || message.state == MessageState.NOT_SENT) {
+                    Modifier.graphicsLayer {
+                        alpha = 0.5f
+                        shadowElevation = 0f
+                        clip = true
+                    }
+                } else {
+                    Modifier
+                })
+                .then(
+                    if (message.state == MessageState.NOT_SENT) {
+                        Modifier.border(
+                            1.dp, Color.Red, RoundedCornerShape(
+                                topStart = 16.dp,
+                                topEnd = 16.dp,
+                                bottomStart = if (message.isFromMe) 16.dp else 0.dp,
+                                bottomEnd = if (message.isFromMe) 0.dp else 16.dp
+                            )
+                        )
+                    } else {
+                        Modifier
+                    }
+                )
                 .clip(
                     RoundedCornerShape(
                         topStart = 16.dp,
@@ -48,17 +73,39 @@ fun AudioChatBox(
                 .background(MaterialTheme.colorScheme.surface)
                 .padding(4.dp)
                 .size(80.dp),
-            tint = Color.White,
+            tint = MaterialTheme.colorScheme.onSurface,
         )
     }
 }
 
 @Composable
 @Preview
-fun AudioChatBoxPreview() {
+fun AudioChatSendingBoxPreview() {
+    BluetoothMessagingAppTheme {
+        AudioChatBox(
+            message = Audio(id = 1, audioUri = "", isFromMe = false, state = MessageState.SENDING),
+            onInteraction = {},
+        )
+    }
+}
+
+@Composable
+@Preview
+fun AudioChatSentBoxPreview() {
     BluetoothMessagingAppTheme {
         AudioChatBox(
             message = Audio(id = 1, audioUri = "", isFromMe = false, state = MessageState.SENT),
+            onInteraction = {},
+        )
+    }
+}
+
+@Composable
+@Preview
+fun AudioChatNotSentBoxPreview() {
+    BluetoothMessagingAppTheme {
+        AudioChatBox(
+            message = Audio(id = 1, audioUri = "", isFromMe = false, state = MessageState.NOT_SENT),
             onInteraction = {},
         )
     }
