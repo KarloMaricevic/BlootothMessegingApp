@@ -100,16 +100,37 @@ class ChatRepository @Inject constructor(
     }
 
     suspend fun sendAudio(audioUri: String, address: String): Either<Failure.ErrorMessage, Unit> {
-        messageDao.insertAll(
-            MessageEntity(
-                isSendByMe = true,
-                textContent = null,
-                filePath = audioUri,
-                messageType = MessageType.AUDIO,
-                withContactAddress = address,
+        val inputStream = internalStorage.getFileInputStream(audioUri)
+        val imageSize = internalStorage.getFileSize(audioUri)
+        if (inputStream is Either.Right && imageSize is Either.Right) {
+            val result = communicationManager.sendAudio(
+                stream = inputStream.value,
+                streamSize = imageSize.value.toInt(),
+                address = address,
             )
+            inputStream.onRight {
+                it.close()
+                result.onRight {
+                    messageDao.insertAll(
+                        MessageEntity(
+                            isSendByMe = true,
+                            textContent = null,
+                            filePath = audioUri,
+                            messageType = MessageType.AUDIO,
+                            withContactAddress = address,
+                        )
+                    )
+                }
+                return result
+            }
+        }
+        inputStream.onRight { it.close() }
+        return listOf(
+            inputStream,
+            imageSize,
+        ).firstOrNull { it is Either.Left } as? Either.Left ?: Either.Left(
+            Failure.ErrorMessage("Error sending audio")
         )
-        return Either.Right(Unit)
     }
 
     suspend fun startSavingReceivedMessages() {
@@ -143,7 +164,21 @@ class ChatRepository @Inject constructor(
                     }
                 }
 
-                else -> throw NotImplementedError()
+                is BluetoothMessage.Audio -> {
+                    val audioFilePathResult =
+                        internalStorage.save(message.audio, UUID.randomUUID().toString())
+                    audioFilePathResult.onRight { imagePath ->
+                        messageDao.insertAll(
+                            MessageEntity(
+                                isSendByMe = false,
+                                textContent = null,
+                                filePath = imagePath,
+                                messageType = MessageType.AUDIO,
+                                withContactAddress = message.address,
+                            )
+                        )
+                    }
+                }
             }
         }
     }

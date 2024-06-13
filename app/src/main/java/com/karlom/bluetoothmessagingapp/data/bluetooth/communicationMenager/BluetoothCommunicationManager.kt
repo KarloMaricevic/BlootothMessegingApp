@@ -118,6 +118,39 @@ class BluetoothCommunicationManager @Inject constructor(
         }
     }
 
+    suspend fun sendAudio(
+        stream: InputStream,
+        streamSize: Int,
+        address: String,
+    ): Either<Failure.ErrorMessage, Unit> {
+        return when (val outputStream = connectionManager.getOutputStream(address)) {
+            is Either.Left -> outputStream
+            is Either.Right -> {
+                withContext(ioDispatcher) {
+                    try {
+                        val sizeArray =
+                            ByteBuffer.allocate(DATA_SIZE_PREFIX_SIZE).putInt(streamSize).array()
+                        val typeArray =
+                            ByteBuffer.allocate(MESSAGE_TYPE_PREFIX_SIZE)
+                                .putInt(MESSAGE_TYPE_AUDIO_INDICATOR)
+                                .array()
+                        val dataBuffer = ByteArray(CHUNK_SIZE)
+                        var bytesRead: Int
+                        outputStream.value.write(sizeArray)
+                        outputStream.value.write(typeArray)
+                        while (stream.read(dataBuffer).also { bytesRead = it } != -1) {
+                            outputStream.value.write(dataBuffer, 0, bytesRead)
+                        }
+                        Either.Right(Unit)
+                    } catch (e: Exception) {
+                        connectionManager.closeConnection(address)
+                        Either.Left(Failure.ErrorMessage(e.message ?: "Unknown"))
+                    }
+                }
+            }
+        }
+    }
+
     @OptIn(DelicateCoroutinesApi::class)
     private fun startReadingInputStream(
         inputStream: InputStream,
