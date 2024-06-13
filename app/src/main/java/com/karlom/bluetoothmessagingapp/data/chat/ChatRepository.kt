@@ -10,6 +10,7 @@ import com.karlom.bluetoothmessagingapp.data.bluetooth.communicationMenager.Blue
 import com.karlom.bluetoothmessagingapp.data.bluetooth.models.BluetoothMessage
 import com.karlom.bluetoothmessagingapp.data.shared.db.dao.MessageDao
 import com.karlom.bluetoothmessagingapp.data.shared.db.enteties.MessageEntity
+import com.karlom.bluetoothmessagingapp.data.shared.db.enteties.MessageState
 import com.karlom.bluetoothmessagingapp.data.shared.db.enteties.MessageType
 import com.karlom.bluetoothmessagingapp.data.shared.interanlStorage.InternalStorage
 import com.karlom.bluetoothmessagingapp.domain.chat.models.Message
@@ -44,6 +45,7 @@ class ChatRepository @Inject constructor(
                     filePath = null,
                     messageType = MessageType.TEXT,
                     withContactAddress = address,
+                    state = MessageState.SENT,
                 )
             )
         }
@@ -83,6 +85,7 @@ class ChatRepository @Inject constructor(
                         filePath = savedImageUri.value,
                         messageType = MessageType.IMAGE,
                         withContactAddress = address,
+                        state = MessageState.SENT,
                     )
                 )
             }
@@ -118,6 +121,7 @@ class ChatRepository @Inject constructor(
                             filePath = audioUri,
                             messageType = MessageType.AUDIO,
                             withContactAddress = address,
+                            state = MessageState.SENT,
                         )
                     )
                 }
@@ -144,6 +148,7 @@ class ChatRepository @Inject constructor(
                             filePath = null,
                             messageType = MessageType.TEXT,
                             withContactAddress = message.address,
+                            state = MessageState.SENT,
                         )
                     )
                 }
@@ -159,6 +164,7 @@ class ChatRepository @Inject constructor(
                                 filePath = imagePath,
                                 messageType = MessageType.IMAGE,
                                 withContactAddress = message.address,
+                                state = MessageState.SENT,
                             )
                         )
                     }
@@ -175,6 +181,7 @@ class ChatRepository @Inject constructor(
                                 filePath = imagePath,
                                 messageType = MessageType.AUDIO,
                                 withContactAddress = message.address,
+                                state = MessageState.SENT,
                             )
                         )
                     }

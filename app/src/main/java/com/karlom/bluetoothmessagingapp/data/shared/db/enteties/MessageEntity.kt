@@ -18,6 +18,7 @@ data class MessageEntity(
     val textContent: String?,
     val filePath: String?,
     val messageType: MessageType,
+    val state: MessageState,
     val isSendByMe: Boolean,
     @ColumnInfo(index = true) val withContactAddress: String
 )
@@ -26,4 +27,10 @@ enum class MessageType {
     TEXT,
     IMAGE,
     AUDIO,
+}
+
+enum class MessageState {
+    SENDING,
+    SENT,
+    NOT_SENT,
 }
