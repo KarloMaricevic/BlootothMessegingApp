@@ -23,12 +23,12 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.paging.compose.collectAsLazyPagingItems
 import com.google.accompanist.permissions.rememberPermissionState
-import com.karlom.bluetoothmessagingapp.domain.chat.models.Message
 import com.karlom.bluetoothmessagingapp.feature.chat.components.AudioChatBox
 import com.karlom.bluetoothmessagingapp.feature.chat.components.ChatInputFiled
 import com.karlom.bluetoothmessagingapp.feature.chat.components.ConnectToButton
 import com.karlom.bluetoothmessagingapp.feature.chat.components.ImageChatBox
 import com.karlom.bluetoothmessagingapp.feature.chat.components.TextChatBox
+import com.karlom.bluetoothmessagingapp.feature.chat.models.ChatItem
 import com.karlom.bluetoothmessagingapp.feature.chat.models.ChatScreenEvent.OnConnectClicked
 import com.karlom.bluetoothmessagingapp.feature.chat.models.ChatScreenEvent.OnSendImageClicked
 import com.karlom.bluetoothmessagingapp.feature.chat.models.ChatScreenEvent.OnStartRecordingVoiceClicked
@@ -69,9 +69,9 @@ fun ChatScreen(address: String) {
                 key = { id },
                 uiItemBuilder = { message ->
                     when (message) {
-                        is Message.TextMessage -> TextChatBox(message)
-                        is Message.ImageMessage -> ImageChatBox(message)
-                        is Message.AudioMessage -> AudioChatBox(
+                        is ChatItem.Text -> TextChatBox(message)
+                        is ChatItem.Image -> ImageChatBox(message)
+                        is ChatItem.Audio -> AudioChatBox(
                             message = message,
                             onInteraction = viewModel::onEvent,
                         )

@@ -6,11 +6,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -18,34 +13,17 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import coil.ImageLoader
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
-import coil.request.SuccessResult
 import com.karlom.bluetoothmessagingapp.R
-import com.karlom.bluetoothmessagingapp.domain.chat.models.Message
+import com.karlom.bluetoothmessagingapp.feature.chat.models.ChatItem.Image
 
 @Composable
 fun ImageChatBox(
-    message: Message.ImageMessage,
+    message: Image,
     modifier: Modifier = Modifier,
 ) {
-    var aspectRatio by remember { mutableStateOf(1f) }
     val context = LocalContext.current
-    val imageLoader = ImageLoader(context)
-
-    LaunchedEffect(message.imageUri) {
-        val request = ImageRequest.Builder(context)
-            .data(message.imageUri)
-            .size(coil.size.Size.ORIGINAL)
-            .build()
-
-        val result = (imageLoader.execute(request) as? SuccessResult)?.drawable
-        result?.let {
-            aspectRatio = it.intrinsicWidth.toFloat() / it.intrinsicHeight.toFloat()
-        }
-    }
-
     Box(modifier = modifier.fillMaxWidth()) {
         AsyncImage(
             model = ImageRequest.Builder(context)
@@ -64,7 +42,7 @@ fun ImageChatBox(
                     )
                 )
                 .height(200.dp)
-                .aspectRatio(aspectRatio),
+                .aspectRatio(message.aspectRatio),
         )
     }
 }
@@ -73,10 +51,11 @@ fun ImageChatBox(
 @Composable
 private fun TextChatBoxPreview() {
     ImageChatBox(
-        Message.ImageMessage(
+        Image(
             id = 0,
             imageUri = "",
             isFromMe = false,
+            aspectRatio = 16 / 9f,
         )
     )
 }

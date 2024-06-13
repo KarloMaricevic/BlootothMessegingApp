@@ -1,6 +1,7 @@
 package com.karlom.bluetoothmessagingapp.feature.chat.viewmodel
 
 import androidx.lifecycle.viewModelScope
+import androidx.paging.map
 import arrow.core.Either
 import com.karlom.bluetoothmessagingapp.core.base.BaseViewModel
 import com.karlom.bluetoothmessagingapp.core.base.TIMEOUT_DELAY
@@ -19,6 +20,7 @@ import com.karlom.bluetoothmessagingapp.domain.chat.usecase.StartChatServerAndWa
 import com.karlom.bluetoothmessagingapp.domain.voice.PlayAudioFile
 import com.karlom.bluetoothmessagingapp.domain.voice.StartRecordingVoice
 import com.karlom.bluetoothmessagingapp.domain.voice.StopRecordingVoice
+import com.karlom.bluetoothmessagingapp.feature.chat.mappers.ChatItemMapper
 import com.karlom.bluetoothmessagingapp.feature.chat.models.ChatInputMode.TEXT
 import com.karlom.bluetoothmessagingapp.feature.chat.models.ChatInputMode.VOICE
 import com.karlom.bluetoothmessagingapp.feature.chat.models.ChatScreenEvent
@@ -42,6 +44,7 @@ import kotlinx.coroutines.cancelAndJoin
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
@@ -62,6 +65,7 @@ class ChatViewModel @AssistedInject constructor(
     private val sendAudio: SendAudio,
     private val connectToServer: ConnectToServer,
     private val playAudio: PlayAudioFile,
+    private val chatItemMapper: ChatItemMapper,
     @IoDispatcher private val ioDispatcher: CoroutineDispatcher
 ) : BaseViewModel<ChatScreenEvent>() {
 
@@ -75,7 +79,9 @@ class ChatViewModel @AssistedInject constructor(
     private val textToSend = MutableStateFlow("")
     private val inputMode = MutableStateFlow(TEXT)
     private val isRecordingVoice = MutableStateFlow(false)
-    private val messages = MutableStateFlow(getMessages(contactAddress))
+    private val messages = MutableStateFlow(getMessages(contactAddress).map { page ->
+        page.map { message -> chatItemMapper.map(message) }
+    })
 
     private var voiceFileUri: String? = null
 

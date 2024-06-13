@@ -1,7 +1,6 @@
 package com.karlom.bluetoothmessagingapp.feature.chat.models
 
 import androidx.paging.PagingData
-import com.karlom.bluetoothmessagingapp.domain.chat.models.Message
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flowOf
 
@@ -11,5 +10,5 @@ data class ChatScreenState(
     val textToSend: String = "",
     val inputMode: ChatInputMode = ChatInputMode.TEXT,
     val isRecordingVoice: Boolean = false,
-    val messages: Flow<PagingData<Message>> = flowOf(PagingData.empty()),
+    val messages: Flow<PagingData<ChatItem>> = flowOf(PagingData.empty()),
 )

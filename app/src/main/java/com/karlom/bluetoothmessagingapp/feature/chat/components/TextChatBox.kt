@@ -13,11 +13,11 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import com.karlom.bluetoothmessagingapp.domain.chat.models.Message.TextMessage
+import com.karlom.bluetoothmessagingapp.feature.chat.models.ChatItem.Text
 
 @Composable
 fun TextChatBox(
-    message: TextMessage,
+    message: Text,
     modifier: Modifier = Modifier,
 ) {
     Box(modifier.fillMaxWidth()) {
@@ -43,7 +43,7 @@ fun TextChatBox(
 @Composable
 private fun TextChatBoxPreview() {
     TextChatBox(
-        TextMessage(
+        Text(
             id = 0,
             message = "Hello!",
             isFromMe = false,
