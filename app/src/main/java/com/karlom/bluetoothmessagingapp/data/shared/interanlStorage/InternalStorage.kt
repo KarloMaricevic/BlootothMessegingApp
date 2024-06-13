@@ -2,7 +2,6 @@ package com.karlom.bluetoothmessagingapp.data.shared.interanlStorage
 
 import android.content.Context
 import android.net.Uri
-import android.provider.MediaStore
 import androidx.core.net.toUri
 import arrow.core.Either
 import com.karlom.bluetoothmessagingapp.core.models.Failure
@@ -17,10 +16,6 @@ import javax.inject.Inject
 class InternalStorage @Inject constructor(
     @ApplicationContext private val context: Context
 ) {
-
-    private companion object {
-        const val NO_COLUMN = -1
-    }
 
     fun saveImage(srcUri: String, destName: String): Either<Failure.ErrorMessage, String> {
         val uri = Uri.parse(srcUri)
@@ -52,33 +47,17 @@ class InternalStorage @Inject constructor(
 
     fun getFileInputStream(uri: String): Either<Failure.ErrorMessage, InputStream> {
         return try {
-            val inputStream = context.contentResolver.openInputStream(uri.toUri())
-                ?: return Either.Left(Failure.ErrorMessage("Content provider error"))
+            val inputStream = File(uri).inputStream()
             Either.Right(inputStream)
         } catch (e: IOException) {
             Either.Left(Failure.ErrorMessage("File not found"))
         }
     }
 
-
-    fun getFileSize(uri: String): Either<Failure.ErrorMessage, Long> {
-        val projection = arrayOf(MediaStore.MediaColumns.SIZE)
-        val cursor = context.contentResolver.query(uri.toUri(), projection, null, null, null)
-            ?: return Either.Left(Failure.ErrorMessage("Content provider error"))
-        return if (cursor.moveToFirst()) {
-            val sizeColumnIndex = cursor.getColumnIndex(MediaStore.MediaColumns.SIZE)
-            if (sizeColumnIndex == NO_COLUMN) {
-                cursor.close()
-                Either.Left(Failure.ErrorMessage("Cant find size column"))
-            } else {
-                val fileSize = cursor.getLong(sizeColumnIndex)
-                cursor.close()
-                Either.Right(fileSize)
-            }
-        } else {
-            cursor.close()
-            Either.Left(Failure.ErrorMessage("Cursor of a file is empty"))
-        }
+    fun getFileSize(uri: String): Either<Failure.ErrorMessage, Long> = try {
+        Either.Right(File(uri).length())
+    } catch (e: Exception) {
+        Either.Left(Failure.ErrorMessage("Error reading file length"))
     }
 
     fun createEmptyFile(uri: String) = save(byteArrayOf(), uri)
