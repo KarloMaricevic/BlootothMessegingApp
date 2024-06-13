@@ -20,6 +20,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.karlom.bluetoothmessagingapp.R
 import com.karlom.bluetoothmessagingapp.designSystem.theme.BluetoothMessagingAppTheme
+import com.karlom.bluetoothmessagingapp.domain.chat.models.MessageState
 import com.karlom.bluetoothmessagingapp.feature.chat.models.ChatItem.Audio
 import com.karlom.bluetoothmessagingapp.feature.chat.models.ChatScreenEvent
 
@@ -57,7 +58,7 @@ fun AudioChatBox(
 fun AudioChatBoxPreview() {
     BluetoothMessagingAppTheme {
         AudioChatBox(
-            message = Audio(id = 1, audioUri = "", isFromMe = false),
+            message = Audio(id = 1, audioUri = "", isFromMe = false, state = MessageState.SENT),
             onInteraction = {},
         )
     }

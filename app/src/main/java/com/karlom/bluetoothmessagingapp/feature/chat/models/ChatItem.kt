@@ -1,25 +1,31 @@
 package com.karlom.bluetoothmessagingapp.feature.chat.models
 
+import com.karlom.bluetoothmessagingapp.domain.chat.models.MessageState
+
 sealed class ChatItem(
     open val id: Long,
     open val isFromMe: Boolean,
+    open val state: MessageState,
 ) {
     data class Text(
         override val id: Long,
         val message: String,
         override val isFromMe: Boolean,
-    ) : ChatItem(id, isFromMe)
+        override val state: MessageState,
+    ) : ChatItem(id, isFromMe, state)
 
     data class Image(
         override val id: Long,
         val imageUri: String,
         val aspectRatio: Float,
         override val isFromMe: Boolean,
-    ) : ChatItem(id, isFromMe)
+        override val state: MessageState,
+    ) : ChatItem(id, isFromMe, state)
 
     data class Audio(
         override val id: Long,
         val audioUri: String,
         override val isFromMe: Boolean,
-    ) : ChatItem(id, isFromMe)
+        override val state: MessageState,
+    ) : ChatItem(id, isFromMe, state)
 }

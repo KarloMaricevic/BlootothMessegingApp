@@ -13,6 +13,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import com.karlom.bluetoothmessagingapp.domain.chat.models.MessageState
 import com.karlom.bluetoothmessagingapp.feature.chat.models.ChatItem.Text
 
 @Composable
@@ -47,6 +48,7 @@ private fun TextChatBoxPreview() {
             id = 0,
             message = "Hello!",
             isFromMe = false,
+            state = MessageState.SENT,
         )
     )
 }

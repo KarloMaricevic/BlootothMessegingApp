@@ -28,6 +28,7 @@ class ChatItemMapper @Inject constructor(
                 id = message.id,
                 message = message.message,
                 isFromMe = message.isFromMe,
+                state = message.state,
             )
 
             is ImageMessage -> Image(
@@ -35,12 +36,14 @@ class ChatItemMapper @Inject constructor(
                 isFromMe = message.isFromMe,
                 imageUri = message.imageUri,
                 aspectRatio = getImageAspectRatio(message.imageUri),
+                state = message.state,
             )
 
             is AudioMessage -> Audio(
                 id = message.id,
                 audioUri = message.audioUri,
                 isFromMe = message.isFromMe,
+                state = message.state,
             )
         }
 
