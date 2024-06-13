@@ -1,6 +1,5 @@
 package com.karlom.bluetoothmessagingapp.data.chat
 
-import android.content.Context
 import androidx.paging.Pager
 import androidx.paging.PagingConfig
 import androidx.paging.map
@@ -14,7 +13,6 @@ import com.karlom.bluetoothmessagingapp.data.shared.db.enteties.MessageState
 import com.karlom.bluetoothmessagingapp.data.shared.db.enteties.MessageType
 import com.karlom.bluetoothmessagingapp.data.shared.interanlStorage.InternalStorage
 import com.karlom.bluetoothmessagingapp.domain.chat.models.Message
-import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.map
 import java.util.UUID
 import javax.inject.Inject
@@ -25,7 +23,6 @@ class ChatRepository @Inject constructor(
     private val communicationManager: BluetoothCommunicationManager,
     private val internalStorage: InternalStorage,
     private val messageDao: MessageDao,
-    @ApplicationContext private val context: Context,
 ) {
 
     private companion object {
@@ -36,19 +33,19 @@ class ChatRepository @Inject constructor(
         message: String,
         address: String,
     ): Either<Failure.ErrorMessage, Unit> {
+        var messageEntity = MessageEntity(
+            isSendByMe = true,
+            textContent = message,
+            filePath = null,
+            messageType = MessageType.TEXT,
+            withContactAddress = address,
+            state = MessageState.SENDING,
+        )
+        val id = messageDao.insert(messageEntity)
+        messageEntity = messageEntity.copy(id = id)
         val result = communicationManager.sendText(text = message, address = address)
-        result.onRight {
-            messageDao.insertAll(
-                MessageEntity(
-                    isSendByMe = true,
-                    textContent = message,
-                    filePath = null,
-                    messageType = MessageType.TEXT,
-                    withContactAddress = address,
-                    state = MessageState.SENT,
-                )
-            )
-        }
+        result.onRight { messageDao.update(messageEntity.copy(state = MessageState.SENT)) }
+        result.onLeft { messageDao.update(messageEntity.copy(state = MessageState.NOT_SENT)) }
         return result
     }
 
@@ -70,6 +67,16 @@ class ChatRepository @Inject constructor(
         val inputStream = internalStorage.getFileInputStream(imageUri)
         val imageSize = internalStorage.getFileSize(imageUri)
         return if (inputStream is Either.Right && imageSize is Either.Right && savedImageUri is Either.Right) {
+            var messageEntity = MessageEntity(
+                isSendByMe = true,
+                textContent = null,
+                filePath = savedImageUri.value,
+                messageType = MessageType.IMAGE,
+                withContactAddress = address,
+                state = MessageState.SENT,
+            )
+            val id = messageDao.insert(messageEntity)
+            messageEntity = messageEntity.copy(id = id)
             val result =
                 communicationManager.sendImage(
                     stream = inputStream.value,
@@ -77,19 +84,9 @@ class ChatRepository @Inject constructor(
                     address = address,
                 )
             inputStream.value.close()
-            result.onRight {
-                messageDao.insertAll(
-                    MessageEntity(
-                        isSendByMe = true,
-                        textContent = null,
-                        filePath = savedImageUri.value,
-                        messageType = MessageType.IMAGE,
-                        withContactAddress = address,
-                        state = MessageState.SENT,
-                    )
-                )
-            }
-            Either.Right(Unit)
+            result.onRight { messageDao.update(messageEntity.copy(state = MessageState.SENT)) }
+            result.onLeft { messageDao.update(messageEntity.copy(state = MessageState.NOT_SENT)) }
+            return result
         } else {
             inputStream.onRight { it.close() }
             listOf(
@@ -106,27 +103,25 @@ class ChatRepository @Inject constructor(
         val inputStream = internalStorage.getFileInputStream(audioUri)
         val imageSize = internalStorage.getFileSize(audioUri)
         if (inputStream is Either.Right && imageSize is Either.Right) {
+            var messageEntity = MessageEntity(
+                isSendByMe = true,
+                textContent = null,
+                filePath = audioUri,
+                messageType = MessageType.IMAGE,
+                withContactAddress = address,
+                state = MessageState.SENT,
+            )
+            val id = messageDao.insert(messageEntity)
+            messageEntity = messageEntity.copy(id = id)
             val result = communicationManager.sendAudio(
                 stream = inputStream.value,
                 streamSize = imageSize.value.toInt(),
                 address = address,
             )
-            inputStream.onRight {
-                it.close()
-                result.onRight {
-                    messageDao.insertAll(
-                        MessageEntity(
-                            isSendByMe = true,
-                            textContent = null,
-                            filePath = audioUri,
-                            messageType = MessageType.AUDIO,
-                            withContactAddress = address,
-                            state = MessageState.SENT,
-                        )
-                    )
-                }
-                return result
-            }
+            inputStream.onRight { messageDao.update(messageEntity.copy(state = MessageState.SENT)) }
+            inputStream.onLeft { messageDao.update(messageEntity.copy(state = MessageState.NOT_SENT)) }
+            inputStream.value.close()
+            return result
         }
         inputStream.onRight { it.close() }
         return listOf(
