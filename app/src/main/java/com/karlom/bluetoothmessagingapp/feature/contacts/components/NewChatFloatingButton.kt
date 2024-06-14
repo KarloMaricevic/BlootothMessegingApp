@@ -13,6 +13,8 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.karlom.bluetoothmessagingapp.R
 import com.karlom.bluetoothmessagingapp.designSystem.theme.BluetoothMessagingAppTheme
+import com.karlom.bluetoothmessagingapp.designSystem.theme.blue
+import com.karlom.bluetoothmessagingapp.designSystem.theme.white
 
 @Composable
 fun NewChatFloatingButton(
@@ -22,6 +24,8 @@ fun NewChatFloatingButton(
     FloatingActionButton(
         onClick = onClick,
         modifier = modifier,
+        containerColor = blue,
+        contentColor = white,
     ) {
         Row(Modifier.padding(16.dp)) {
             Icon(
