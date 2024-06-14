@@ -63,17 +63,24 @@ class ChatRepository @Inject constructor(
     }
 
     suspend fun sendImage(imageUri: String, address: String): Either<Failure.ErrorMessage, Unit> {
-        val savedImageUri = internalStorage.saveImage(imageUri, UUID.randomUUID().toString())
-        val inputStream = internalStorage.getFileInputStream(imageUri)
-        val imageSize = internalStorage.getFileSize(imageUri)
-        return if (inputStream is Either.Right && imageSize is Either.Right && savedImageUri is Either.Right) {
+        val savedImagePath = internalStorage.saveImage(imageUri, UUID.randomUUID().toString())
+        val inputStream = when (savedImagePath) {
+            is Either.Left -> Either.Left(Failure.ErrorMessage("No image path"))
+            is Either.Right -> internalStorage.getFileInputStream(savedImagePath.value)
+        }
+        val imageSize = when (savedImagePath) {
+            is Either.Left -> Either.Left(Failure.ErrorMessage("No image path"))
+            is Either.Right -> internalStorage.getFileSize(savedImagePath.value)
+        }
+        internalStorage.getFileSize(imageUri)
+        return if (inputStream is Either.Right && imageSize is Either.Right && savedImagePath is Either.Right) {
             var messageEntity = MessageEntity(
                 isSendByMe = true,
                 textContent = null,
-                filePath = savedImageUri.value,
+                filePath = savedImagePath.value,
                 messageType = MessageType.IMAGE,
                 withContactAddress = address,
-                state = MessageState.SENT,
+                state = MessageState.SENDING,
             )
             val id = messageDao.insert(messageEntity)
             messageEntity = messageEntity.copy(id = id)
@@ -90,7 +97,7 @@ class ChatRepository @Inject constructor(
         } else {
             inputStream.onRight { it.close() }
             listOf(
-                savedImageUri,
+                savedImagePath,
                 inputStream,
                 imageSize,
             ).firstOrNull { it is Either.Left } as? Either.Left ?: Either.Left(
