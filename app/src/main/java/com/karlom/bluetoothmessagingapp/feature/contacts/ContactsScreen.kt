@@ -16,6 +16,7 @@ import androidx.paging.compose.collectAsLazyPagingItems
 import com.karlom.bluetoothmessagingapp.R
 import com.karlom.bluetoothmessagingapp.feature.contacts.components.Contact
 import com.karlom.bluetoothmessagingapp.feature.contacts.components.NewChatFloatingButton
+import com.karlom.bluetoothmessagingapp.feature.contacts.components.NoContactsIndicator
 import com.karlom.bluetoothmessagingapp.feature.contacts.models.ContactScreenEvent.OnAddContactClicked
 import com.karlom.bluetoothmessagingapp.feature.contacts.models.ContactScreenEvent.OnContactClicked
 import com.karlom.bluetoothmessagingapp.feature.contacts.viewmodel.ContactsViewModel
@@ -44,7 +45,7 @@ fun ContactsScreen(
                             viewModel.onEvent(OnContactClicked(contactUi.contact.address))
                         })
                 },
-                noItemsItem = { },
+                noItemsItem = { NoContactsIndicator(viewModel::onEvent) },
                 modifier = Modifier.weight(weight = 1f, fill = true),
             )
         }
