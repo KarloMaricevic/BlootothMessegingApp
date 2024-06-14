@@ -20,6 +20,7 @@ import androidx.paging.compose.collectAsLazyPagingItems
 import com.karlom.bluetoothmessagingapp.feature.chat.components.ChatInputFiled
 import com.karlom.bluetoothmessagingapp.feature.chat.components.ConnectToButton
 import com.karlom.bluetoothmessagingapp.feature.chat.components.TextChatBox
+import com.karlom.bluetoothmessagingapp.feature.chat.models.ChatInputMode
 import com.karlom.bluetoothmessagingapp.feature.chat.models.ChatScreenEvent
 import com.karlom.bluetoothmessagingapp.feature.chat.models.ChatScreenEvent.OnConnectClicked
 import com.karlom.bluetoothmessagingapp.feature.chat.viewmodel.ChatViewModel
@@ -69,7 +70,8 @@ fun ChatScreen(address: String) {
                 if (context.packageManager.queryIntentActivities(intent, 0).size > 0) {
                     galleryLauncher.launch(intent)
                 }
-            }
+            },
+            mode = ChatInputMode.TEXT,
         )
     }
 }
