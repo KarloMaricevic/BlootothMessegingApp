@@ -18,6 +18,7 @@
 
     // contacts screen
     <string name="contacts_screen_new_chat">New chat</string>
+    <string name="contacts_screen_chat_title">Chat</string>
 
     // add devices
     <string name="add_device_screen_visible_label">Visible</string>
