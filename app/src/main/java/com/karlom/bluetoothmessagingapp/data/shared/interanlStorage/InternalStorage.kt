@@ -2,7 +2,6 @@ package com.karlom.bluetoothmessagingapp.data.shared.interanlStorage
 
 import android.content.Context
 import android.net.Uri
-import androidx.core.net.toUri
 import arrow.core.Either
 import com.karlom.bluetoothmessagingapp.core.models.Failure
 import dagger.hilt.android.qualifiers.ApplicationContext
@@ -26,7 +25,7 @@ class InternalStorage @Inject constructor(
             } else {
                 val file = File(context.filesDir, destName)
                 FileOutputStream(file).use { output -> inputStream.copyTo(output) }
-                Either.Right(Uri.fromFile(file).toString())
+                Either.Right(file.absolutePath)
             }
         } catch (e: FileNotFoundException) {
             Either.Left(Failure.ErrorMessage("Source image file not found"))
