@@ -24,6 +24,7 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Switch
+import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -39,6 +40,8 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.paging.compose.collectAsLazyPagingItems
 import com.google.accompanist.permissions.rememberMultiplePermissionsState
 import com.karlom.bluetoothmessagingapp.R
+import com.karlom.bluetoothmessagingapp.designSystem.theme.blue
+import com.karlom.bluetoothmessagingapp.designSystem.theme.gray500
 import com.karlom.bluetoothmessagingapp.feature.addDevice.components.BluetoothDeviceItem
 import com.karlom.bluetoothmessagingapp.feature.addDevice.models.AddDeviceScreenEvent
 import com.karlom.bluetoothmessagingapp.feature.addDevice.models.AddDeviceScreenEvent.OnDeviceClicked
@@ -134,13 +137,21 @@ fun AddDeviceScreen(
             verticalAlignment = Alignment.CenterVertically,
         ) {
             Text(
-                text = stringResource(R.string.add_device_screen_visible_label),
-                modifier = Modifier.padding(end = 8.dp),
+                text = stringResource(id = R.string.add_device_screen_make_device_visible_message),
+                modifier = Modifier.weight(1f, true),
+                color = gray500,
+                style = MaterialTheme.typography.titleLarge,
             )
             Switch(
                 checked = state.isDiscoverable,
                 enabled = !state.isDiscoverable,
                 onCheckedChange = { makeDeviceDiscoverablePermission.launchMultiplePermissionRequest() },
+                colors = SwitchDefaults.colors(
+                    disabledCheckedBorderColor = blue,
+                    disabledCheckedThumbColor = gray500,
+                    disabledCheckedIconColor = blue,
+                    disabledCheckedTrackColor = blue,
+                ),
             )
         }
         Text(

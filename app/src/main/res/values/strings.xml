@@ -23,7 +23,7 @@
     <string name="contacts_screen_add_contacts">Add Contacts</string>
 
     // add devices
-    <string name="add_device_screen_visible_label">Visible</string>
+    <string name="add_device_screen_make_device_visible_message">Make your device visible</string>
     <string name="add_device_screen_start_search_button">Start search</string>
     <string name="add_device_screen_bluetooth_devices_title">Bluetooth devices</string>
     <string name="add_device_screen_no_devices_nearby">No devices nearby</string>
