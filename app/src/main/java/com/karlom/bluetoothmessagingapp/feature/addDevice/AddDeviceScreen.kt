@@ -10,6 +10,7 @@ import android.os.Build
 import android.provider.Settings
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -17,7 +18,10 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.Button
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
@@ -26,7 +30,9 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -34,6 +40,7 @@ import androidx.paging.compose.collectAsLazyPagingItems
 import com.google.accompanist.permissions.rememberMultiplePermissionsState
 import com.karlom.bluetoothmessagingapp.R
 import com.karlom.bluetoothmessagingapp.feature.addDevice.components.BluetoothDeviceItem
+import com.karlom.bluetoothmessagingapp.feature.addDevice.models.AddDeviceScreenEvent
 import com.karlom.bluetoothmessagingapp.feature.addDevice.models.AddDeviceScreenEvent.OnDeviceClicked
 import com.karlom.bluetoothmessagingapp.feature.addDevice.models.AddDeviceScreenEvent.OnDiscoverableSwitchChecked
 import com.karlom.bluetoothmessagingapp.feature.addDevice.models.AddDeviceScreenEvent.OnScanForDevicesClicked
@@ -103,6 +110,23 @@ fun AddDeviceScreen(
         }
     }
     Column(Modifier.fillMaxSize()) {
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .background(MaterialTheme.colorScheme.surface)
+                .padding(top = 2.dp, bottom = 4.dp, start = 8.dp),
+        ) {
+            Icon(
+                painter = painterResource(R.drawable.ic_back),
+                contentDescription = stringResource(R.string.default_icon_content_description),
+                modifier = Modifier
+                    .padding(4.dp)
+                    .clip(CircleShape)
+                    .clickable { viewModel.onEvent(AddDeviceScreenEvent.OnBackClicked) }
+                    .padding(4.dp)
+                    .size(25.dp)
+            )
+        }
         Row(
             modifier = Modifier
                 .align(Alignment.End)
