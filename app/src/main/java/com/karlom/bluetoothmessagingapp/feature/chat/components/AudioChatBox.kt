@@ -83,7 +83,13 @@ fun AudioChatBox(
 fun AudioChatSendingBoxPreview() {
     BluetoothMessagingAppTheme {
         AudioChatBox(
-            message = Audio(id = 1, audioUri = "", isFromMe = false, state = MessageState.SENDING),
+            message = Audio(
+                id = 1,
+                audioUri = "",
+                isFromMe = false,
+                totalTime = "1:32",
+                state = MessageState.SENDING,
+            ),
             onInteraction = {},
         )
     }
@@ -94,7 +100,13 @@ fun AudioChatSendingBoxPreview() {
 fun AudioChatSentBoxPreview() {
     BluetoothMessagingAppTheme {
         AudioChatBox(
-            message = Audio(id = 1, audioUri = "", isFromMe = false, state = MessageState.SENT),
+            message = Audio(
+                id = 1,
+                audioUri = "",
+                isFromMe = false,
+                totalTime = "1:32",
+                state = MessageState.SENT,
+            ),
             onInteraction = {},
         )
     }
@@ -105,7 +117,13 @@ fun AudioChatSentBoxPreview() {
 fun AudioChatNotSentBoxPreview() {
     BluetoothMessagingAppTheme {
         AudioChatBox(
-            message = Audio(id = 1, audioUri = "", isFromMe = false, state = MessageState.NOT_SENT),
+            message = Audio(
+                id = 1,
+                audioUri = "",
+                isFromMe = false,
+                totalTime = "1:32",
+                state = MessageState.NOT_SENT,
+            ),
             onInteraction = {},
         )
     }

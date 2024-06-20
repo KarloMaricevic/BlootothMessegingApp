@@ -2,6 +2,7 @@ package com.karlom.bluetoothmessagingapp.feature.chat.mappers
 
 import android.content.Context
 import android.graphics.BitmapFactory
+import android.media.MediaMetadataRetriever
 import androidx.core.net.toUri
 import com.karlom.bluetoothmessagingapp.domain.chat.models.Message
 import com.karlom.bluetoothmessagingapp.domain.chat.models.Message.AudioMessage
@@ -20,6 +21,7 @@ class ChatItemMapper @Inject constructor(
 ) {
     private companion object {
         const val ERROR_READING_ASPECT_RATIO = 0f
+        const val ERROR_READING_AUDIO_TOTAL_TIME = 0L
     }
 
     fun map(message: Message) =
@@ -43,6 +45,7 @@ class ChatItemMapper @Inject constructor(
                 id = message.id,
                 audioUri = message.audioUri,
                 isFromMe = message.isFromMe,
+                totalTime = formatToTimeString(getAudioDuration(message.audioUri)),
                 state = message.state,
             )
         }
@@ -66,5 +69,24 @@ class ChatItemMapper @Inject constructor(
         } catch (e: Exception) {
             ERROR_READING_ASPECT_RATIO
         }
+    }
+
+
+    private fun getAudioDuration(path: String) = try {
+        val mediaMetadataRetriever = MediaMetadataRetriever()
+        mediaMetadataRetriever.setDataSource(path)
+        val duration =
+            mediaMetadataRetriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_DURATION)
+        duration?.toLong() ?: ERROR_READING_AUDIO_TOTAL_TIME
+    } catch (e: IllegalArgumentException) {
+        ERROR_READING_AUDIO_TOTAL_TIME
+    }
+
+    private fun formatToTimeString(millis: Long): String {
+        val totalSeconds = millis / 1000
+        val hours = totalSeconds / 3600
+        val minutes = totalSeconds / 60
+        val seconds = totalSeconds % 60
+        return "$hours:$minutes:$seconds"
     }
 }
