@@ -13,6 +13,7 @@ import com.karlom.bluetoothmessagingapp.feature.chat.models.ChatItem.Image
 import com.karlom.bluetoothmessagingapp.feature.chat.models.ChatItem.Text
 import dagger.hilt.android.qualifiers.ApplicationContext
 import java.io.File
+import java.util.concurrent.TimeUnit
 import javax.inject.Inject
 
 
@@ -83,10 +84,15 @@ class ChatItemMapper @Inject constructor(
     }
 
     private fun formatToTimeString(millis: Long): String {
-        val totalSeconds = millis / 1000
-        val hours = totalSeconds / 3600
-        val minutes = totalSeconds / 60
+        val totalSeconds = TimeUnit.MILLISECONDS.toSeconds(millis)
+        val hours = TimeUnit.MILLISECONDS.toHours(millis)
+        val minutes = (totalSeconds % 3600) / 60
         val seconds = totalSeconds % 60
-        return "$hours:$minutes:$seconds"
+        var time = ""
+        if (hours > 0) {
+            time += "$hours:"
+        }
+        time += "$minutes:$seconds"
+        return time
     }
 }
