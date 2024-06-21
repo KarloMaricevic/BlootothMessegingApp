@@ -12,14 +12,16 @@ import com.karlom.bluetoothmessagingapp.core.models.Failure
 import com.karlom.bluetoothmessagingapp.domain.bluetooth.models.BluetoothDevice
 import com.karlom.bluetoothmessagingapp.domain.bluetooth.usecase.GetConnectedDevicesNotifier
 import com.karlom.bluetoothmessagingapp.domain.bluetooth.usecase.IsConnectedToDevice
-import com.karlom.bluetoothmessagingapp.domain.chat.models.Message
 import com.karlom.bluetoothmessagingapp.domain.chat.usecase.ConnectToServer
 import com.karlom.bluetoothmessagingapp.domain.chat.usecase.GetMessages
 import com.karlom.bluetoothmessagingapp.domain.chat.usecase.SendAudio
 import com.karlom.bluetoothmessagingapp.domain.chat.usecase.SendImage
 import com.karlom.bluetoothmessagingapp.domain.chat.usecase.SendMessage
 import com.karlom.bluetoothmessagingapp.domain.chat.usecase.StartChatServerAndWaitForConnection
+import com.karlom.bluetoothmessagingapp.domain.voice.PauseAudio
 import com.karlom.bluetoothmessagingapp.domain.voice.PlayAudioFile
+import com.karlom.bluetoothmessagingapp.domain.voice.PlayInitializedAudio
+import com.karlom.bluetoothmessagingapp.domain.voice.ReleaseAudioPlayer
 import com.karlom.bluetoothmessagingapp.domain.voice.StartRecordingVoice
 import com.karlom.bluetoothmessagingapp.domain.voice.StopPlayingAudio
 import com.karlom.bluetoothmessagingapp.domain.voice.StopRecordingVoice
@@ -71,7 +73,10 @@ class ChatViewModel @AssistedInject constructor(
     private val sendAudio: SendAudio,
     private val connectToServer: ConnectToServer,
     private val playAudio: PlayAudioFile,
+    private val playInitializedAudio: PlayInitializedAudio,
+    private val pauseAudio: PauseAudio,
     private val stopPlayingAudio: StopPlayingAudio,
+    private val releaseAudioPlayer: ReleaseAudioPlayer,
     private val chatItemMapper: ChatItemMapper,
     @IoDispatcher private val ioDispatcher: CoroutineDispatcher
 ) : BaseViewModel<ChatScreenEvent>() {
@@ -168,13 +173,24 @@ class ChatViewModel @AssistedInject constructor(
             }
 
             is OnPausePlayingAudioMessage -> {
-                stopPlayingAudio()
-                audioMessagePlaying.update { null }
+                pauseAudio()
+                audioMessagePlaying.update { current -> current?.copy(isPlaying = false) }
             }
 
             is OnPlayAudioMessage -> {
-                audioMessagePlaying.update { event.message.copy(isPlaying = true) }
-                viewModelScope.launch { playAudio(event.message.audioUri) }
+                val currentPlayingMessage = audioMessagePlaying.value
+                if (currentPlayingMessage != null && currentPlayingMessage.id == event.message.id) {
+                    playInitializedAudio().onRight {
+                        audioMessagePlaying.update { event.message.copy(isPlaying = true) }
+                    }
+                } else {
+                    stopPlayingAudio()
+                    viewModelScope.launch {
+                        playAudio(event.message.audioUri).onRight {
+                            audioMessagePlaying.update { event.message.copy(isPlaying = true) }
+                        }
+                    }
+                }
             }
         }
     }
@@ -213,6 +229,10 @@ class ChatViewModel @AssistedInject constructor(
             }
             isTryingToConnect.update { false }
         }
+    }
+
+    override fun onCleared() {
+        releaseAudioPlayer()
     }
 
     @AssistedFactory
