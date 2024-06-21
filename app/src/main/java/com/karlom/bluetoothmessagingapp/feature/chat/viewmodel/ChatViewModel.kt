@@ -1,6 +1,7 @@
 package com.karlom.bluetoothmessagingapp.feature.chat.viewmodel
 
 import androidx.lifecycle.viewModelScope
+import androidx.paging.cachedIn
 import androidx.paging.map
 import arrow.core.Either
 import com.karlom.bluetoothmessagingapp.core.base.BaseViewModel
@@ -11,6 +12,7 @@ import com.karlom.bluetoothmessagingapp.core.models.Failure
 import com.karlom.bluetoothmessagingapp.domain.bluetooth.models.BluetoothDevice
 import com.karlom.bluetoothmessagingapp.domain.bluetooth.usecase.GetConnectedDevicesNotifier
 import com.karlom.bluetoothmessagingapp.domain.bluetooth.usecase.IsConnectedToDevice
+import com.karlom.bluetoothmessagingapp.domain.chat.models.Message
 import com.karlom.bluetoothmessagingapp.domain.chat.usecase.ConnectToServer
 import com.karlom.bluetoothmessagingapp.domain.chat.usecase.GetMessages
 import com.karlom.bluetoothmessagingapp.domain.chat.usecase.SendAudio
@@ -19,10 +21,13 @@ import com.karlom.bluetoothmessagingapp.domain.chat.usecase.SendMessage
 import com.karlom.bluetoothmessagingapp.domain.chat.usecase.StartChatServerAndWaitForConnection
 import com.karlom.bluetoothmessagingapp.domain.voice.PlayAudioFile
 import com.karlom.bluetoothmessagingapp.domain.voice.StartRecordingVoice
+import com.karlom.bluetoothmessagingapp.domain.voice.StopPlayingAudio
 import com.karlom.bluetoothmessagingapp.domain.voice.StopRecordingVoice
 import com.karlom.bluetoothmessagingapp.feature.chat.mappers.ChatItemMapper
 import com.karlom.bluetoothmessagingapp.feature.chat.models.ChatInputMode.TEXT
 import com.karlom.bluetoothmessagingapp.feature.chat.models.ChatInputMode.VOICE
+import com.karlom.bluetoothmessagingapp.feature.chat.models.ChatItem
+import com.karlom.bluetoothmessagingapp.feature.chat.models.ChatItem.Audio
 import com.karlom.bluetoothmessagingapp.feature.chat.models.ChatScreenEvent
 import com.karlom.bluetoothmessagingapp.feature.chat.models.ChatScreenEvent.OnConnectClicked
 import com.karlom.bluetoothmessagingapp.feature.chat.models.ChatScreenEvent.OnDeleteVoiceRecordingClicked
@@ -44,6 +49,7 @@ import kotlinx.coroutines.cancelAndJoin
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
@@ -65,6 +71,7 @@ class ChatViewModel @AssistedInject constructor(
     private val sendAudio: SendAudio,
     private val connectToServer: ConnectToServer,
     private val playAudio: PlayAudioFile,
+    private val stopPlayingAudio: StopPlayingAudio,
     private val chatItemMapper: ChatItemMapper,
     @IoDispatcher private val ioDispatcher: CoroutineDispatcher
 ) : BaseViewModel<ChatScreenEvent>() {
@@ -78,9 +85,18 @@ class ChatViewModel @AssistedInject constructor(
     private val isTryingToConnect = MutableStateFlow(false)
     private val textToSend = MutableStateFlow("")
     private val inputMode = MutableStateFlow(TEXT)
+    private val audioMessagePlaying = MutableStateFlow<ChatItem.Audio?>(null)
     private val isRecordingVoice = MutableStateFlow(false)
     private val messages = MutableStateFlow(getMessages(contactAddress).map { page ->
         page.map { message -> chatItemMapper.map(message) }
+    }.cachedIn(viewModelScope).combine(audioMessagePlaying) { page, audioPlaying ->
+        page.map { message ->
+            if (audioPlaying != null && message is Audio && message.id == audioPlaying.id) {
+                audioPlaying
+            } else {
+                message
+            }
+        }
     })
 
     private var voiceFileUri: String? = null
@@ -151,8 +167,15 @@ class ChatViewModel @AssistedInject constructor(
                 inputMode.update { TEXT }
             }
 
-            is OnPausePlayingAudioMessage -> {}
-            is OnPlayAudioMessage -> viewModelScope.launch { playAudio(event.message.audioUri) }
+            is OnPausePlayingAudioMessage -> {
+                stopPlayingAudio()
+                audioMessagePlaying.update { null }
+            }
+
+            is OnPlayAudioMessage -> {
+                audioMessagePlaying.update { event.message.copy(isPlaying = true) }
+                viewModelScope.launch { playAudio(event.message.audioUri) }
+            }
         }
     }
 

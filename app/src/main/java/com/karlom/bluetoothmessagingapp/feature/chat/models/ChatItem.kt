@@ -26,6 +26,8 @@ sealed class ChatItem(
         override val id: Long,
         val audioUri: String,
         val totalTime: String,
+        val isPlaying: Boolean = false,
+        val currentTime: String? = null,
         override val isFromMe: Boolean,
         override val state: MessageState,
     ) : ChatItem(id, isFromMe, state)

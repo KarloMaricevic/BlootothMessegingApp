@@ -80,13 +80,21 @@ fun AudioChatBox(
                 )
         ) {
             Icon(
-                painter = painterResource(R.drawable.ic_play),
+                painter = painterResource(if (message.isPlaying) R.drawable.ic_pause else R.drawable.ic_play),
                 contentDescription = stringResource(R.string.default_icon_content_description),
                 modifier = Modifier
                     .clickable(
                         indication = null,
                         interactionSource = remember { MutableInteractionSource() },
-                        onClick = { onInteraction(ChatScreenEvent.OnPlayAudioMessage(message)) },
+                        onClick = {
+                            onInteraction(
+                                if (message.isPlaying) {
+                                    ChatScreenEvent.OnPausePlayingAudioMessage
+                                } else {
+                                    ChatScreenEvent.OnPlayAudioMessage(message)
+                                }
+                            )
+                        },
                     )
                     .padding(
                         start = 8.dp,
