@@ -5,7 +5,8 @@ import android.media.AudioAttributes
 import android.media.MediaPlayer
 import androidx.core.net.toUri
 import arrow.core.Either
-import arrow.core.Either.*
+import arrow.core.Either.Left
+import arrow.core.Either.Right
 import com.karlom.bluetoothmessagingapp.core.models.Failure
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.suspendCancellableCoroutine
@@ -50,7 +51,7 @@ class AudioPlayer @Inject constructor(
         }
 
 
-    private fun releaseMediaPlayer() {
+    fun releaseMediaPlayer() {
         mediaPlayer?.release()
         mediaPlayer = null
     }
