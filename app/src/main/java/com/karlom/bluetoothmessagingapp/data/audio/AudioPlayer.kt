@@ -1,4 +1,4 @@
-package com.karlom.bluetoothmessagingapp.data.voice
+package com.karlom.bluetoothmessagingapp.data.audio
 
 import android.content.Context
 import android.media.AudioAttributes
@@ -7,7 +7,6 @@ import androidx.core.net.toUri
 import arrow.core.Either
 import arrow.core.Either.Left
 import arrow.core.Either.Right
-import com.karlom.bluetoothmessagingapp.core.models.Failure
 import com.karlom.bluetoothmessagingapp.core.models.Failure.ErrorMessage
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.suspendCancellableCoroutine

@@ -1,6 +1,6 @@
-package com.karlom.bluetoothmessagingapp.domain.voice
+package com.karlom.bluetoothmessagingapp.domain.audio
 
-import com.karlom.bluetoothmessagingapp.data.voice.AudioPlayer
+import com.karlom.bluetoothmessagingapp.data.audio.AudioPlayer
 import javax.inject.Inject
 
 class PauseAudio @Inject constructor(

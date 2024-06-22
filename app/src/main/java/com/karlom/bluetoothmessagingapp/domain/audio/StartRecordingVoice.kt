@@ -1,9 +1,9 @@
-package com.karlom.bluetoothmessagingapp.domain.voice
+package com.karlom.bluetoothmessagingapp.domain.audio
 
 import arrow.core.Either
 import com.karlom.bluetoothmessagingapp.core.models.Failure
 import com.karlom.bluetoothmessagingapp.data.shared.interanlStorage.InternalStorage
-import com.karlom.bluetoothmessagingapp.data.voice.VoiceRecorder
+import com.karlom.bluetoothmessagingapp.data.audio.VoiceRecorder
 import javax.inject.Inject
 
 class StartRecordingVoice @Inject constructor(

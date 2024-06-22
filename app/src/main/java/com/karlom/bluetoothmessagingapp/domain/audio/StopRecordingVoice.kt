@@ -1,6 +1,6 @@
-package com.karlom.bluetoothmessagingapp.domain.voice
+package com.karlom.bluetoothmessagingapp.domain.audio
 
-import com.karlom.bluetoothmessagingapp.data.voice.VoiceRecorder
+import com.karlom.bluetoothmessagingapp.data.audio.VoiceRecorder
 import javax.inject.Inject
 
 class StopRecordingVoice @Inject constructor(

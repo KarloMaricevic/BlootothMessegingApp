@@ -1,8 +1,8 @@
-package com.karlom.bluetoothmessagingapp.domain.voice
+package com.karlom.bluetoothmessagingapp.domain.audio
 
 import arrow.core.Either
 import com.karlom.bluetoothmessagingapp.core.models.Failure.ErrorMessage
-import com.karlom.bluetoothmessagingapp.data.voice.AudioPlayer
+import com.karlom.bluetoothmessagingapp.data.audio.AudioPlayer
 import javax.inject.Inject
 
 class PlayInitializedAudio @Inject constructor(

@@ -1,4 +1,4 @@
-package com.karlom.bluetoothmessagingapp.data.voice
+package com.karlom.bluetoothmessagingapp.data.audio
 
 import android.content.Context
 import android.media.MediaRecorder
