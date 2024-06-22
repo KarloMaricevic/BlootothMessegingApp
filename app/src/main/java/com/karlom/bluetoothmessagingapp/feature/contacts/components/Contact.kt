@@ -59,7 +59,7 @@ fun Contact(
 private fun CircleWithLetter(letter: String) {
     Box(
         contentAlignment = Alignment.Center,
-        modifier = Modifier.size(40.dp)
+        modifier = Modifier.size(48.dp)
     ) {
         Canvas(modifier = Modifier.matchParentSize()) {
             drawCircle(
