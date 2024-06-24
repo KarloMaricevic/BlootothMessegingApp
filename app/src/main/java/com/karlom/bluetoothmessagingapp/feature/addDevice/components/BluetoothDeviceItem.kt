@@ -15,11 +15,11 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.karlom.bluetoothmessagingapp.R
-import com.karlom.bluetoothmessagingapp.domain.bluetooth.models.BluetoothDevice
+import com.karlom.bluetoothmessagingapp.domain.connection.models.Connection
 
 @Composable
 fun BluetoothDeviceItem(
-    device: BluetoothDevice,
+    device: Connection,
     modifier: Modifier = Modifier,
 ) {
     Row(
@@ -50,7 +50,7 @@ fun BluetoothDeviceItem(
 @Composable
 fun BluetoothDeviceItemPreview() {
     BluetoothDeviceItem(
-        BluetoothDevice(
+        Connection(
             name = "Device",
             address = "FA:92:46:11:02:43",
         )
@@ -61,7 +61,7 @@ fun BluetoothDeviceItemPreview() {
 @Composable
 fun BluetoothDeviceItemLongTextPreview() {
     BluetoothDeviceItem(
-        BluetoothDevice(
+        Connection(
             name = List(10) { "Device" }.joinToString(),
             address = "FA:92:46:11:02:43",
         )

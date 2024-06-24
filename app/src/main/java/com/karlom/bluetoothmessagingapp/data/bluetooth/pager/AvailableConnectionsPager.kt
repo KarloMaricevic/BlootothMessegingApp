@@ -1,42 +1,42 @@
-package com.karlom.bluetoothmessagingapp.domain.bluetooth.pager
+package com.karlom.bluetoothmessagingapp.data.bluetooth.pager
 
 import androidx.paging.PagingSource
 import androidx.paging.PagingState
 import arrow.core.Either
 import com.karlom.bluetoothmessagingapp.core.models.Failure
 import com.karlom.bluetoothmessagingapp.core.models.foldToString
-import com.karlom.bluetoothmessagingapp.domain.bluetooth.models.BluetoothDevice
+import com.karlom.bluetoothmessagingapp.domain.connection.models.Connection
 
-class AvailableBluetoothDevicePager(
-    private val source: suspend () -> Either<Failure, List<BluetoothDevice>>,
-) : PagingSource<Int, BluetoothDevice>() {
+class AvailableConnectionsPager(
+    private val source: suspend () -> Either<Failure, List<Connection>>,
+) : PagingSource<Int, Connection>() {
 
     private companion object {
         const val FIRST_PAGE = 1
     }
 
-    private var bluetoothDevices: List<BluetoothDevice>? = null
+    private var connections: List<Connection>? = null
 
-    override fun getRefreshKey(state: PagingState<Int, BluetoothDevice>) = null
+    override fun getRefreshKey(state: PagingState<Int, Connection>) = null
 
-    override suspend fun load(params: LoadParams<Int>): LoadResult<Int, BluetoothDevice> {
-        if (bluetoothDevices == null) {
+    override suspend fun load(params: LoadParams<Int>): LoadResult<Int, Connection> {
+        if (connections == null) {
             source().fold(
                 { failure -> return LoadResult.Error(Throwable(failure.foldToString())) },
-                { content -> bluetoothDevices = content })
+                { content -> connections = content })
         }
         val page = params.key ?: FIRST_PAGE
         val pageItems = if (isLastPage(page, params.loadSize)) {
-            bluetoothDevices?.subList(
+            connections?.subList(
                 params.loadSize * (page - 1),
-                bluetoothDevices?.size ?: 0,
+                connections?.size ?: 0,
             ) ?: listOf()
         } else if (pageDosentExist(page, params.loadSize)) {
             listOf()
         } else {
-            bluetoothDevices?.subList(
+            connections?.subList(
                 params.loadSize * (page - 1),
-                bluetoothDevices?.lastIndex ?: 0,
+                connections?.lastIndex ?: 0,
             ) ?: listOf()
         }
         return LoadResult.Page(
@@ -47,9 +47,9 @@ class AvailableBluetoothDevicePager(
     }
 
     private fun isLastPage(page: Int, perPage: Int) =
-        (page - 1) * perPage <= (bluetoothDevices?.lastIndex ?: 0) && (bluetoothDevices?.lastIndex
+        (page - 1) * perPage <= (connections?.lastIndex ?: 0) && (connections?.lastIndex
             ?: 0) < page * perPage
 
     private fun pageDosentExist(page: Int, perPage: Int) =
-        page * perPage > (bluetoothDevices?.lastIndex ?: 0)
+        page * perPage > (connections?.lastIndex ?: 0)
 }

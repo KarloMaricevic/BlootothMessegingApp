@@ -9,9 +9,9 @@ import com.karlom.bluetoothmessagingapp.core.base.TIMEOUT_DELAY
 import com.karlom.bluetoothmessagingapp.core.di.IoDispatcher
 import com.karlom.bluetoothmessagingapp.core.extensions.combine
 import com.karlom.bluetoothmessagingapp.core.models.Failure
-import com.karlom.bluetoothmessagingapp.domain.bluetooth.models.BluetoothDevice
-import com.karlom.bluetoothmessagingapp.domain.bluetooth.usecase.GetConnectedDevicesNotifier
-import com.karlom.bluetoothmessagingapp.domain.bluetooth.usecase.IsConnectedToDevice
+import com.karlom.bluetoothmessagingapp.domain.connection.models.Connection
+import com.karlom.bluetoothmessagingapp.domain.connection.usecase.GetConnectedDevicesNotifier
+import com.karlom.bluetoothmessagingapp.domain.connection.usecase.IsConnectedTo
 import com.karlom.bluetoothmessagingapp.domain.chat.usecase.ConnectToServer
 import com.karlom.bluetoothmessagingapp.domain.chat.usecase.GetMessages
 import com.karlom.bluetoothmessagingapp.domain.chat.usecase.SendAudio
@@ -64,7 +64,7 @@ class ChatViewModel @AssistedInject constructor(
     @Assisted private val contactAddress: String,
     private val getMessages: GetMessages,
     private val sendMessage: SendMessage,
-    private val isConnectedToDevice: IsConnectedToDevice,
+    private val isConnectedTo: IsConnectedTo,
     private val sendImage: SendImage,
     private val getConnectionStateNotifier: GetConnectedDevicesNotifier,
     private val startChatServerAndWaitForConnection: StartChatServerAndWaitForConnection,
@@ -86,7 +86,7 @@ class ChatViewModel @AssistedInject constructor(
         const val RETRY_DELAY_MILLIS = 3000L
     }
 
-    private val showConnectToDeviceButton = MutableStateFlow(!isConnectedToDevice(contactAddress))
+    private val showConnectToDeviceButton = MutableStateFlow(!isConnectedTo(contactAddress))
     private val isTryingToConnect = MutableStateFlow(false)
     private val textToSend = MutableStateFlow("")
     private val inputMode = MutableStateFlow(TEXT)
@@ -118,7 +118,7 @@ class ChatViewModel @AssistedInject constructor(
         scope = viewModelScope,
         started = SharingStarted.WhileSubscribed(TIMEOUT_DELAY),
         initialValue = ChatScreenState(
-            showConnectToDeviceButton = !isConnectedToDevice(contactAddress)
+            showConnectToDeviceButton = !isConnectedTo(contactAddress)
         ),
     )
 
@@ -200,7 +200,7 @@ class ChatViewModel @AssistedInject constructor(
         viewModelScope.launch(ioDispatcher) {
             val waitForClientJob = async(ioDispatcher) { startChatServerAndWaitForConnection() }
             val tryToConnectJob = async(ioDispatcher) {
-                var connectToServer: Either<Failure.ErrorMessage, BluetoothDevice>? = null
+                var connectToServer: Either<Failure.ErrorMessage, Connection>? = null
                 repeat(NUMBER_OF_RETRIES_WHEN_CONNECTING) { timesRun ->
                     val connected = connectToServer(contactAddress)
                     connected.onLeft {

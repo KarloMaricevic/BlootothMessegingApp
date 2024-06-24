@@ -1,9 +1,9 @@
-package com.karlom.bluetoothmessagingapp.domain.bluetooth.usecase
+package com.karlom.bluetoothmessagingapp.domain.connection.usecase
 
 import com.karlom.bluetoothmessagingapp.data.bluetooth.connectionManager.BluetoothConnectionManager
 import javax.inject.Inject
 
-class IsConnectedToDevice @Inject constructor(
+class IsConnectedTo @Inject constructor(
     private val connectionManager: BluetoothConnectionManager
 ) {
 

@@ -8,9 +8,9 @@ import com.karlom.bluetoothmessagingapp.core.di.IoDispatcher
 import com.karlom.bluetoothmessagingapp.core.navigation.NavigationEvent
 import com.karlom.bluetoothmessagingapp.core.navigation.NavigationEvent.Destination
 import com.karlom.bluetoothmessagingapp.core.navigation.Navigator
-import com.karlom.bluetoothmessagingapp.domain.bluetooth.models.BluetoothDevice
-import com.karlom.bluetoothmessagingapp.domain.bluetooth.usecase.GetAvailableBluetoothDevices
-import com.karlom.bluetoothmessagingapp.domain.bluetooth.usecase.GetIsDeviceDiscoverableNotifier
+import com.karlom.bluetoothmessagingapp.domain.connection.models.Connection
+import com.karlom.bluetoothmessagingapp.domain.connection.usecase.GetAvailableConnections
+import com.karlom.bluetoothmessagingapp.domain.connection.usecase.GetIsDeviceDiscoverableNotifier
 import com.karlom.bluetoothmessagingapp.domain.chat.usecase.ConnectToServer
 import com.karlom.bluetoothmessagingapp.domain.chat.usecase.StartServerAndWaitForConnection
 import com.karlom.bluetoothmessagingapp.domain.contacts.models.Contact
@@ -38,7 +38,7 @@ import javax.inject.Inject
 @HiltViewModel
 class AddDeviceViewModel @Inject constructor(
     private val getIsDeviceDiscoverableNotifier: GetIsDeviceDiscoverableNotifier,
-    private val getAvailableBluetoothDevices: GetAvailableBluetoothDevices,
+    private val getAvailableConnections: GetAvailableConnections,
     private val connectToServer: ConnectToServer,
     private val addContact: AddContact,
     private val startServerAndWaitForConnection: StartServerAndWaitForConnection,
@@ -48,7 +48,7 @@ class AddDeviceViewModel @Inject constructor(
 
     private val isDiscoverableEnabled = MutableStateFlow(false)
     private val isBluetoothDeviceListShown = MutableStateFlow(false)
-    private val bluetoothDevicesList = MutableStateFlow<Flow<PagingData<BluetoothDevice>>>(flowOf())
+    private val bluetoothDevicesList = MutableStateFlow<Flow<PagingData<Connection>>>(flowOf())
     private val showMakeDeviceVisibleError = MutableStateFlow(false)
     private val showConnectingToDeviceError = MutableStateFlow(false)
 
@@ -73,7 +73,7 @@ class AddDeviceViewModel @Inject constructor(
             is OnDiscoverableSwitchChecked -> handleDiscoverableSwitchChanged()
             is OnScanForDevicesClicked -> {
                 isBluetoothDeviceListShown.update { true }
-                bluetoothDevicesList.update { getAvailableBluetoothDevices() }
+                bluetoothDevicesList.update { getAvailableConnections() }
             }
             is AddDeviceScreenEvent.OnBackClicked -> viewModelScope.launch {
                 navigator.emitDestination(NavigationEvent.NavigateUp)

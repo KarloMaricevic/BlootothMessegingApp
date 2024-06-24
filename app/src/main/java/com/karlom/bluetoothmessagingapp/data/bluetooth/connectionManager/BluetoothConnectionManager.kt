@@ -14,7 +14,7 @@ import arrow.core.Either.Right
 import com.karlom.bluetoothmessagingapp.core.models.Failure.ErrorMessage
 import com.karlom.bluetoothmessagingapp.data.bluetooth.AppBluetoothManager
 import com.karlom.bluetoothmessagingapp.data.bluetooth.models.SocketStreams
-import com.karlom.bluetoothmessagingapp.domain.bluetooth.models.BluetoothDevice
+import com.karlom.bluetoothmessagingapp.domain.connection.models.Connection
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.async
@@ -41,7 +41,7 @@ class BluetoothConnectionManager @Inject constructor(
     @SuppressLint("MissingPermission")
     val connectedDevices = connectedSockets.map { sockets ->
         sockets.map { socket ->
-            BluetoothDevice(
+            Connection(
                 socket.remoteDevice.name,
                 socket.remoteDevice.address
             )
@@ -52,7 +52,7 @@ class BluetoothConnectionManager @Inject constructor(
     suspend fun startServerAndWaitForConnection(
         serviceName: String,
         serviceUUID: UUID,
-    ): Either<ErrorMessage, BluetoothDevice> {
+    ): Either<ErrorMessage, Connection> {
         val adapter = bluetoothManager.adapter
         return if (adapter == null) {
             Left(ErrorMessage("Device doesn't have bluetooth feature"))
@@ -88,7 +88,7 @@ class BluetoothConnectionManager @Inject constructor(
                                 )
                             }
                             return@coroutineScope Right(
-                                BluetoothDevice(
+                                Connection(
                                     connectedSocket.value.remoteDevice.name,
                                     connectedSocket.value.remoteDevice.address,
                                 )
@@ -111,7 +111,7 @@ class BluetoothConnectionManager @Inject constructor(
     suspend fun connectToServer(
         serviceUUID: UUID,
         address: String,
-    ): Either<ErrorMessage, BluetoothDevice> {
+    ): Either<ErrorMessage, Connection> {
         val adapter = bluetoothManager.adapter
         return if (adapter == null) {
             Left(ErrorMessage("Device doesn't have bluetooth feature"))
@@ -135,7 +135,7 @@ class BluetoothConnectionManager @Inject constructor(
                     val connectedSocket = connectedSocketDeferred.await()
                     return@coroutineScope when (connectedSocket) {
                         is Right -> {
-                            val domainBluetoothDevice = BluetoothDevice(
+                            val connection = Connection(
                                 name = bluetoothDevice.name,
                                 address = bluetoothDevice.address,
                             )
@@ -149,7 +149,7 @@ class BluetoothConnectionManager @Inject constructor(
                                     )
                                 )
                             }
-                            Right(domainBluetoothDevice)
+                            Right(connection)
                         }
 
                         is Left -> connectedSocket

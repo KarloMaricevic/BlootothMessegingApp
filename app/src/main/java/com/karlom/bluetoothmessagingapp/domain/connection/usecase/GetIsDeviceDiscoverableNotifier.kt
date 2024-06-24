@@ -1,4 +1,4 @@
-package com.karlom.bluetoothmessagingapp.domain.bluetooth.usecase
+package com.karlom.bluetoothmessagingapp.domain.connection.usecase
 
 import com.karlom.bluetoothmessagingapp.data.bluetooth.AppBluetoothManager
 import javax.inject.Inject

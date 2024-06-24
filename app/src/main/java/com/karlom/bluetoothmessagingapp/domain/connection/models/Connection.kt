@@ -1,8 +1,8 @@
-package com.karlom.bluetoothmessagingapp.domain.bluetooth.models
+package com.karlom.bluetoothmessagingapp.domain.connection.models
 
 import com.karlom.bluetoothmessagingapp.data.bluetooth.models.BluetoothDeviceResponse
 
-data class BluetoothDevice(
+data class Connection(
     val name: String,
     val address: String,
 ) {
