@@ -45,14 +45,11 @@ fun AudioChatBox(
         Row(
             verticalAlignment = Alignment.CenterVertically,
             modifier = Modifier
-                .clip(
-                    RoundedCornerShape(
-                        topStart = 16.dp,
-                        topEnd = 16.dp,
-                        bottomStart = if (message.isFromMe) 16.dp else 0.dp,
-                        bottomEnd = if (message.isFromMe) 0.dp else 16.dp
-                    )
+                .padding(
+                    start = if (message.isFromMe) 0.dp else 8.dp,
+                    end = if (message.isFromMe) 8.dp else 0.dp,
                 )
+                .clip(RoundedCornerShape(16.dp))
                 .background(MaterialTheme.colorScheme.surface)
                 .align(if (message.isFromMe) Alignment.CenterEnd else Alignment.CenterStart)
                 .then(if (message.state == MessageState.SENDING || message.state == MessageState.NOT_SENT) {
@@ -67,12 +64,7 @@ fun AudioChatBox(
                 .then(
                     if (message.state == MessageState.NOT_SENT) {
                         Modifier.border(
-                            1.dp, Color.Red, RoundedCornerShape(
-                                topStart = 16.dp,
-                                topEnd = 16.dp,
-                                bottomStart = if (message.isFromMe) 16.dp else 0.dp,
-                                bottomEnd = if (message.isFromMe) 0.dp else 16.dp
-                            )
+                            1.dp, Color.Red, RoundedCornerShape(16.dp)
                         )
                     } else {
                         Modifier
@@ -108,8 +100,8 @@ fun AudioChatBox(
                 .padding(vertical = 4.dp)
                 .padding(end = 8.dp)
                 .size(
-                    height = 52.dp,
-                    width = 40.dp + 22.dp
+                    height = 68.dp,
+                    width = 80.dp + 44.dp
                 )
                 .drawBehind {
                     val maxHeight = this.size.height
@@ -118,11 +110,21 @@ fun AudioChatBox(
                         maxHeight / 5f,
                         maxHeight / 3f,
                         maxHeight / 3f,
-                        maxHeight,
+                        maxHeight / 1.2f,
                         maxHeight / 2f,
                         maxHeight / 3.5f,
                         maxHeight / 1.5f,
-                        maxHeight,
+                        maxHeight / 1.2f,
+                        maxHeight / 2,
+                        maxHeight / 2f,
+                        maxHeight / 5f,
+                        maxHeight / 3f,
+                        maxHeight / 3f,
+                        maxHeight / 1.2f,
+                        maxHeight / 2f,
+                        maxHeight / 3.5f,
+                        maxHeight / 1.5f,
+                        maxHeight / 1.2f,
                         maxHeight / 2,
                     )
                     val lineWidth = 4.dp.toPx()
@@ -190,7 +192,7 @@ fun AudioChatNotSentBoxPreview() {
             message = Audio(
                 id = 1,
                 audioUri = "",
-                isFromMe = false,
+                isFromMe = true,
                 totalTime = "1:32",
                 state = MessageState.NOT_SENT,
             ),
