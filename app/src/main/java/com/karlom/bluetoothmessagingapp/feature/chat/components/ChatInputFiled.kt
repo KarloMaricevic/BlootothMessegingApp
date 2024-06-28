@@ -1,9 +1,13 @@
 package com.karlom.bluetoothmessagingapp.feature.chat.components
 
+import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -13,12 +17,23 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.geometry.CornerRadius
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Size
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.PlatformTextStyle
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -27,6 +42,7 @@ import com.karlom.bluetoothmessagingapp.designSystem.theme.BluetoothMessagingApp
 import com.karlom.bluetoothmessagingapp.designSystem.theme.black
 import com.karlom.bluetoothmessagingapp.designSystem.theme.blue
 import com.karlom.bluetoothmessagingapp.designSystem.theme.gray500
+import com.karlom.bluetoothmessagingapp.designSystem.theme.white
 import com.karlom.bluetoothmessagingapp.feature.chat.models.ChatInputMode
 import com.karlom.bluetoothmessagingapp.feature.chat.models.ChatInputMode.TEXT
 import com.karlom.bluetoothmessagingapp.feature.chat.models.ChatInputMode.VOICE
@@ -35,6 +51,8 @@ import com.karlom.bluetoothmessagingapp.feature.chat.models.ChatScreenEvent.OnDe
 import com.karlom.bluetoothmessagingapp.feature.chat.models.ChatScreenEvent.OnSendClicked
 import com.karlom.bluetoothmessagingapp.feature.chat.models.ChatScreenEvent.OnStopRecordingVoiceClicked
 import com.karlom.bluetoothmessagingapp.feature.chat.models.ChatScreenEvent.OnTextChanged
+import kotlinx.coroutines.delay
+import timber.log.Timber
 
 @Composable
 fun ChatInputFiled(
@@ -47,9 +65,7 @@ fun ChatInputFiled(
     modifier: Modifier = Modifier,
 ) {
     Row(
-        modifier = modifier
-            .background(MaterialTheme.colorScheme.background)
-            .padding(8.dp),
+        modifier = modifier.padding(8.dp),
         verticalAlignment = Alignment.Bottom,
         horizontalArrangement = Arrangement.Center,
     ) {
@@ -72,10 +88,10 @@ fun ChatInputFiled(
             painter = painterResource(R.drawable.ic_send),
             contentDescription = stringResource(R.string.default_icon_content_description),
             modifier = Modifier
-                .padding(4.dp)
+                .padding(bottom = 1.dp)
                 .clip(CircleShape)
                 .clickable { onInteraction(OnSendClicked) }
-                .padding(4.dp),
+                .padding(6.dp),
             tint = blue,
         )
     }
@@ -91,16 +107,16 @@ private fun TextInputBox(
 ) {
     Row(
         modifier = modifier,
-        verticalAlignment = Alignment.CenterVertically,
+        verticalAlignment = Alignment.Bottom,
     ) {
         Icon(
             painter = painterResource(R.drawable.ic_camera),
             contentDescription = stringResource(R.string.default_icon_content_description),
             modifier = Modifier
                 .padding(4.dp)
-                .clip(CircleShape)
+                .clip(RoundedCornerShape(4.dp))
                 .clickable { onInteraction(OnSendClicked) }
-                .padding(6.dp),
+                .padding(2.dp),
             tint = blue,
         )
         Icon(
@@ -108,9 +124,9 @@ private fun TextInputBox(
             contentDescription = stringResource(R.string.default_icon_content_description),
             modifier = Modifier
                 .padding(4.dp)
-                .clip(CircleShape)
+                .clip(RoundedCornerShape(4.dp))
                 .clickable { onGalleryClicked() }
-                .padding(4.dp),
+                .padding(2.dp),
             tint = blue,
         )
         Icon(
@@ -118,30 +134,36 @@ private fun TextInputBox(
             contentDescription = stringResource(R.string.default_icon_content_description),
             modifier = Modifier
                 .padding(4.dp)
-                .clip(CircleShape)
+                .clip(RoundedCornerShape(4.dp))
                 .clickable { onMicrophoneClicked() }
-                .padding(4.dp),
+                .padding(2.dp),
             tint = blue,
         )
-        BasicTextField(
-            value = text,
+        BasicTextField(value = text,
             onValueChange = { newText -> onInteraction(OnTextChanged(newText)) },
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Text),
             cursorBrush = SolidColor(black),
-            textStyle = MaterialTheme.typography.bodyLarge.copy(color = MaterialTheme.colorScheme.onBackground),
+            textStyle = MaterialTheme.typography.bodyLarge.copy(
+                color = MaterialTheme.colorScheme.onBackground,
+                platformStyle = PlatformTextStyle(includeFontPadding = false),
+            ),
             modifier = Modifier
-                .padding(8.dp)
-                .weight(1f, true),
+                .weight(1f, true)
+                .padding(bottom = 6.dp)
+                .clip(RoundedCornerShape(10.dp))
+                .background(MaterialTheme.colorScheme.surface)
+                .padding(top = 2.dp),
             decorationBox = { innerTextField ->
-                if (text.isEmpty()) {
-                    Text(
-                        text = stringResource(R.string.chat_screen_message_hint),
-                        color = gray500,
-                    )
+                Row(Modifier.padding(start = 8.dp, end = 16.dp)) {
+                    if (text.isEmpty()) {
+                        Text(
+                            text = stringResource(R.string.chat_screen_message_hint),
+                            color = gray500,
+                        )
+                    }
+                    innerTextField()
                 }
-                innerTextField()
-            }
-        )
+            })
     }
 }
 
@@ -152,39 +174,117 @@ private fun VoiceInputBox(
     modifier: Modifier = Modifier,
 ) {
     Row(
-        modifier = modifier.padding(vertical = 6.dp),
-        verticalAlignment = Alignment.CenterVertically,
+        modifier = modifier, verticalAlignment = Alignment.CenterVertically
     ) {
         Icon(
             painter = painterResource(id = R.drawable.ic_delete),
             contentDescription = stringResource(R.string.default_icon_content_description),
             modifier = Modifier
-                .padding(end = 4.dp)
-                .clickable { onInteraction(OnDeleteVoiceRecordingClicked) },
+                .padding(4.dp)
+                .clip(RoundedCornerShape(4.dp))
+                .clickable { onInteraction(OnDeleteVoiceRecordingClicked) }
+                .padding(2.dp),
             tint = blue,
         )
         Row(
-            Modifier
+            verticalAlignment = Alignment.CenterVertically,
+            modifier = Modifier
                 .clip(RoundedCornerShape(10.dp))
                 .background(MaterialTheme.colorScheme.surface)
                 .weight(1f, true)
                 .padding(vertical = 2.dp),
         ) {
+            Box(Modifier.height(24.dp))
             Icon(
                 painter = painterResource(id = R.drawable.ic_pause),
                 contentDescription = stringResource(R.string.default_icon_content_description),
                 modifier = Modifier
                     .padding(horizontal = 4.dp)
-                    .clickable { onInteraction(OnStopRecordingVoiceClicked) },
+                    .clip(RoundedCornerShape(4.dp))
+                    .then(if (isRecording) {
+                        Modifier.clickable { onInteraction(OnStopRecordingVoiceClicked) }
+                    } else {
+                        Modifier
+                    }),
                 tint = if (isRecording) blue else gray500,
             )
             Text(
                 text = if (isRecording) stringResource(R.string.chat_screen_recording_indicator) else stringResource(
                     R.string.chat_screen_stopped_recording_indicator
                 ),
+                style = MaterialTheme.typography.bodyLarge.copy(
+                    color = MaterialTheme.colorScheme.onBackground,
+                    platformStyle = PlatformTextStyle(includeFontPadding = false),
+                ),
             )
         }
     }
+}
+
+@Composable
+private fun AnimatedVoice() {
+    var time by remember { mutableIntStateOf(10) }
+    LaunchedEffect(true) {
+        while (true) {
+            Timber.d("time is $time")
+            delay(30)
+            Timber.d("time is $time")
+            time += 1
+        }
+    }
+
+    Canvas(
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(20.dp)
+    ) {
+        val maxHeight = this.size.height
+        val maxWidth = this.size.width
+        val heightsInterval = arrayListOf(
+            maxHeight / 5f,
+            maxHeight / 2f,
+            maxHeight,
+            maxHeight / 2f,
+        )
+        val lineWidth = 4.dp.toPx()
+        val linePadding = 2.dp.toPx()
+        val intervalWidth = heightsInterval.size * lineWidth + linePadding * heightsInterval.size
+
+        var drawnWidth = 0f
+        var period = 0
+        var numberOfLinesDrawn = 0
+        if (drawnWidth < maxWidth) {
+            while (drawnWidth < maxWidth || numberOfLinesDrawn > time) {
+                for (index in 0..heightsInterval.lastIndex) {
+                    drawnWidth =
+                        intervalWidth * period + index * lineWidth + linePadding + linePadding * index + lineWidth + linePadding / 2f
+                    if (drawnWidth > maxWidth || numberOfLinesDrawn >= time) {
+                        break
+                    }
+                    drawRoundRect(
+                        color = white,
+                        topLeft = Offset(
+                            y = (maxHeight / 2f) - heightsInterval[index] / 2,
+                            x = intervalWidth * period + index * lineWidth + linePadding + linePadding * index,
+                        ),
+                        size = Size(lineWidth, heightsInterval[index]),
+                        cornerRadius = CornerRadius(8f, 8f),
+                    )
+                    numberOfLinesDrawn += 1
+                }
+                period += 1
+            }
+        } else {
+            Timber.d("Drawing line")
+            drawLine(black, start = Offset(x = 0f, y = maxHeight / 2), end = Offset(x = maxWidth, y = maxHeight / 2), 1.dp.toPx())
+        }
+    }
+}
+
+@Preview
+@Composable
+private fun AnimatedVoicePreview() {
+    AnimatedVoice()
 }
 
 @Preview
