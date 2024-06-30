@@ -4,12 +4,16 @@ import androidx.lifecycle.viewModelScope
 import androidx.paging.cachedIn
 import androidx.paging.map
 import arrow.core.Either
+import arrow.core.flatMap
 import com.karlom.bluetoothmessagingapp.core.base.BaseViewModel
 import com.karlom.bluetoothmessagingapp.core.base.TIMEOUT_DELAY
 import com.karlom.bluetoothmessagingapp.core.di.IoDispatcher
 import com.karlom.bluetoothmessagingapp.core.extensions.combine
 import com.karlom.bluetoothmessagingapp.core.models.Failure
+import com.karlom.bluetoothmessagingapp.domain.audio.CreateAudioFile
+import com.karlom.bluetoothmessagingapp.domain.audio.DeleteAudioFile
 import com.karlom.bluetoothmessagingapp.domain.audio.GetAudioPlayer
+import com.karlom.bluetoothmessagingapp.domain.audio.GetVoiceRecorder
 import com.karlom.bluetoothmessagingapp.domain.connection.models.Connection
 import com.karlom.bluetoothmessagingapp.domain.connection.usecase.GetConnectedDevicesNotifier
 import com.karlom.bluetoothmessagingapp.domain.connection.usecase.IsConnectedTo
@@ -19,8 +23,6 @@ import com.karlom.bluetoothmessagingapp.domain.chat.usecase.SendAudio
 import com.karlom.bluetoothmessagingapp.domain.chat.usecase.SendImage
 import com.karlom.bluetoothmessagingapp.domain.chat.usecase.SendMessage
 import com.karlom.bluetoothmessagingapp.domain.chat.usecase.StartChatServerAndWaitForConnection
-import com.karlom.bluetoothmessagingapp.domain.audio.StartRecordingVoice
-import com.karlom.bluetoothmessagingapp.domain.audio.StopRecordingVoice
 import com.karlom.bluetoothmessagingapp.feature.chat.mappers.ChatItemMapper
 import com.karlom.bluetoothmessagingapp.feature.chat.models.ChatInputMode.TEXT
 import com.karlom.bluetoothmessagingapp.feature.chat.models.ChatInputMode.VOICE
@@ -65,8 +67,9 @@ class ChatViewModel @AssistedInject constructor(
     private val getAudioPlayer: GetAudioPlayer,
     private val getConnectionStateNotifier: GetConnectedDevicesNotifier,
     private val startChatServerAndWaitForConnection: StartChatServerAndWaitForConnection,
-    private val startRecordingVoice: StartRecordingVoice,
-    private val stopRecordingVoice: StopRecordingVoice,
+    private val getVoiceRecorder: GetVoiceRecorder,
+    private val createAudioFile: CreateAudioFile,
+    private val deleteAudioFile: DeleteAudioFile,
     private val sendAudio: SendAudio,
     private val connectToServer: ConnectToServer,
     private val chatItemMapper: ChatItemMapper,
@@ -79,6 +82,7 @@ class ChatViewModel @AssistedInject constructor(
     }
 
     private val audioPlayer = getAudioPlayer()
+    private val voiceRecorder = getVoiceRecorder()
 
     private val showConnectToDeviceButton = MutableStateFlow(!isConnectedTo(contactAddress))
     private val isTryingToConnect = MutableStateFlow(false)
@@ -145,22 +149,27 @@ class ChatViewModel @AssistedInject constructor(
                 sendImage(imageUri = event.uri, address = contactAddress)
             }
 
-            is OnStartRecordingVoiceClicked -> {
-                val recording = startRecordingVoice(UUID.randomUUID().toString())
-                recording.onRight { fileUri ->
-                    voiceFileUri = fileUri
-                    inputMode.update { VOICE }
-                    isRecordingVoice.update { true }
-                }
-            }
+            is OnStartRecordingVoiceClicked -> createAudioFile(UUID.randomUUID().toString())
+                .flatMap { fileName -> voiceRecorder.startRecording(fileName) }
+                .fold(
+                    {
+                        // TODO Show error
+                    },
+                    { fileName ->
+                        voiceFileUri = fileName
+                        inputMode.update { VOICE }
+                        isRecordingVoice.update { true }
+                    },
+                )
 
             is OnStopRecordingVoiceClicked -> {
-                stopRecordingVoice()
+                voiceRecorder.endRecording()
                 isRecordingVoice.update { false }
             }
 
             is OnDeleteVoiceRecordingClicked -> {
-                stopRecordingVoice()
+                voiceRecorder.endRecording()
+                voiceFileUri?.let { filePath -> deleteAudioFile(filePath) }
                 voiceFileUri = null
                 isRecordingVoice.update { false }
                 inputMode.update { TEXT }
@@ -219,6 +228,7 @@ class ChatViewModel @AssistedInject constructor(
 
     override fun onCleared() {
         audioPlayer.releaseMediaPlayer()
+        voiceRecorder.relase()
     }
 
     @AssistedFactory

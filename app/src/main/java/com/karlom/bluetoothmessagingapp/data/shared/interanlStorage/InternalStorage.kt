@@ -60,4 +60,15 @@ class InternalStorage @Inject constructor(
     }
 
     fun createEmptyFile(uri: String) = save(byteArrayOf(), uri)
+
+    fun deleteFile(filePath: String): Either<Failure.ErrorMessage, Unit> = try {
+        val file = File(context.filesDir, filePath)
+        if (file.delete()) {
+            Either.Right(Unit)
+        } else {
+            Either.Left(Failure.ErrorMessage("Cant delete file"))
+        }
+    } catch (e: SecurityException) {
+        Either.Left(Failure.ErrorMessage(e.message ?: "Cant access file"))
+    }
 }

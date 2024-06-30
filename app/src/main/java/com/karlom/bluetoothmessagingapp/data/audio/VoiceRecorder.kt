@@ -20,10 +20,14 @@ class VoiceRecorder @Inject constructor(
 
     private var mediaRecorder: MediaRecorder? = null
 
+    var isRecording = false
+        private set
+
     fun startRecording(outUri: String) =
-        if (mediaRecorder != null) {
+        if (isRecording) {
             Either.Left(Failure.ErrorMessage("Recording already in progress"))
-        } else {
+        }
+        else {
             mediaRecorder = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
                 MediaRecorder(context)
             } else {
@@ -31,19 +35,27 @@ class VoiceRecorder @Inject constructor(
             }.apply {
                 setAudioSource(MediaRecorder.AudioSource.MIC)
                 setAudioSamplingRate(RECORDER_SAMPLE_RATE)
-                setOutputFormat(MediaRecorder.OutputFormat.MPEG_4)
+                setOutputFormat(MediaRecorder.OutputFormat.THREE_GPP)
                 setOutputFile(outUri)
                 setAudioEncoder(MediaRecorder.AudioEncoder.AMR_WB)
                 prepare()
                 start()
+                isRecording = true
             }
             Either.Right(outUri)
         }
 
     fun endRecording() {
-        mediaRecorder?.stop()
-        mediaRecorder?.reset()
+        if(isRecording) {
+            mediaRecorder?.stop()
+            mediaRecorder?.reset()
+            isRecording = false
+        }
+    }
+
+    fun relase() {
         mediaRecorder?.release()
+        isRecording = false
         mediaRecorder = null
     }
 }
