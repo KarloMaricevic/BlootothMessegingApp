@@ -53,7 +53,6 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.stateIn
@@ -142,10 +141,7 @@ class ChatViewModel @AssistedInject constructor(
                 when (inputMode.value) {
                     TEXT -> sendMessage(message = textToSend.value, address = contactAddress)
                     VOICE -> voiceFileUri?.let { notNullFileUri ->
-                        sendAudio(
-                            imageUri = notNullFileUri,
-                            address = contactAddress,
-                        )
+                        sendAudio(imageUri = notNullFileUri, address = contactAddress)
                     }
                 }
             }
@@ -159,13 +155,11 @@ class ChatViewModel @AssistedInject constructor(
             is OnStartRecordingVoiceClicked -> createAudioFile(UUID.randomUUID().toString())
                 .flatMap { fileName -> voiceRecorder.startRecording(fileName) }
                 .fold(
-                    {
-                        // TODO Show error
-                    },
-                    { fileName ->
-                        voiceFileUri = fileName
-                        inputMode.update { VOICE }
+                    { failure -> _viewEffect.trySend(ChatScreenEffect.Error(failure.errorMessage)) },
+                    { filePath ->
+                        voiceFileUri = filePath
                         isRecordingVoice.update { true }
+                        inputMode.update { VOICE }
                     },
                 )
 
@@ -188,11 +182,16 @@ class ChatViewModel @AssistedInject constructor(
 
             is OnPlayAudioMessage -> viewModelScope.launch {
                 val currentPlayingMessage = audioMessagePlaying.value
-                if (currentPlayingMessage == null || currentPlayingMessage.id != event.message.id) {
+                val settingUp = if (currentPlayingMessage == null || currentPlayingMessage.id != event.message.id) {
                     audioPlayer.stop()
                     audioPlayer.setDataSource(event.message.audioUri)
+                } else {
+                    Either.Right(Unit)
                 }
-                audioPlayer.play().onRight { audioMessagePlaying.update { event.message.copy(isPlaying = true) } }
+                settingUp.flatMap { audioPlayer.play() }.fold(
+                    { failure -> _viewEffect.trySend(ChatScreenEffect.Error(failure.errorMessage)) },
+                    { audioMessagePlaying.update { event.message.copy(isPlaying = true) } },
+                )
             }
         }
     }
