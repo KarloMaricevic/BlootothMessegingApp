@@ -2,8 +2,11 @@ package com.karlom.bluetoothmessagingapp.core.components
 
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
@@ -37,7 +40,8 @@ fun BluetoothMessagingAppNavigation(
             }
         }
     }
-    Scaffold { innerPadding ->
+    val snackbarHostState = remember { SnackbarHostState() }
+    Scaffold(snackbarHost = { SnackbarHost(snackbarHostState) }) { innerPadding ->
         NavHost(
             navController = navController,
             startDestination = ContactsRouter.route(),
@@ -46,7 +50,7 @@ fun BluetoothMessagingAppNavigation(
             composable(ChatRouter.route()) { entry ->
                 val address = entry.arguments?.getString(ChatRouter.ADDRESS_PARAM)
                     ?: error("${ChatRouter.ADDRESS_PARAM} was not provided to chat screen")
-                ChatScreen(address)
+                ChatScreen(address = address, scaffoldState = snackbarHostState)
             }
             composable(ContactsRouter.route()) { ContactsScreen() }
             composable(AddDeviceScreenRouter.route()) { AddDeviceScreen() }

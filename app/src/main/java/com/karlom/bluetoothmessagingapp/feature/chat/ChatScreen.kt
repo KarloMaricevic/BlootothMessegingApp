@@ -14,7 +14,9 @@ import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
@@ -29,6 +31,7 @@ import com.karlom.bluetoothmessagingapp.feature.chat.components.ConnectToButton
 import com.karlom.bluetoothmessagingapp.feature.chat.components.ImageChatBox
 import com.karlom.bluetoothmessagingapp.feature.chat.components.TextChatBox
 import com.karlom.bluetoothmessagingapp.feature.chat.models.ChatItem
+import com.karlom.bluetoothmessagingapp.feature.chat.models.ChatScreenEffect
 import com.karlom.bluetoothmessagingapp.feature.chat.models.ChatScreenEvent.OnConnectClicked
 import com.karlom.bluetoothmessagingapp.feature.chat.models.ChatScreenEvent.OnSendImageClicked
 import com.karlom.bluetoothmessagingapp.feature.chat.models.ChatScreenEvent.OnStartRecordingVoiceClicked
@@ -36,7 +39,10 @@ import com.karlom.bluetoothmessagingapp.feature.chat.viewmodel.ChatViewModel
 import com.karlom.bluetoothmessagingapp.feature.shared.SimpleLazyColumn
 
 @Composable
-fun ChatScreen(address: String) {
+fun ChatScreen(
+    address: String,
+    scaffoldState: SnackbarHostState,
+) {
     val context = LocalContext.current
     val viewModel = hiltViewModel<ChatViewModel, ChatViewModel.ChatViewModelFactory> { factory ->
         factory.create((address))
@@ -60,6 +66,13 @@ fun ChatScreen(address: String) {
     ) { permissionAccepted ->
         if (permissionAccepted) {
             viewModel.onEvent(OnStartRecordingVoiceClicked)
+        }
+    }
+    LaunchedEffect(key1 = viewModel.viewEffect) {
+        viewModel.viewEffect.collect { chatEffect ->
+            when (chatEffect) {
+                is ChatScreenEffect.Error -> scaffoldState.showSnackbar(chatEffect.errorMessage)
+            }
         }
     }
     Column(Modifier.fillMaxSize()) {

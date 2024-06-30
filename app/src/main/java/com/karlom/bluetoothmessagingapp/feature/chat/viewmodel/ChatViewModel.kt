@@ -14,20 +14,21 @@ import com.karlom.bluetoothmessagingapp.domain.audio.CreateAudioFile
 import com.karlom.bluetoothmessagingapp.domain.audio.DeleteAudioFile
 import com.karlom.bluetoothmessagingapp.domain.audio.GetAudioPlayer
 import com.karlom.bluetoothmessagingapp.domain.audio.GetVoiceRecorder
-import com.karlom.bluetoothmessagingapp.domain.connection.models.Connection
-import com.karlom.bluetoothmessagingapp.domain.connection.usecase.GetConnectedDevicesNotifier
-import com.karlom.bluetoothmessagingapp.domain.connection.usecase.IsConnectedTo
 import com.karlom.bluetoothmessagingapp.domain.chat.usecase.ConnectToServer
 import com.karlom.bluetoothmessagingapp.domain.chat.usecase.GetMessages
 import com.karlom.bluetoothmessagingapp.domain.chat.usecase.SendAudio
 import com.karlom.bluetoothmessagingapp.domain.chat.usecase.SendImage
 import com.karlom.bluetoothmessagingapp.domain.chat.usecase.SendMessage
 import com.karlom.bluetoothmessagingapp.domain.chat.usecase.StartChatServerAndWaitForConnection
+import com.karlom.bluetoothmessagingapp.domain.connection.models.Connection
+import com.karlom.bluetoothmessagingapp.domain.connection.usecase.GetConnectedDevicesNotifier
+import com.karlom.bluetoothmessagingapp.domain.connection.usecase.IsConnectedTo
 import com.karlom.bluetoothmessagingapp.feature.chat.mappers.ChatItemMapper
 import com.karlom.bluetoothmessagingapp.feature.chat.models.ChatInputMode.TEXT
 import com.karlom.bluetoothmessagingapp.feature.chat.models.ChatInputMode.VOICE
 import com.karlom.bluetoothmessagingapp.feature.chat.models.ChatItem
 import com.karlom.bluetoothmessagingapp.feature.chat.models.ChatItem.Audio
+import com.karlom.bluetoothmessagingapp.feature.chat.models.ChatScreenEffect
 import com.karlom.bluetoothmessagingapp.feature.chat.models.ChatScreenEvent
 import com.karlom.bluetoothmessagingapp.feature.chat.models.ChatScreenEvent.OnConnectClicked
 import com.karlom.bluetoothmessagingapp.feature.chat.models.ChatScreenEvent.OnDeleteVoiceRecordingClicked
@@ -43,19 +44,22 @@ import dagger.assisted.Assisted
 import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
 import dagger.hilt.android.lifecycle.HiltViewModel
+import java.util.UUID
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.async
 import kotlinx.coroutines.cancelAndJoin
+import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.selects.select
-import java.util.UUID
 
 @HiltViewModel(assistedFactory = ChatViewModel.ChatViewModelFactory::class)
 class ChatViewModel @AssistedInject constructor(
@@ -119,6 +123,9 @@ class ChatViewModel @AssistedInject constructor(
             showConnectToDeviceButton = !isConnectedTo(contactAddress)
         ),
     )
+
+    private val _viewEffect = Channel<ChatScreenEffect>(Channel.BUFFERED)
+    val viewEffect = _viewEffect.receiveAsFlow()
 
     init {
         viewModelScope.launch {
