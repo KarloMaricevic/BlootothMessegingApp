@@ -44,7 +44,7 @@ class ChatItemMapper @Inject constructor(
 
             is AudioMessage -> Audio(
                 id = message.id,
-                audioUri = message.audioUri,
+                filePath = message.audioUri,
                 isFromMe = message.isFromMe,
                 totalTime = formatToTimeString(getAudioDuration(message.audioUri)),
                 state = message.state,

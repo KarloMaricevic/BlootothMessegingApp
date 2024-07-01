@@ -157,7 +157,7 @@ fun AudioChatSendingBoxPreview() {
         AudioChatBox(
             message = Audio(
                 id = 1,
-                audioUri = "",
+                filePath = "",
                 isFromMe = false,
                 totalTime = "1:32",
                 state = MessageState.SENDING,
@@ -174,7 +174,7 @@ fun AudioChatSentBoxPreview() {
         AudioChatBox(
             message = Audio(
                 id = 1,
-                audioUri = "",
+                filePath = "",
                 isFromMe = false,
                 totalTime = "1:32",
                 state = MessageState.SENT,
@@ -191,7 +191,7 @@ fun AudioChatNotSentBoxPreview() {
         AudioChatBox(
             message = Audio(
                 id = 1,
-                audioUri = "",
+                filePath = "",
                 isFromMe = true,
                 totalTime = "1:32",
                 state = MessageState.NOT_SENT,

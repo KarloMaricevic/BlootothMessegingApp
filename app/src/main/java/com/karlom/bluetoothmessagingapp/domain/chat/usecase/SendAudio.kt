@@ -7,6 +7,6 @@ class SendAudio @Inject constructor(
     private val chatRepository: ChatRepository,
 ) {
 
-    suspend operator fun invoke(imageUri: String, address: String) =
-        chatRepository.sendAudio(audioUri = imageUri, address = address)
+    suspend operator fun invoke(imagePath: String, address: String) =
+        chatRepository.sendAudio(audioUri = imagePath, address = address)
 }

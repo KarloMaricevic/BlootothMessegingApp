@@ -105,7 +105,7 @@ class ChatViewModel @AssistedInject constructor(
         }
     })
 
-    private var voiceFileUri: String? = null
+    private var voiceRecordingFilePath: String? = null
 
     val state = combine(
         showConnectToDeviceButton,
@@ -140,8 +140,8 @@ class ChatViewModel @AssistedInject constructor(
             is OnSendClicked -> viewModelScope.launch(ioDispatcher) {
                 when (inputMode.value) {
                     TEXT -> sendMessage(message = textToSend.value, address = contactAddress)
-                    VOICE -> voiceFileUri?.let { notNullFileUri ->
-                        sendAudio(imageUri = notNullFileUri, address = contactAddress)
+                    VOICE -> voiceRecordingFilePath?.let { voiceRecordingFilePath ->
+                        sendAudio(imagePath = voiceRecordingFilePath, address = contactAddress)
                     }
                 }
             }
@@ -157,7 +157,7 @@ class ChatViewModel @AssistedInject constructor(
                 .fold(
                     { failure -> _viewEffect.trySend(ChatScreenEffect.Error(failure.errorMessage)) },
                     { filePath ->
-                        voiceFileUri = filePath
+                        voiceRecordingFilePath = filePath
                         isRecordingVoice.update { true }
                         inputMode.update { VOICE }
                     },
@@ -170,8 +170,8 @@ class ChatViewModel @AssistedInject constructor(
 
             is OnDeleteVoiceRecordingClicked -> {
                 voiceRecorder.endRecording()
-                voiceFileUri?.let { filePath -> deleteAudioFile(filePath) }
-                voiceFileUri = null
+                voiceRecordingFilePath?.let { filePath -> deleteAudioFile(filePath) }
+                voiceRecordingFilePath = null
                 isRecordingVoice.update { false }
                 inputMode.update { TEXT }
             }
@@ -182,7 +182,7 @@ class ChatViewModel @AssistedInject constructor(
                 val currentPlayingMessage = audioMessagePlaying.value
                 val settingUp = if (currentPlayingMessage == null || currentPlayingMessage.id != event.message.id) {
                     audioPlayer.stop()
-                    audioPlayer.setDataSource(event.message.audioUri)
+                    audioPlayer.setDataSource(event.message.filePath)
                 } else {
                     Either.Right(Unit)
                 }

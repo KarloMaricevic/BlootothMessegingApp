@@ -24,7 +24,7 @@ sealed class ChatItem(
 
     data class Audio(
         override val id: Long,
-        val audioUri: String,
+        val filePath: String,
         val totalTime: String,
         val isPlaying: Boolean = false,
         val currentTime: String? = null,
