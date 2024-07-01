@@ -127,7 +127,7 @@ class ChatViewModel @AssistedInject constructor(
     val viewEffect = _viewEffect.receiveAsFlow()
 
     init {
-        viewModelScope.launch {
+        viewModelScope.launch(ioDispatcher) {
             getConnectionStateNotifier().collect { connectedDevices ->
                 showConnectToDeviceButton.update { connectedDevices.firstOrNull { it.address == contactAddress } == null }
             }
@@ -137,7 +137,7 @@ class ChatViewModel @AssistedInject constructor(
     override fun onEvent(event: ChatScreenEvent) {
         when (event) {
             is OnTextChanged -> textToSend.update { event.text }
-            is OnSendClicked -> viewModelScope.launch {
+            is OnSendClicked -> viewModelScope.launch(ioDispatcher) {
                 when (inputMode.value) {
                     TEXT -> sendMessage(message = textToSend.value, address = contactAddress)
                     VOICE -> voiceFileUri?.let { notNullFileUri ->
@@ -178,7 +178,7 @@ class ChatViewModel @AssistedInject constructor(
 
             is OnPausePlayingAudioMessage -> audioPlayer.pause().onRight { audioMessagePlaying.update { current -> current?.copy(isPlaying = false) } }
 
-            is OnPlayAudioMessage -> viewModelScope.launch {
+            is OnPlayAudioMessage -> viewModelScope.launch(ioDispatcher) {
                 val currentPlayingMessage = audioMessagePlaying.value
                 val settingUp = if (currentPlayingMessage == null || currentPlayingMessage.id != event.message.id) {
                     audioPlayer.stop()
@@ -197,8 +197,8 @@ class ChatViewModel @AssistedInject constructor(
     private fun startServerAndPeriodicallyTryToConnectToAddress() {
         isTryingToConnect.update { true }
         viewModelScope.launch(ioDispatcher) {
-            val waitForClientJob = async(ioDispatcher) { startChatServerAndWaitForConnection() }
-            val tryToConnectJob = async(ioDispatcher) {
+            val waitForClientJob = async { startChatServerAndWaitForConnection() }
+            val tryToConnectJob = async {
                 var connectToServer: Either<Failure.ErrorMessage, Connection>? = null
                 repeat(NUMBER_OF_RETRIES_WHEN_CONNECTING) { timesRun ->
                     connectToServer = connectToServer(contactAddress).fold(
