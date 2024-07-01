@@ -176,9 +176,7 @@ class ChatViewModel @AssistedInject constructor(
                 inputMode.update { TEXT }
             }
 
-            is OnPausePlayingAudioMessage -> {
-                audioPlayer.pause().onRight { audioMessagePlaying.update { current -> current?.copy(isPlaying = false) } }
-            }
+            is OnPausePlayingAudioMessage -> audioPlayer.pause().onRight { audioMessagePlaying.update { current -> current?.copy(isPlaying = false) } }
 
             is OnPlayAudioMessage -> viewModelScope.launch {
                 val currentPlayingMessage = audioMessagePlaying.value
@@ -203,18 +201,18 @@ class ChatViewModel @AssistedInject constructor(
             val tryToConnectJob = async(ioDispatcher) {
                 var connectToServer: Either<Failure.ErrorMessage, Connection>? = null
                 repeat(NUMBER_OF_RETRIES_WHEN_CONNECTING) { timesRun ->
-                    val connected = connectToServer(contactAddress)
-                    connected.onLeft {
-                        if (timesRun < NUMBER_OF_RETRIES_WHEN_CONNECTING - 1) {
-                            delay(RETRY_DELAY_MILLIS)
-                        } else {
-                            connectToServer = connected
-                        }
-                    }
-                    connected.onRight {
-                        connectToServer = connected
-                        return@repeat
-                    }
+                    connectToServer = connectToServer(contactAddress).fold(
+                        { failure ->
+                            if (timesRun < NUMBER_OF_RETRIES_WHEN_CONNECTING - 1) {
+                                delay(RETRY_DELAY_MILLIS)
+                                null
+                            } else {
+                                Either.Left(failure)
+                            }
+                        },
+                        { connection -> Either.Right(connection) },
+                    )
+                    connectToServer?.let { return@repeat }
                 }
                 connectToServer!!
             }
