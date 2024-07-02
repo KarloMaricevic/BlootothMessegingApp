@@ -29,7 +29,6 @@ import com.karlom.bluetoothmessagingapp.R
 import com.karlom.bluetoothmessagingapp.designSystem.theme.BluetoothMessagingAppTheme
 import com.karlom.bluetoothmessagingapp.designSystem.theme.blue
 
-
 @Composable
 fun <T : Any> SimpleLazyColumn(
     items: LazyPagingItems<T>,
@@ -37,6 +36,7 @@ fun <T : Any> SimpleLazyColumn(
     uiItemBuilder: @Composable (T) -> Unit,
     noItemsItem: @Composable () -> Unit,
     modifier: Modifier = Modifier,
+    reverseLayout: Boolean = false,
     itemSpacing: Dp = 0.dp,
     topInset: Dp = 16.dp,
 ) {
@@ -44,7 +44,10 @@ fun <T : Any> SimpleLazyColumn(
         if (items.loadState.append.endOfPaginationReached && items.itemCount == 0) {
             noItemsItem()
         } else {
-            LazyColumn(verticalArrangement = Arrangement.spacedBy(itemSpacing)) {
+            LazyColumn(
+                verticalArrangement = Arrangement.spacedBy(itemSpacing),
+                reverseLayout = reverseLayout,
+            ) {
                 item { Box(Modifier.height(topInset)) }
                 items(
                     count = items.itemCount,
