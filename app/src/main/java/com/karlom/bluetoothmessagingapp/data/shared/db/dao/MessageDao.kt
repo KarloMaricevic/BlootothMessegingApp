@@ -19,6 +19,9 @@ interface MessageDao {
     @Update
     suspend fun update(message: MessageEntity)
 
+    @Query("SELECT * FROM MessageEntity WHERE withContactAddress = :contactAddress ORDER BY id DESC LIMIT :limit OFFSET :offset")
+    suspend fun loadItemDescending(limit: Int, offset: Int, contactAddress: String): List<MessageEntity>
+
     @Query("SELECT * FROM MessageEntity WHERE withContactAddress = :withContactAddress ORDER BY id ASC")
     fun getMessages(withContactAddress: String): PagingSource<Int, MessageEntity>
 }

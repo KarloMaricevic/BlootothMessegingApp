@@ -7,16 +7,18 @@ import arrow.core.Either
 import com.karlom.bluetoothmessagingapp.core.models.Failure
 import com.karlom.bluetoothmessagingapp.data.bluetooth.communicationMenager.BluetoothCommunicationManager
 import com.karlom.bluetoothmessagingapp.data.bluetooth.models.BluetoothMessage
+import com.karlom.bluetoothmessagingapp.data.chat.paggination.MessagePagingSource
 import com.karlom.bluetoothmessagingapp.data.shared.db.dao.MessageDao
 import com.karlom.bluetoothmessagingapp.data.shared.db.enteties.MessageEntity
 import com.karlom.bluetoothmessagingapp.data.shared.db.enteties.MessageState
 import com.karlom.bluetoothmessagingapp.data.shared.db.enteties.MessageType
 import com.karlom.bluetoothmessagingapp.data.shared.interanlStorage.InternalStorage
+import com.karlom.bluetoothmessagingapp.data.shared.utils.safeIOCall
 import com.karlom.bluetoothmessagingapp.domain.chat.models.Message
-import kotlinx.coroutines.flow.map
 import java.util.UUID
 import javax.inject.Inject
 import javax.inject.Singleton
+import kotlinx.coroutines.flow.map
 
 @Singleton
 class ChatRepository @Inject constructor(
@@ -51,7 +53,17 @@ class ChatRepository @Inject constructor(
 
     fun getMessages(withContactAddress: String) = Pager(
         config = PagingConfig(pageSize = PAGE_SIZE, enablePlaceholders = false),
-        pagingSourceFactory = { messageDao.getMessages(withContactAddress) },
+        pagingSourceFactory = {
+            MessagePagingSource { offset, items ->
+                safeIOCall {
+                    messageDao.loadItemDescending(
+                        limit = items,
+                        offset = offset,
+                        contactAddress = withContactAddress,
+                    )
+                }
+            }
+        },
     ).flow.map { page ->
         page.map { entity ->
             when (entity.messageType) {

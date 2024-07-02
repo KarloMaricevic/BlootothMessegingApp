@@ -90,6 +90,7 @@ fun ChatScreen(
                         )
                     }
                 },
+                reverseLayout = true,
                 noItemsItem = { },
                 modifier = Modifier.fillMaxSize()
             )
