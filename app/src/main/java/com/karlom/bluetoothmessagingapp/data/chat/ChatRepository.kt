@@ -110,7 +110,7 @@ class ChatRepository @Inject constructor(
                 isSendByMe = true,
                 textContent = null,
                 filePath = audioUri,
-                messageType = MessageType.IMAGE,
+                messageType = MessageType.AUDIO,
                 withContactAddress = address,
                 state = MessageState.SENT,
             )
