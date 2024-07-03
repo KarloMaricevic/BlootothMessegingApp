@@ -151,6 +151,9 @@ class ChatViewModel @AssistedInject constructor(
                         _viewEffect.trySend(ChatScreenEffect.ScrollToBottom)
                     }
                 }
+                textToSend.update { "" }
+                inputMode.update { TEXT }
+                voiceRecordingFilePath = null
             }
 
             is OnConnectClicked -> startServerAndPeriodicallyTryToConnectToAddress()
