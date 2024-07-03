@@ -53,17 +53,7 @@ class ChatRepository @Inject constructor(
 
     fun getMessages(withContactAddress: String) = Pager(
         config = PagingConfig(pageSize = PAGE_SIZE, enablePlaceholders = false),
-        pagingSourceFactory = {
-            MessagePagingSource { offset, items ->
-                safeIOCall {
-                    messageDao.loadItemDescending(
-                        limit = items,
-                        offset = offset,
-                        contactAddress = withContactAddress,
-                    )
-                }
-            }
-        },
+        pagingSourceFactory = { messageDao.loadItemDescending(withContactAddress) }
     ).flow.map { page ->
         page.map { entity ->
             when (entity.messageType) {
