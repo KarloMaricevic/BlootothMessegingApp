@@ -7,17 +7,18 @@ import arrow.core.Either
 import com.karlom.bluetoothmessagingapp.core.models.Failure
 import com.karlom.bluetoothmessagingapp.data.bluetooth.communicationMenager.BluetoothCommunicationManager
 import com.karlom.bluetoothmessagingapp.data.bluetooth.models.BluetoothMessage
-import com.karlom.bluetoothmessagingapp.data.chat.paggination.MessagePagingSource
+import com.karlom.bluetoothmessagingapp.data.chat.models.SendState.FINISH_SENDING
+import com.karlom.bluetoothmessagingapp.data.chat.models.SendState.SENDING
 import com.karlom.bluetoothmessagingapp.data.shared.db.dao.MessageDao
 import com.karlom.bluetoothmessagingapp.data.shared.db.enteties.MessageEntity
 import com.karlom.bluetoothmessagingapp.data.shared.db.enteties.MessageState
 import com.karlom.bluetoothmessagingapp.data.shared.db.enteties.MessageType
 import com.karlom.bluetoothmessagingapp.data.shared.interanlStorage.InternalStorage
-import com.karlom.bluetoothmessagingapp.data.shared.utils.safeIOCall
 import com.karlom.bluetoothmessagingapp.domain.chat.models.Message
 import java.util.UUID
 import javax.inject.Inject
 import javax.inject.Singleton
+import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
 
 @Singleton
@@ -34,7 +35,7 @@ class ChatRepository @Inject constructor(
     suspend fun sendMessage(
         message: String,
         address: String,
-    ): Either<Failure.ErrorMessage, Unit> {
+    ) = flow {
         var messageEntity = MessageEntity(
             isSendByMe = true,
             textContent = message,
@@ -44,11 +45,12 @@ class ChatRepository @Inject constructor(
             state = MessageState.SENDING,
         )
         val id = messageDao.insert(messageEntity)
+        emit(SENDING)
         messageEntity = messageEntity.copy(id = id)
         val result = communicationManager.sendText(text = message, address = address)
         result.onRight { messageDao.update(messageEntity.copy(state = MessageState.SENT)) }
         result.onLeft { messageDao.update(messageEntity.copy(state = MessageState.NOT_SENT)) }
-        return result
+        emit(FINISH_SENDING)
     }
 
     fun getMessages(withContactAddress: String) = Pager(
@@ -64,7 +66,7 @@ class ChatRepository @Inject constructor(
         }
     }
 
-    suspend fun sendImage(imageUri: String, address: String): Either<Failure.ErrorMessage, Unit> {
+    suspend fun sendImage(imageUri: String, address: String) = flow {
         val savedImagePath = internalStorage.saveImage(imageUri, UUID.randomUUID().toString())
         val inputStream = when (savedImagePath) {
             is Either.Left -> Either.Left(Failure.ErrorMessage("No image path"))
@@ -75,7 +77,7 @@ class ChatRepository @Inject constructor(
             is Either.Right -> internalStorage.getFileSize(savedImagePath.value)
         }
         internalStorage.getFileSize(imageUri)
-        return if (inputStream is Either.Right && imageSize is Either.Right && savedImagePath is Either.Right) {
+        if (inputStream is Either.Right && imageSize is Either.Right && savedImagePath is Either.Right) {
             var messageEntity = MessageEntity(
                 isSendByMe = true,
                 textContent = null,
@@ -85,6 +87,7 @@ class ChatRepository @Inject constructor(
                 state = MessageState.SENDING,
             )
             val id = messageDao.insert(messageEntity)
+            emit(SENDING)
             messageEntity = messageEntity.copy(id = id)
             val result =
                 communicationManager.sendImage(
@@ -95,20 +98,11 @@ class ChatRepository @Inject constructor(
             inputStream.value.close()
             result.onRight { messageDao.update(messageEntity.copy(state = MessageState.SENT)) }
             result.onLeft { messageDao.update(messageEntity.copy(state = MessageState.NOT_SENT)) }
-            return result
-        } else {
-            inputStream.onRight { it.close() }
-            listOf(
-                savedImagePath,
-                inputStream,
-                imageSize,
-            ).firstOrNull { it is Either.Left } as? Either.Left ?: Either.Left(
-                Failure.ErrorMessage("Error sending image")
-            )
         }
+        emit(FINISH_SENDING)
     }
 
-    suspend fun sendAudio(audioUri: String, address: String): Either<Failure.ErrorMessage, Unit> {
+    suspend fun sendAudio(audioUri: String, address: String) = flow {
         val inputStream = internalStorage.getFileInputStream(audioUri)
         val imageSize = internalStorage.getFileSize(audioUri)
         if (inputStream is Either.Right && imageSize is Either.Right) {
@@ -121,24 +115,19 @@ class ChatRepository @Inject constructor(
                 state = MessageState.SENT,
             )
             val id = messageDao.insert(messageEntity)
+            emit(SENDING)
             messageEntity = messageEntity.copy(id = id)
             val result = communicationManager.sendAudio(
                 stream = inputStream.value,
                 streamSize = imageSize.value.toInt(),
                 address = address,
             )
-            inputStream.onRight { messageDao.update(messageEntity.copy(state = MessageState.SENT)) }
-            inputStream.onLeft { messageDao.update(messageEntity.copy(state = MessageState.NOT_SENT)) }
+            result.onRight { messageDao.update(messageEntity.copy(state = MessageState.SENT)) }
+            result.onLeft { messageDao.update(messageEntity.copy(state = MessageState.NOT_SENT)) }
             inputStream.value.close()
-            return result
         }
         inputStream.onRight { it.close() }
-        return listOf(
-            inputStream,
-            imageSize,
-        ).firstOrNull { it is Either.Left } as? Either.Left ?: Either.Left(
-            Failure.ErrorMessage("Error sending audio")
-        )
+        emit(FINISH_SENDING)
     }
 
     suspend fun startSavingReceivedMessages() {

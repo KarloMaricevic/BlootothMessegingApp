@@ -10,6 +10,7 @@ import com.karlom.bluetoothmessagingapp.core.base.TIMEOUT_DELAY
 import com.karlom.bluetoothmessagingapp.core.di.IoDispatcher
 import com.karlom.bluetoothmessagingapp.core.extensions.combine
 import com.karlom.bluetoothmessagingapp.core.models.Failure
+import com.karlom.bluetoothmessagingapp.data.chat.models.SendState.SENDING
 import com.karlom.bluetoothmessagingapp.domain.audio.CreateAudioFile
 import com.karlom.bluetoothmessagingapp.domain.audio.DeleteAudioFile
 import com.karlom.bluetoothmessagingapp.domain.audio.GetAudioPlayer
@@ -53,6 +54,7 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.stateIn
@@ -108,7 +110,7 @@ class ChatViewModel @AssistedInject constructor(
     private var voiceRecordingFilePath: String? = null
 
     val state = combine(
-        showConnectToDeviceButton,
+        flowOf(false),
         isTryingToConnect,
         textToSend,
         inputMode,
@@ -140,8 +142,13 @@ class ChatViewModel @AssistedInject constructor(
             is OnSendClicked -> viewModelScope.launch(ioDispatcher) {
                 when (inputMode.value) {
                     TEXT -> sendMessage(message = textToSend.value, address = contactAddress)
+
                     VOICE -> voiceRecordingFilePath?.let { voiceRecordingFilePath ->
                         sendAudio(imagePath = voiceRecordingFilePath, address = contactAddress)
+                    }
+                }?.collect { state ->
+                    if (state == SENDING) {
+                        _viewEffect.trySend(ChatScreenEffect.ScrollToBottom)
                     }
                 }
             }
@@ -149,7 +156,11 @@ class ChatViewModel @AssistedInject constructor(
             is OnConnectClicked -> startServerAndPeriodicallyTryToConnectToAddress()
 
             is OnSendImageClicked -> viewModelScope.launch(ioDispatcher) {
-                sendImage(imageUri = event.uri, address = contactAddress)
+                sendImage(imageUri = event.uri, address = contactAddress).collect { state ->
+                    if (state == SENDING) {
+                        _viewEffect.trySend(ChatScreenEffect.ScrollToBottom)
+                    }
+                }
             }
 
             is OnStartRecordingVoiceClicked -> createAudioFile(UUID.randomUUID().toString())
