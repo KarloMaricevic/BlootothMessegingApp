@@ -24,7 +24,14 @@ fun TextChatBox(
     message: Text,
     modifier: Modifier = Modifier,
 ) {
-    Box(modifier.fillMaxWidth()) {
+    Box(
+        modifier
+            .padding(
+                start = if (message.isFromMe) 0.dp else 4.dp,
+                end = if (message.isFromMe) 4.dp else 0.dp,
+            )
+            .fillMaxWidth(),
+    ) {
         Text(
             text = message.message,
             modifier = Modifier
@@ -40,28 +47,14 @@ fun TextChatBox(
                 })
                 .then(
                     if (message.state == MessageState.NOT_SENT) {
-                        Modifier.border(
-                            1.dp, Color.Red, RoundedCornerShape(
-                                topStart = 16.dp,
-                                topEnd = 16.dp,
-                                bottomStart = if (message.isFromMe) 16.dp else 0.dp,
-                                bottomEnd = if (message.isFromMe) 0.dp else 16.dp
-                            )
-                        )
+                        Modifier.border(1.dp, Color.Red, RoundedCornerShape(16.dp))
                     } else {
                         Modifier
                     }
                 )
-                .clip(
-                    RoundedCornerShape(
-                        topStart = 16.dp,
-                        topEnd = 16.dp,
-                        bottomStart = if (message.isFromMe) 16.dp else 0.dp,
-                        bottomEnd = if (message.isFromMe) 0.dp else 16.dp
-                    )
-                )
+                .clip(RoundedCornerShape(16.dp))
                 .background(MaterialTheme.colorScheme.surface)
-                .padding(16.dp)
+                .padding(vertical = 4.dp, horizontal = 8.dp)
         )
     }
 }
