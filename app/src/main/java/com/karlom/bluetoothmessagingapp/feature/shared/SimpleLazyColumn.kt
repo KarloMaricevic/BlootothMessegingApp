@@ -9,6 +9,8 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyListState
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -36,6 +38,7 @@ fun <T : Any> SimpleLazyColumn(
     uiItemBuilder: @Composable (T) -> Unit,
     noItemsItem: @Composable () -> Unit,
     modifier: Modifier = Modifier,
+    state: LazyListState = rememberLazyListState(),
     reverseLayout: Boolean = false,
     itemSpacing: Dp = 0.dp,
     topInset: Dp = 16.dp,
@@ -47,6 +50,7 @@ fun <T : Any> SimpleLazyColumn(
             LazyColumn(
                 verticalArrangement = Arrangement.spacedBy(itemSpacing),
                 reverseLayout = reverseLayout,
+                state = state,
             ) {
                 item { Box(Modifier.height(topInset)) }
                 items(

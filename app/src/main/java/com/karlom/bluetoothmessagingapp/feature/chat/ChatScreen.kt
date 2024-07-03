@@ -14,6 +14,7 @@ import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -68,10 +69,12 @@ fun ChatScreen(
             viewModel.onEvent(OnStartRecordingVoiceClicked)
         }
     }
+    val listState = rememberLazyListState()
     LaunchedEffect(key1 = viewModel.viewEffect) {
         viewModel.viewEffect.collect { chatEffect ->
             when (chatEffect) {
                 is ChatScreenEffect.Error -> scaffoldState.showSnackbar(chatEffect.errorMessage)
+                is ChatScreenEffect.ScrollToBottom -> listState.animateScrollToItem(0)
             }
         }
     }
@@ -90,6 +93,7 @@ fun ChatScreen(
                         )
                     }
                 },
+                state = listState,
                 reverseLayout = true,
                 noItemsItem = { },
                 modifier = Modifier.fillMaxSize()
