@@ -68,7 +68,7 @@ fun ImageChatBox(
                         bottomEnd = if (message.isFromMe) 0.dp else 16.dp
                     )
                 )
-                .height(200.dp)
+                .height(284.dp)
                 .aspectRatio(message.aspectRatio),
         )
     }

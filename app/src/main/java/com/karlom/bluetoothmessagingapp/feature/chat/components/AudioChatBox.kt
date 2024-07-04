@@ -70,6 +70,8 @@ fun AudioChatBox(
                         Modifier
                     }
                 )
+                .padding(start = 12.dp, end = 20.dp)
+                .padding(vertical = 10.dp)
         ) {
             Icon(
                 painter = painterResource(if (message.isPlaying) R.drawable.ic_pause else R.drawable.ic_play),
@@ -88,19 +90,14 @@ fun AudioChatBox(
                             )
                         },
                     )
-                    .padding(
-                        start = 8.dp,
-                        top = 8.dp,
-                        bottom = 8.dp,
-                    )
+                    .padding(end = 10.dp)
                     .size(32.dp),
                 tint = MaterialTheme.colorScheme.onSurface,
             )
             Box(modifier = Modifier
-                .padding(vertical = 4.dp)
-                .padding(end = 8.dp)
+                .padding(end = 12.dp)
                 .size(
-                    height = 68.dp,
+                    height = 48.dp,
                     width = 80.dp + 44.dp
                 )
                 .drawBehind {
@@ -142,10 +139,7 @@ fun AudioChatBox(
                     }
                 }
             )
-            Text(
-                text = message.totalTime,
-                modifier = Modifier.padding(end = 4.dp),
-            )
+            Text(text = message.totalTime)
         }
     }
 }

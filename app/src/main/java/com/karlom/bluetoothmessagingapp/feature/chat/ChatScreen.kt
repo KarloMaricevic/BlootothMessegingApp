@@ -23,6 +23,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.paging.compose.collectAsLazyPagingItems
 import com.google.accompanist.permissions.rememberPermissionState
@@ -96,6 +97,7 @@ fun ChatScreen(
                 state = listState,
                 reverseLayout = true,
                 noItemsItem = { },
+                itemSpacing = 2.dp,
                 modifier = Modifier.fillMaxSize()
             )
             if (state.showConnectToDeviceButton) {
