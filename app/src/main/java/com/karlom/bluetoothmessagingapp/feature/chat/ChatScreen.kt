@@ -14,8 +14,11 @@ import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -23,16 +26,23 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.paging.compose.collectAsLazyPagingItems
 import com.google.accompanist.permissions.rememberPermissionState
+import com.karlom.bluetoothmessagingapp.designSystem.theme.gray500
 import com.karlom.bluetoothmessagingapp.feature.chat.components.AudioChatBox
 import com.karlom.bluetoothmessagingapp.feature.chat.components.ChatInputFiled
 import com.karlom.bluetoothmessagingapp.feature.chat.components.ConnectToButton
 import com.karlom.bluetoothmessagingapp.feature.chat.components.ImageChatBox
 import com.karlom.bluetoothmessagingapp.feature.chat.components.TextChatBox
-import com.karlom.bluetoothmessagingapp.feature.chat.models.ChatItem
+import com.karlom.bluetoothmessagingapp.feature.chat.models.ChatItem.ChatMessage
+import com.karlom.bluetoothmessagingapp.feature.chat.models.ChatItem.ChatMessage.Audio
+import com.karlom.bluetoothmessagingapp.feature.chat.models.ChatItem.ChatMessage.Image
+import com.karlom.bluetoothmessagingapp.feature.chat.models.ChatItem.ChatMessage.Text
+import com.karlom.bluetoothmessagingapp.feature.chat.models.ChatItem.DateIndicator
+import com.karlom.bluetoothmessagingapp.feature.chat.models.ChatItem.StartOfMessagingIndicator
 import com.karlom.bluetoothmessagingapp.feature.chat.models.ChatScreenEffect
 import com.karlom.bluetoothmessagingapp.feature.chat.models.ChatScreenEvent.OnConnectClicked
 import com.karlom.bluetoothmessagingapp.feature.chat.models.ChatScreenEvent.OnSendImageClicked
@@ -85,14 +95,32 @@ fun ChatScreen(
         Box(Modifier.weight(weight = 1f, fill = true)) {
             SimpleLazyColumn(
                 items = messages,
-                key = { id },
+                key = {
+                    when (this) {
+                        is StartOfMessagingIndicator -> "startOfMessagingIndicator"
+                        is DateIndicator -> date
+                        is ChatMessage -> "$id"
+                    }
+                },
                 uiItemBuilder = { message ->
                     when (message) {
-                        is ChatItem.Text -> TextChatBox(message)
-                        is ChatItem.Image -> ImageChatBox(message)
-                        is ChatItem.Audio -> AudioChatBox(
+                        is StartOfMessagingIndicator -> Text(
+                            text = "Start of chat",
+                            modifier = Modifier.fillMaxWidth(),
+                            textAlign = TextAlign.Center,
+                        )
+                        is Text -> TextChatBox(message)
+                        is Image -> ImageChatBox(message)
+                        is Audio -> AudioChatBox(
                             message = message,
                             onInteraction = viewModel::onEvent,
+                        )
+                        is DateIndicator -> Text(
+                            text = message.date,
+                            modifier = Modifier.fillMaxWidth(),
+                            textAlign = TextAlign.Center,
+                            style = MaterialTheme.typography.bodySmall,
+                            color = gray500,
                         )
                     }
                 },

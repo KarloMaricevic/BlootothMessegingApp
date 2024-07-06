@@ -20,7 +20,7 @@ import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import com.karlom.bluetoothmessagingapp.R
 import com.karlom.bluetoothmessagingapp.domain.chat.models.MessageState
-import com.karlom.bluetoothmessagingapp.feature.chat.models.ChatItem.Image
+import com.karlom.bluetoothmessagingapp.feature.chat.models.ChatItem.ChatMessage.Image
 
 @Composable
 fun ImageChatBox(
@@ -84,6 +84,7 @@ private fun TextChatBoxSendingPreview() {
             isFromMe = false,
             aspectRatio = 16 / 9f,
             state = MessageState.SENDING,
+            timestamp = 0,
         )
     )
 }
@@ -98,6 +99,7 @@ private fun TextChatBoxSentPreview() {
             isFromMe = false,
             aspectRatio = 16 / 9f,
             state = MessageState.SENT,
+            timestamp = 0,
         )
     )
 }
@@ -112,6 +114,7 @@ private fun TextChatBoxNotSentPreview() {
             isFromMe = false,
             aspectRatio = 16 / 9f,
             state = MessageState.NOT_SENT,
+            timestamp = 0,
         )
     )
 }

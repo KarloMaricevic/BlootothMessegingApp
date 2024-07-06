@@ -17,7 +17,7 @@ import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.karlom.bluetoothmessagingapp.domain.chat.models.MessageState
-import com.karlom.bluetoothmessagingapp.feature.chat.models.ChatItem.Text
+import com.karlom.bluetoothmessagingapp.feature.chat.models.ChatItem.ChatMessage.Text
 
 @Composable
 fun TextChatBox(
@@ -68,6 +68,7 @@ private fun TextChatBoxSendingPreview() {
             message = "Hello!",
             isFromMe = false,
             state = MessageState.SENDING,
+            timestamp = 0,
         )
     )
 }
@@ -81,6 +82,7 @@ private fun TextChatBoxSentPreview() {
             message = "Hello!",
             isFromMe = false,
             state = MessageState.SENT,
+            timestamp = 0,
         )
     )
 }
@@ -94,6 +96,7 @@ private fun TextChatBoxNotSentPreview() {
             message = "Hello!",
             isFromMe = false,
             state = MessageState.NOT_SENT,
+            timestamp = 0,
         )
     )
 }

@@ -32,7 +32,7 @@ import com.karlom.bluetoothmessagingapp.R
 import com.karlom.bluetoothmessagingapp.designSystem.theme.BluetoothMessagingAppTheme
 import com.karlom.bluetoothmessagingapp.designSystem.theme.black
 import com.karlom.bluetoothmessagingapp.domain.chat.models.MessageState
-import com.karlom.bluetoothmessagingapp.feature.chat.models.ChatItem.Audio
+import com.karlom.bluetoothmessagingapp.feature.chat.models.ChatItem.ChatMessage.Audio
 import com.karlom.bluetoothmessagingapp.feature.chat.models.ChatScreenEvent
 
 @Composable
@@ -155,6 +155,7 @@ fun AudioChatSendingBoxPreview() {
                 isFromMe = false,
                 totalTime = "1:32",
                 state = MessageState.SENDING,
+                timestamp = 0,
             ),
             onInteraction = {},
         )
@@ -172,6 +173,7 @@ fun AudioChatSentBoxPreview() {
                 isFromMe = false,
                 totalTime = "1:32",
                 state = MessageState.SENT,
+                timestamp = 0,
             ),
             onInteraction = {},
         )
@@ -189,6 +191,7 @@ fun AudioChatNotSentBoxPreview() {
                 isFromMe = true,
                 totalTime = "1:32",
                 state = MessageState.NOT_SENT,
+                timestamp = 0,
             ),
             onInteraction = {},
         )

@@ -1,6 +1,6 @@
 package com.karlom.bluetoothmessagingapp.feature.chat.models
 
-import com.karlom.bluetoothmessagingapp.feature.chat.models.ChatItem.Audio
+import com.karlom.bluetoothmessagingapp.feature.chat.models.ChatItem.ChatMessage.Audio
 
 sealed interface ChatScreenEvent {
 

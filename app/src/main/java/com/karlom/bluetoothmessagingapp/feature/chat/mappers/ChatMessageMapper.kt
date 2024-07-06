@@ -8,16 +8,15 @@ import com.karlom.bluetoothmessagingapp.domain.chat.models.Message
 import com.karlom.bluetoothmessagingapp.domain.chat.models.Message.AudioMessage
 import com.karlom.bluetoothmessagingapp.domain.chat.models.Message.ImageMessage
 import com.karlom.bluetoothmessagingapp.domain.chat.models.Message.TextMessage
-import com.karlom.bluetoothmessagingapp.feature.chat.models.ChatItem.Audio
-import com.karlom.bluetoothmessagingapp.feature.chat.models.ChatItem.Image
-import com.karlom.bluetoothmessagingapp.feature.chat.models.ChatItem.Text
+import com.karlom.bluetoothmessagingapp.feature.chat.models.ChatItem.ChatMessage.Audio
+import com.karlom.bluetoothmessagingapp.feature.chat.models.ChatItem.ChatMessage.Image
+import com.karlom.bluetoothmessagingapp.feature.chat.models.ChatItem.ChatMessage.Text
 import dagger.hilt.android.qualifiers.ApplicationContext
 import java.io.File
 import java.util.concurrent.TimeUnit
 import javax.inject.Inject
 
-
-class ChatItemMapper @Inject constructor(
+class ChatMessageMapper @Inject constructor(
     @ApplicationContext private val context: Context,
 ) {
     private companion object {
@@ -32,6 +31,7 @@ class ChatItemMapper @Inject constructor(
                 message = message.message,
                 isFromMe = message.isFromMe,
                 state = message.state,
+                timestamp = message.timestamp,
             )
 
             is ImageMessage -> Image(
@@ -40,6 +40,7 @@ class ChatItemMapper @Inject constructor(
                 imageUri = message.imageUri,
                 aspectRatio = getImageAspectRatio(message.imageUri),
                 state = message.state,
+                timestamp = message.timestamp,
             )
 
             is AudioMessage -> Audio(
@@ -48,6 +49,7 @@ class ChatItemMapper @Inject constructor(
                 isFromMe = message.isFromMe,
                 totalTime = formatToTimeString(getAudioDuration(message.audioUri)),
                 state = message.state,
+                timestamp = message.timestamp,
             )
         }
 
@@ -71,7 +73,6 @@ class ChatItemMapper @Inject constructor(
             ERROR_READING_ASPECT_RATIO
         }
     }
-
 
     private fun getAudioDuration(path: String) = try {
         val mediaMetadataRetriever = MediaMetadataRetriever()
