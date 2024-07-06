@@ -33,7 +33,14 @@ class ContactsViewModel @Inject constructor(
             }
 
             is OnContactClicked -> viewModelScope.launch {
-                navigator.emitDestination(Destination(ChatRouter.creteChatRoute(event.address)))
+                navigator.emitDestination(
+                    Destination(
+                        ChatRouter.creteChatRoute(
+                            contactName = event.contactName,
+                            address = event.address,
+                        )
+                    )
+                )
             }
         }
     }

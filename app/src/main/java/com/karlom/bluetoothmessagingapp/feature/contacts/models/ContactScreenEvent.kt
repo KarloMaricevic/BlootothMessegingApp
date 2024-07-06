@@ -4,5 +4,8 @@ sealed interface ContactScreenEvent {
 
     data object OnAddContactClicked : ContactScreenEvent
 
-    data class OnContactClicked(val address: String) : ContactScreenEvent
+    data class OnContactClicked(
+        val contactName: String,
+        val address: String
+    ) : ContactScreenEvent
 }

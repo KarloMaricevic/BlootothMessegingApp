@@ -41,6 +41,7 @@ import com.karlom.bluetoothmessagingapp.feature.chat.models.ChatScreenEvent.OnSt
 import com.karlom.bluetoothmessagingapp.feature.chat.models.ChatScreenEvent.OnStopRecordingVoiceClicked
 import com.karlom.bluetoothmessagingapp.feature.chat.models.ChatScreenEvent.OnTextChanged
 import com.karlom.bluetoothmessagingapp.feature.chat.models.ChatScreenState
+import com.karlom.bluetoothmessagingapp.feature.chat.models.ChatViewModelParams
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
@@ -64,7 +65,7 @@ import kotlinx.coroutines.selects.select
 
 @HiltViewModel(assistedFactory = ChatViewModel.ChatViewModelFactory::class)
 class ChatViewModel @AssistedInject constructor(
-    @Assisted private val contactAddress: String,
+    @Assisted private val params: ChatViewModelParams,
     private val getMessages: GetMessages,
     private val sendMessage: SendMessage,
     private val isConnectedTo: IsConnectedTo,
@@ -89,13 +90,13 @@ class ChatViewModel @AssistedInject constructor(
     private val audioPlayer = getAudioPlayer()
     private val voiceRecorder = getVoiceRecorder()
 
-    private val showConnectToDeviceButton = MutableStateFlow(!isConnectedTo(contactAddress))
+    private val showConnectToDeviceButton = MutableStateFlow(!isConnectedTo(params.address))
     private val isTryingToConnect = MutableStateFlow(false)
     private val textToSend = MutableStateFlow("")
     private val inputMode = MutableStateFlow(TEXT)
     private val audioMessagePlaying = MutableStateFlow<ChatItem.Audio?>(null)
     private val isRecordingVoice = MutableStateFlow(false)
-    private val messages = MutableStateFlow(getMessages(contactAddress).map { page ->
+    private val messages = MutableStateFlow(getMessages(params.address).map { page ->
         page.map { message -> chatItemMapper.map(message) }
     }.cachedIn(viewModelScope).combine(audioMessagePlaying) { page, audioPlaying ->
         page.map { message ->
@@ -131,7 +132,7 @@ class ChatViewModel @AssistedInject constructor(
     init {
         viewModelScope.launch(ioDispatcher) {
             getConnectionStateNotifier().collect { connectedDevices ->
-                showConnectToDeviceButton.update { connectedDevices.firstOrNull { it.address == contactAddress } == null }
+                showConnectToDeviceButton.update { connectedDevices.firstOrNull { it.address == params.address } == null }
             }
         }
     }
@@ -141,10 +142,10 @@ class ChatViewModel @AssistedInject constructor(
             is OnTextChanged -> textToSend.update { event.text }
             is OnSendClicked -> viewModelScope.launch(ioDispatcher) {
                 when (inputMode.value) {
-                    TEXT -> sendMessage(message = textToSend.value, address = contactAddress)
+                    TEXT -> sendMessage(message = textToSend.value, address = params.address)
 
                     VOICE -> voiceRecordingFilePath?.let { voiceRecordingFilePath ->
-                        sendAudio(imagePath = voiceRecordingFilePath, address = contactAddress)
+                        sendAudio(imagePath = voiceRecordingFilePath, address = params.address)
                     }
                 }?.collect { state ->
                     if (state == SENDING) {
@@ -159,7 +160,7 @@ class ChatViewModel @AssistedInject constructor(
             is OnConnectClicked -> startServerAndPeriodicallyTryToConnectToAddress()
 
             is OnSendImageClicked -> viewModelScope.launch(ioDispatcher) {
-                sendImage(imageUri = event.uri, address = contactAddress).collect { state ->
+                sendImage(imageUri = event.uri, address = params.address).collect { state ->
                     if (state == SENDING) {
                         _viewEffect.trySend(ChatScreenEffect.ScrollToBottom)
                     }
@@ -215,7 +216,7 @@ class ChatViewModel @AssistedInject constructor(
             val tryToConnectJob = async {
                 var connectToServer: Either<Failure.ErrorMessage, Connection>? = null
                 repeat(NUMBER_OF_RETRIES_WHEN_CONNECTING) { timesRun ->
-                    connectToServer = connectToServer(contactAddress).fold(
+                    connectToServer = connectToServer(params.address).fold(
                         { failure ->
                             if (timesRun < NUMBER_OF_RETRIES_WHEN_CONNECTING - 1) {
                                 delay(RETRY_DELAY_MILLIS)
@@ -252,6 +253,6 @@ class ChatViewModel @AssistedInject constructor(
     @AssistedFactory
     interface ChatViewModelFactory {
 
-        fun create(contactAddress: String): ChatViewModel
+        fun create(params: ChatViewModelParams): ChatViewModel
     }
 }

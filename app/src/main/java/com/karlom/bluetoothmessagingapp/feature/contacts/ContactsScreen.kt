@@ -42,8 +42,14 @@ fun ContactsScreen(
                     Contact(
                         model = contactUi,
                         modifier = Modifier.clickable {
-                            viewModel.onEvent(OnContactClicked(contactUi.contact.address))
-                        })
+                            viewModel.onEvent(
+                                OnContactClicked(
+                                    contactName = contactUi.contact.name,
+                                    address = contactUi.contact.address,
+                                )
+                            )
+                        }
+                    )
                 },
                 noItemsItem = { NoContactsIndicator(viewModel::onEvent) },
                 modifier = Modifier.weight(weight = 1f, fill = true),

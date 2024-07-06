@@ -90,7 +90,10 @@ class AddDeviceViewModel @Inject constructor(
                     )
                     navigator.emitDestination(
                         Destination(
-                            destination = ChatRouter.creteChatRoute(device.address),
+                            destination = ChatRouter.creteChatRoute(
+                                contactName = device.name,
+                                address = device.address,
+                            ),
                             builder = {
                                 popUpTo(ContactsRouter.route()) {
                                     this.inclusive = false
@@ -121,7 +124,10 @@ class AddDeviceViewModel @Inject constructor(
                     )
                     navigator.emitDestination(
                         Destination(
-                            destination = ChatRouter.creteChatRoute(bluetoothDevice.address),
+                            destination = ChatRouter.creteChatRoute(
+                                contactName = bluetoothDevice.name,
+                                address = bluetoothDevice.address,
+                            ),
                             builder = {
                                 popUpTo(ContactsRouter.route()) {
                                     this.inclusive = false

@@ -37,17 +37,19 @@ import com.karlom.bluetoothmessagingapp.feature.chat.models.ChatScreenEffect
 import com.karlom.bluetoothmessagingapp.feature.chat.models.ChatScreenEvent.OnConnectClicked
 import com.karlom.bluetoothmessagingapp.feature.chat.models.ChatScreenEvent.OnSendImageClicked
 import com.karlom.bluetoothmessagingapp.feature.chat.models.ChatScreenEvent.OnStartRecordingVoiceClicked
+import com.karlom.bluetoothmessagingapp.feature.chat.models.ChatViewModelParams
 import com.karlom.bluetoothmessagingapp.feature.chat.viewmodel.ChatViewModel
 import com.karlom.bluetoothmessagingapp.feature.shared.SimpleLazyColumn
 
 @Composable
 fun ChatScreen(
+    contactName: String,
     address: String,
     scaffoldState: SnackbarHostState,
 ) {
     val context = LocalContext.current
     val viewModel = hiltViewModel<ChatViewModel, ChatViewModel.ChatViewModelFactory> { factory ->
-        factory.create((address))
+        factory.create((ChatViewModelParams(name = contactName, address = address)))
     }
     val state by viewModel.state.collectAsState()
     val messages = state.messages.collectAsLazyPagingItems()

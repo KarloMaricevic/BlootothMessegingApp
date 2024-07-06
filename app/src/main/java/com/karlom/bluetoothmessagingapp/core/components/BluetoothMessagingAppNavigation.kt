@@ -20,6 +20,7 @@ import com.karlom.bluetoothmessagingapp.feature.addDevice.AddDeviceScreen
 import com.karlom.bluetoothmessagingapp.feature.addDevice.router.AddDeviceScreenRouter
 import com.karlom.bluetoothmessagingapp.feature.chat.ChatScreen
 import com.karlom.bluetoothmessagingapp.feature.chat.router.ChatRouter
+import com.karlom.bluetoothmessagingapp.feature.chat.router.ChatRouter.CONTACT_NAME_PARAM
 import com.karlom.bluetoothmessagingapp.feature.contacts.ContactsScreen
 import com.karlom.bluetoothmessagingapp.feature.contacts.router.ContactsRouter
 
@@ -50,7 +51,13 @@ fun BluetoothMessagingAppNavigation(
             composable(ChatRouter.route()) { entry ->
                 val address = entry.arguments?.getString(ChatRouter.ADDRESS_PARAM)
                     ?: error("${ChatRouter.ADDRESS_PARAM} was not provided to chat screen")
-                ChatScreen(address = address, scaffoldState = snackbarHostState)
+                val contactName = entry.arguments?.getString(CONTACT_NAME_PARAM)
+                    ?: error("$CONTACT_NAME_PARAM was not provided to chat screen")
+                ChatScreen(
+                    contactName = contactName,
+                    address = address,
+                    scaffoldState = snackbarHostState,
+                )
             }
             composable(ContactsRouter.route()) { ContactsScreen() }
             composable(AddDeviceScreenRouter.route()) { AddDeviceScreen() }
