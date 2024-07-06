@@ -20,6 +20,7 @@ data class MessageEntity(
     val messageType: MessageType,
     val state: MessageState,
     val isSendByMe: Boolean,
+    val timestamp: Long,
     @ColumnInfo(index = true) val withContactAddress: String
 )
 

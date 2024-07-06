@@ -6,21 +6,24 @@ import com.karlom.bluetoothmessagingapp.data.shared.db.enteties.MessageState as 
 sealed class Message(
     open val id: Long,
     open val isFromMe: Boolean,
-    open val state: MessageState
+    open val state: MessageState,
+    open val timestamp: Long,
 ) {
     data class TextMessage(
         override val id: Long,
         val message: String,
         override val isFromMe: Boolean,
         override val state: MessageState,
-    ) : Message(id, isFromMe, state) {
+        override val timestamp: Long,
+    ) : Message(id, isFromMe, state, timestamp) {
 
         companion object {
             fun from(entity: MessageEntity) = TextMessage(
                 id = entity.id,
                 message = entity.textContent ?: "",
                 isFromMe = entity.isSendByMe,
-                state = mapToMessageState(entity.state)
+                state = mapToMessageState(entity.state),
+                timestamp = entity.timestamp,
             )
         }
     }
@@ -30,14 +33,16 @@ sealed class Message(
         val imageUri: String,
         override val isFromMe: Boolean,
         override val state: MessageState,
-    ) : Message(id, isFromMe, state) {
+        override val timestamp: Long,
+    ) : Message(id, isFromMe, state, timestamp) {
 
         companion object {
             fun from(entity: MessageEntity) = ImageMessage(
                 id = entity.id,
                 imageUri = entity.filePath ?: "",
                 isFromMe = entity.isSendByMe,
-                state = mapToMessageState(entity.state)
+                state = mapToMessageState(entity.state),
+                timestamp = entity.timestamp,
             )
         }
     }
@@ -47,14 +52,16 @@ sealed class Message(
         val audioUri: String,
         override val isFromMe: Boolean,
         override val state: MessageState,
-    ) : Message(id, isFromMe, state) {
+        override val timestamp: Long,
+    ) : Message(id, isFromMe, state, timestamp) {
 
         companion object {
             fun from(entity: MessageEntity) = AudioMessage(
                 id = entity.id,
                 audioUri = entity.filePath ?: "",
                 isFromMe = entity.isSendByMe,
-                state = mapToMessageState(entity.state)
+                state = mapToMessageState(entity.state),
+                timestamp = entity.timestamp,
             )
         }
     }

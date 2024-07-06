@@ -15,6 +15,7 @@ import com.karlom.bluetoothmessagingapp.data.shared.db.enteties.MessageState
 import com.karlom.bluetoothmessagingapp.data.shared.db.enteties.MessageType
 import com.karlom.bluetoothmessagingapp.data.shared.interanlStorage.InternalStorage
 import com.karlom.bluetoothmessagingapp.domain.chat.models.Message
+import java.util.Date
 import java.util.UUID
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -43,6 +44,7 @@ class ChatRepository @Inject constructor(
             messageType = MessageType.TEXT,
             withContactAddress = address,
             state = MessageState.SENDING,
+            timestamp = Date().time
         )
         val id = messageDao.insert(messageEntity)
         emit(SENDING)
@@ -85,6 +87,7 @@ class ChatRepository @Inject constructor(
                 messageType = MessageType.IMAGE,
                 withContactAddress = address,
                 state = MessageState.SENDING,
+                timestamp = Date().time,
             )
             val id = messageDao.insert(messageEntity)
             emit(SENDING)
@@ -113,6 +116,7 @@ class ChatRepository @Inject constructor(
                 messageType = MessageType.AUDIO,
                 withContactAddress = address,
                 state = MessageState.SENT,
+                timestamp = Date().time,
             )
             val id = messageDao.insert(messageEntity)
             emit(SENDING)
@@ -132,6 +136,7 @@ class ChatRepository @Inject constructor(
 
     suspend fun startSavingReceivedMessages() {
         communicationManager.receivedMessageEvent.collect { message ->
+            val timestamp = Date().time
             when (message) {
                 is BluetoothMessage.Text -> {
                     messageDao.insertAll(
@@ -142,6 +147,7 @@ class ChatRepository @Inject constructor(
                             messageType = MessageType.TEXT,
                             withContactAddress = message.address,
                             state = MessageState.SENT,
+                            timestamp = timestamp,
                         )
                     )
                 }
@@ -158,6 +164,7 @@ class ChatRepository @Inject constructor(
                                 messageType = MessageType.IMAGE,
                                 withContactAddress = message.address,
                                 state = MessageState.SENT,
+                                timestamp = timestamp,
                             )
                         )
                     }
@@ -175,6 +182,7 @@ class ChatRepository @Inject constructor(
                                 messageType = MessageType.AUDIO,
                                 withContactAddress = message.address,
                                 state = MessageState.SENT,
+                                timestamp = timestamp,
                             )
                         )
                     }
