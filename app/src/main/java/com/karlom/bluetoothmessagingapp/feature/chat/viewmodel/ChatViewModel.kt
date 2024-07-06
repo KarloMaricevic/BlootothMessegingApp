@@ -2,6 +2,7 @@ package com.karlom.bluetoothmessagingapp.feature.chat.viewmodel
 
 import androidx.lifecycle.viewModelScope
 import androidx.paging.cachedIn
+import androidx.paging.insertSeparators
 import androidx.paging.map
 import arrow.core.Either
 import arrow.core.flatMap
@@ -24,11 +25,12 @@ import com.karlom.bluetoothmessagingapp.domain.chat.usecase.StartChatServerAndWa
 import com.karlom.bluetoothmessagingapp.domain.connection.models.Connection
 import com.karlom.bluetoothmessagingapp.domain.connection.usecase.GetConnectedDevicesNotifier
 import com.karlom.bluetoothmessagingapp.domain.connection.usecase.IsConnectedTo
-import com.karlom.bluetoothmessagingapp.feature.chat.mappers.ChatItemMapper
+import com.karlom.bluetoothmessagingapp.feature.chat.mappers.ChatMessageMapper
+import com.karlom.bluetoothmessagingapp.feature.chat.mappers.DateIndicatorMapper
 import com.karlom.bluetoothmessagingapp.feature.chat.models.ChatInputMode.TEXT
 import com.karlom.bluetoothmessagingapp.feature.chat.models.ChatInputMode.VOICE
 import com.karlom.bluetoothmessagingapp.feature.chat.models.ChatItem
-import com.karlom.bluetoothmessagingapp.feature.chat.models.ChatItem.Audio
+import com.karlom.bluetoothmessagingapp.feature.chat.models.ChatItem.ChatMessage.Audio
 import com.karlom.bluetoothmessagingapp.feature.chat.models.ChatScreenEffect
 import com.karlom.bluetoothmessagingapp.feature.chat.models.ChatScreenEvent
 import com.karlom.bluetoothmessagingapp.feature.chat.models.ChatScreenEvent.OnConnectClicked
@@ -46,6 +48,9 @@ import dagger.assisted.Assisted
 import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
 import dagger.hilt.android.lifecycle.HiltViewModel
+import java.time.LocalDateTime
+import java.time.ZoneOffset
+import java.util.Calendar
 import java.util.UUID
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.async
@@ -78,7 +83,8 @@ class ChatViewModel @AssistedInject constructor(
     private val deleteAudioFile: DeleteAudioFile,
     private val sendAudio: SendAudio,
     private val connectToServer: ConnectToServer,
-    private val chatItemMapper: ChatItemMapper,
+    private val chatMessageMapper: ChatMessageMapper,
+    private val dateIndicatorMapper: DateIndicatorMapper,
     @IoDispatcher private val ioDispatcher: CoroutineDispatcher
 ) : BaseViewModel<ChatScreenEvent>() {
 
@@ -97,16 +103,33 @@ class ChatViewModel @AssistedInject constructor(
     private val audioMessagePlaying = MutableStateFlow<ChatItem.Audio?>(null)
     private val isRecordingVoice = MutableStateFlow(false)
     private val messages = MutableStateFlow(getMessages(params.address).map { page ->
-        page.map { message -> chatItemMapper.map(message) }
-    }.cachedIn(viewModelScope).combine(audioMessagePlaying) { page, audioPlaying ->
-        page.map { message ->
-            if (audioPlaying != null && message is Audio && message.id == audioPlaying.id) {
-                audioPlaying
-            } else {
-                message
+        page
+            .map { message -> chatMessageMapper.map(message) }
+            .insertSeparators {
+                    before, after ->
+                if (before != null && after != null) {
+                    if (areSameDate(before.timestamp, after.timestamp)) {
+                        null
+                    } else {
+                        dateIndicatorMapper.map(before)
+                    }
+                } else if (after == null) {
+                    ChatItem.StartOfMessagingIndicator(params.name)
+                } else {
+                    null
+                }
             }
-        }
-    })
+    }.cachedIn(viewModelScope)
+        .combine(audioMessagePlaying) {
+                page, audioPlaying ->
+            page.map { message ->
+                if (audioPlaying != null && message is Audio && message.id == audioPlaying.id) {
+                    audioPlaying
+                } else {
+                    message
+                }
+            }
+        })
 
     private var voiceRecordingFilePath: String? = null
 
@@ -122,7 +145,7 @@ class ChatViewModel @AssistedInject constructor(
         scope = viewModelScope,
         started = SharingStarted.WhileSubscribed(TIMEOUT_DELAY),
         initialValue = ChatScreenState(
-            showConnectToDeviceButton = !isConnectedTo(contactAddress)
+            showConnectToDeviceButton = !isConnectedTo(params.address)
         ),
     )
 
@@ -248,6 +271,14 @@ class ChatViewModel @AssistedInject constructor(
     override fun onCleared() {
         audioPlayer.releaseMediaPlayer()
         voiceRecorder.relase()
+    }
+
+    private fun areSameDate(timestamp1: Long, timestamp2: Long): Boolean {
+        val calendar1 = Calendar.Builder().setInstant(timestamp1).build()
+        val calendar2 = Calendar.Builder().setInstant(timestamp2).build()
+        return calendar1.get(Calendar.YEAR) == calendar2.get(Calendar.YEAR) &&
+            calendar2.get(Calendar.MONTH) == calendar2.get(Calendar.MONTH) &&
+            calendar1.get(Calendar.DAY_OF_MONTH) == calendar2.get(Calendar.DAY_OF_MONTH)
     }
 
     @AssistedFactory
