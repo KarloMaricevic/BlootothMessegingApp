@@ -2,6 +2,7 @@ package com.karlom.bluetoothmessagingapp.feature.chat.viewmodel
 
 import androidx.lifecycle.viewModelScope
 import androidx.paging.cachedIn
+import androidx.paging.insertFooterItem
 import androidx.paging.insertSeparators
 import androidx.paging.map
 import arrow.core.Either
@@ -30,8 +31,8 @@ import com.karlom.bluetoothmessagingapp.feature.chat.mappers.DateIndicatorMapper
 import com.karlom.bluetoothmessagingapp.feature.chat.mappers.SeparatorMapper
 import com.karlom.bluetoothmessagingapp.feature.chat.models.ChatInputMode.TEXT
 import com.karlom.bluetoothmessagingapp.feature.chat.models.ChatInputMode.VOICE
-import com.karlom.bluetoothmessagingapp.feature.chat.models.ChatItem
 import com.karlom.bluetoothmessagingapp.feature.chat.models.ChatItem.ChatMessage.Audio
+import com.karlom.bluetoothmessagingapp.feature.chat.models.ChatItem.StartOfMessagingIndicator
 import com.karlom.bluetoothmessagingapp.feature.chat.models.ChatScreenEffect
 import com.karlom.bluetoothmessagingapp.feature.chat.models.ChatScreenEvent
 import com.karlom.bluetoothmessagingapp.feature.chat.models.ChatScreenEvent.OnConnectClicked
@@ -112,13 +113,14 @@ class ChatViewModel @AssistedInject constructor(
                     } else {
                         dateIndicatorMapper.map(before)
                     }
-                } else if (after == null) {
-                    ChatItem.StartOfMessagingIndicator(params.name)
+                } else if (after == null && before != null) {
+                    dateIndicatorMapper.map(before)
                 } else {
                     null
                 }
             }
             .insertSeparators { before, after -> separatorMapper.map(before = before, after = after) }
+            .insertFooterItem(item = StartOfMessagingIndicator(params.name))
     }.cachedIn(viewModelScope)
         .combine(audioMessagePlaying) { page, audioPlaying ->
             page.map { message ->
@@ -213,7 +215,8 @@ class ChatViewModel @AssistedInject constructor(
                 inputMode.update { TEXT }
             }
 
-            is OnPausePlayingAudioMessage -> audioPlayer.pause().onRight { audioMessagePlaying.update { current -> current?.copy(isPlaying = false) } }
+            is OnPausePlayingAudioMessage -> audioPlayer.pause()
+                .onRight { audioMessagePlaying.update { current -> current?.copy(isPlaying = false) } }
 
             is OnPlayAudioMessage -> viewModelScope.launch(ioDispatcher) {
                 val currentPlayingMessage = audioMessagePlaying.value
