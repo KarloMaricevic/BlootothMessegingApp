@@ -36,6 +36,7 @@ import com.karlom.bluetoothmessagingapp.designSystem.theme.gray500
 import com.karlom.bluetoothmessagingapp.feature.chat.components.AudioChatBox
 import com.karlom.bluetoothmessagingapp.feature.chat.components.ChatInputFiled
 import com.karlom.bluetoothmessagingapp.feature.chat.components.ConnectToButton
+import com.karlom.bluetoothmessagingapp.feature.chat.components.ContactIndicator
 import com.karlom.bluetoothmessagingapp.feature.chat.components.ImageChatBox
 import com.karlom.bluetoothmessagingapp.feature.chat.components.TextChatBox
 import com.karlom.bluetoothmessagingapp.feature.chat.models.ChatItem
@@ -108,12 +109,7 @@ fun ChatScreen(
                 uiItemBuilder = { message ->
                     when (message) {
                         is ChatItem.MessageSeparator -> Box(Modifier.height(message.value.dp))
-                        is StartOfMessagingIndicator -> Text(
-                            text = "Start of chat",
-                            modifier = Modifier.fillMaxWidth(),
-                            textAlign = TextAlign.Center,
-                        )
-
+                        is StartOfMessagingIndicator -> ContactIndicator(message.name)
                         is Text -> TextChatBox(message)
                         is Image -> ImageChatBox(message)
                         is Audio -> AudioChatBox(
