@@ -15,6 +15,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.SnackbarHostState
@@ -37,6 +38,7 @@ import com.karlom.bluetoothmessagingapp.feature.chat.components.ChatInputFiled
 import com.karlom.bluetoothmessagingapp.feature.chat.components.ConnectToButton
 import com.karlom.bluetoothmessagingapp.feature.chat.components.ImageChatBox
 import com.karlom.bluetoothmessagingapp.feature.chat.components.TextChatBox
+import com.karlom.bluetoothmessagingapp.feature.chat.models.ChatItem
 import com.karlom.bluetoothmessagingapp.feature.chat.models.ChatItem.ChatMessage
 import com.karlom.bluetoothmessagingapp.feature.chat.models.ChatItem.ChatMessage.Audio
 import com.karlom.bluetoothmessagingapp.feature.chat.models.ChatItem.ChatMessage.Image
@@ -97,6 +99,7 @@ fun ChatScreen(
                 items = messages,
                 key = {
                     when (this) {
+                        is ChatItem.MessageSeparator -> id
                         is StartOfMessagingIndicator -> "startOfMessagingIndicator"
                         is DateIndicator -> date
                         is ChatMessage -> "$id"
@@ -104,17 +107,20 @@ fun ChatScreen(
                 },
                 uiItemBuilder = { message ->
                     when (message) {
+                        is ChatItem.MessageSeparator -> Box(Modifier.height(message.value.dp))
                         is StartOfMessagingIndicator -> Text(
                             text = "Start of chat",
                             modifier = Modifier.fillMaxWidth(),
                             textAlign = TextAlign.Center,
                         )
+
                         is Text -> TextChatBox(message)
                         is Image -> ImageChatBox(message)
                         is Audio -> AudioChatBox(
                             message = message,
                             onInteraction = viewModel::onEvent,
                         )
+
                         is DateIndicator -> Text(
                             text = message.date,
                             modifier = Modifier.fillMaxWidth(),
@@ -127,7 +133,6 @@ fun ChatScreen(
                 state = listState,
                 reverseLayout = true,
                 noItemsItem = { },
-                itemSpacing = 2.dp,
                 modifier = Modifier.fillMaxSize()
             )
             if (state.showConnectToDeviceButton) {

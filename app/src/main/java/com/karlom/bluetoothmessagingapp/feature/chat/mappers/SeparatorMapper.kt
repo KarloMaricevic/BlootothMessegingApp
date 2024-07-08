@@ -1,0 +1,37 @@
+package com.karlom.bluetoothmessagingapp.feature.chat.mappers
+
+import com.karlom.bluetoothmessagingapp.feature.chat.models.ChatItem
+import com.karlom.bluetoothmessagingapp.feature.chat.models.ChatItem.MessageSeparator
+import javax.inject.Inject
+import kotlin.math.absoluteValue
+
+class SeparatorMapper @Inject constructor() {
+
+    private companion object {
+        const val SMALL_SEPARATION = 2
+        const val BIG_SEPARATION = 8
+        const val ONE_MINUTE_IN_MILLIS = 60000
+    }
+
+    fun map(before: ChatItem?, after: ChatItem?) =
+        if (before is ChatItem.ChatMessage && after is ChatItem.ChatMessage) {
+            if (isWithinOneMinute(before.timestamp, after.timestamp)) {
+                MessageSeparator(
+                    id = "${MessageSeparator::class.java.name} ${before.id}",
+                    value = SMALL_SEPARATION,
+                )
+            } else {
+                MessageSeparator(
+                    id = "${MessageSeparator::class.java.name} ${before.id}",
+                    value = BIG_SEPARATION,
+                )
+            }
+        } else {
+            null
+        }
+
+    private fun isWithinOneMinute(timestamp1: Long, timestamp2: Long): Boolean {
+        val difference = (timestamp1 - timestamp2).absoluteValue
+        return difference < ONE_MINUTE_IN_MILLIS
+    }
+}

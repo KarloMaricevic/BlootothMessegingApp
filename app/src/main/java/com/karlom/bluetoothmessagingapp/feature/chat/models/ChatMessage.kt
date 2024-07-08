@@ -4,6 +4,11 @@ import com.karlom.bluetoothmessagingapp.domain.chat.models.MessageState
 
 sealed interface ChatItem {
 
+    data class MessageSeparator(
+        val id: String,
+        val value: Int,
+    ) : ChatItem
+
     data class StartOfMessagingIndicator(val name: String) : ChatItem
 
     data class DateIndicator(val date: String) : ChatItem

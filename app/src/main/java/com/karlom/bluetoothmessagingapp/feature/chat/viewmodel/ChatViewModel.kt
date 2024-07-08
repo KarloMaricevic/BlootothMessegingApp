@@ -27,6 +27,7 @@ import com.karlom.bluetoothmessagingapp.domain.connection.usecase.GetConnectedDe
 import com.karlom.bluetoothmessagingapp.domain.connection.usecase.IsConnectedTo
 import com.karlom.bluetoothmessagingapp.feature.chat.mappers.ChatMessageMapper
 import com.karlom.bluetoothmessagingapp.feature.chat.mappers.DateIndicatorMapper
+import com.karlom.bluetoothmessagingapp.feature.chat.mappers.SeparatorMapper
 import com.karlom.bluetoothmessagingapp.feature.chat.models.ChatInputMode.TEXT
 import com.karlom.bluetoothmessagingapp.feature.chat.models.ChatInputMode.VOICE
 import com.karlom.bluetoothmessagingapp.feature.chat.models.ChatItem
@@ -48,8 +49,6 @@ import dagger.assisted.Assisted
 import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
 import dagger.hilt.android.lifecycle.HiltViewModel
-import java.time.LocalDateTime
-import java.time.ZoneOffset
 import java.util.Calendar
 import java.util.UUID
 import kotlinx.coroutines.CoroutineDispatcher
@@ -85,6 +84,7 @@ class ChatViewModel @AssistedInject constructor(
     private val connectToServer: ConnectToServer,
     private val chatMessageMapper: ChatMessageMapper,
     private val dateIndicatorMapper: DateIndicatorMapper,
+    private val separatorMapper: SeparatorMapper,
     @IoDispatcher private val ioDispatcher: CoroutineDispatcher
 ) : BaseViewModel<ChatScreenEvent>() {
 
@@ -100,13 +100,12 @@ class ChatViewModel @AssistedInject constructor(
     private val isTryingToConnect = MutableStateFlow(false)
     private val textToSend = MutableStateFlow("")
     private val inputMode = MutableStateFlow(TEXT)
-    private val audioMessagePlaying = MutableStateFlow<ChatItem.Audio?>(null)
+    private val audioMessagePlaying = MutableStateFlow<Audio?>(null)
     private val isRecordingVoice = MutableStateFlow(false)
     private val messages = MutableStateFlow(getMessages(params.address).map { page ->
         page
             .map { message -> chatMessageMapper.map(message) }
-            .insertSeparators {
-                    before, after ->
+            .insertSeparators { before, after ->
                 if (before != null && after != null) {
                     if (areSameDate(before.timestamp, after.timestamp)) {
                         null
@@ -119,9 +118,9 @@ class ChatViewModel @AssistedInject constructor(
                     null
                 }
             }
+            .insertSeparators { before, after -> separatorMapper.map(before = before, after = after) }
     }.cachedIn(viewModelScope)
-        .combine(audioMessagePlaying) {
-                page, audioPlaying ->
+        .combine(audioMessagePlaying) { page, audioPlaying ->
             page.map { message ->
                 if (audioPlaying != null && message is Audio && message.id == audioPlaying.id) {
                     audioPlaying
