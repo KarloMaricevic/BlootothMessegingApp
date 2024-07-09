@@ -36,6 +36,7 @@ import com.google.accompanist.permissions.rememberPermissionState
 import com.karlom.bluetoothmessagingapp.designSystem.theme.gray500
 import com.karlom.bluetoothmessagingapp.feature.chat.components.AudioChatBox
 import com.karlom.bluetoothmessagingapp.feature.chat.components.ChatInputFiled
+import com.karlom.bluetoothmessagingapp.feature.chat.components.ChatScreenToolbar
 import com.karlom.bluetoothmessagingapp.feature.chat.components.ConnectToButton
 import com.karlom.bluetoothmessagingapp.feature.chat.components.ContactIndicator
 import com.karlom.bluetoothmessagingapp.feature.chat.components.ImageChatBox
@@ -96,6 +97,10 @@ fun ChatScreen(
         }
     }
     Column(Modifier.fillMaxSize()) {
+        ChatScreenToolbar(
+            contactName = contactName,
+            onInteraction = viewModel::onEvent,
+        )
         Box(Modifier.weight(weight = 1f, fill = true)) {
             SimpleLazyColumn(
                 items = messages,
@@ -120,7 +125,9 @@ fun ChatScreen(
 
                         is DateIndicator -> Text(
                             text = message.date,
-                            modifier = Modifier.fillMaxWidth().padding(top = 16.dp, bottom = 24.dp),
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(top = 16.dp, bottom = 24.dp),
                             textAlign = TextAlign.Center,
                             style = MaterialTheme.typography.bodySmall,
                             color = gray500,

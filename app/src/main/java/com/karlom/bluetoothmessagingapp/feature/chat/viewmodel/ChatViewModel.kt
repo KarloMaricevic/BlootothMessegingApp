@@ -12,6 +12,8 @@ import com.karlom.bluetoothmessagingapp.core.base.TIMEOUT_DELAY
 import com.karlom.bluetoothmessagingapp.core.di.IoDispatcher
 import com.karlom.bluetoothmessagingapp.core.extensions.combine
 import com.karlom.bluetoothmessagingapp.core.models.Failure
+import com.karlom.bluetoothmessagingapp.core.navigation.NavigationEvent.NavigateBack
+import com.karlom.bluetoothmessagingapp.core.navigation.Navigator
 import com.karlom.bluetoothmessagingapp.data.chat.models.SendState.SENDING
 import com.karlom.bluetoothmessagingapp.domain.audio.CreateAudioFile
 import com.karlom.bluetoothmessagingapp.domain.audio.DeleteAudioFile
@@ -35,6 +37,7 @@ import com.karlom.bluetoothmessagingapp.feature.chat.models.ChatItem.ChatMessage
 import com.karlom.bluetoothmessagingapp.feature.chat.models.ChatItem.StartOfMessagingIndicator
 import com.karlom.bluetoothmessagingapp.feature.chat.models.ChatScreenEffect
 import com.karlom.bluetoothmessagingapp.feature.chat.models.ChatScreenEvent
+import com.karlom.bluetoothmessagingapp.feature.chat.models.ChatScreenEvent.OnBackClicked
 import com.karlom.bluetoothmessagingapp.feature.chat.models.ChatScreenEvent.OnConnectClicked
 import com.karlom.bluetoothmessagingapp.feature.chat.models.ChatScreenEvent.OnDeleteVoiceRecordingClicked
 import com.karlom.bluetoothmessagingapp.feature.chat.models.ChatScreenEvent.OnPausePlayingAudioMessage
@@ -86,7 +89,8 @@ class ChatViewModel @AssistedInject constructor(
     private val chatMessageMapper: ChatMessageMapper,
     private val dateIndicatorMapper: DateIndicatorMapper,
     private val separatorMapper: SeparatorMapper,
-    @IoDispatcher private val ioDispatcher: CoroutineDispatcher
+    @IoDispatcher private val ioDispatcher: CoroutineDispatcher,
+    private val navigator: Navigator,
 ) : BaseViewModel<ChatScreenEvent>() {
 
     private companion object {
@@ -163,6 +167,7 @@ class ChatViewModel @AssistedInject constructor(
 
     override fun onEvent(event: ChatScreenEvent) {
         when (event) {
+            is OnBackClicked -> viewModelScope.launch { navigator.emitDestination(NavigateBack) }
             is OnTextChanged -> textToSend.update { event.text }
             is OnSendClicked -> viewModelScope.launch(ioDispatcher) {
                 when (inputMode.value) {

@@ -4,6 +4,7 @@ import com.karlom.bluetoothmessagingapp.feature.chat.models.ChatItem.ChatMessage
 
 sealed interface ChatScreenEvent {
 
+    data object OnBackClicked : ChatScreenEvent
 
     data class OnTextChanged(val text: String) : ChatScreenEvent
 
