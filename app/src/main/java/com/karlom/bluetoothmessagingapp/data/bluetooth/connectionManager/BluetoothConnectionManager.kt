@@ -75,27 +75,21 @@ class BluetoothConnectionManager @Inject constructor(
                     }
                     val connectedSocket = connectedSocketDeferred.await()
                     serverSocket.close()
-                    when (connectedSocket) {
-                        is Right -> {
-                            connectedSockets.update { it + connectedSocket.value }
-                            connectionListeners.forEach {
-                                it.onConnectionOpened(
-                                    address = connectedSocket.value.remoteDevice.address,
-                                    streams = SocketStreams(
-                                        outputStream = connectedSocket.value.outputStream,
-                                        inputStream = connectedSocket.value.inputStream,
-                                    )
-                                )
-                            }
-                            return@coroutineScope Right(
-                                Connection(
-                                    connectedSocket.value.remoteDevice.name,
-                                    connectedSocket.value.remoteDevice.address,
+                    connectedSocket.map { socket ->
+                        connectedSockets.update { it + socket }
+                        connectionListeners.forEach {
+                            it.onConnectionOpened(
+                                address = socket.remoteDevice.address,
+                                streams = SocketStreams(
+                                    outputStream = socket.outputStream,
+                                    inputStream = socket.inputStream,
                                 )
                             )
                         }
-
-                        is Left -> return@coroutineScope connectedSocket
+                        Connection(
+                            socket.remoteDevice.name,
+                            socket.remoteDevice.address,
+                        )
                     }
                 } catch (e: CancellationException) {
                     serverSocket?.close()
@@ -132,27 +126,22 @@ class BluetoothConnectionManager @Inject constructor(
                             Left(ErrorMessage(e.message ?: "Unknown"))
                         }
                     }
-                    val connectedSocket = connectedSocketDeferred.await()
-                    return@coroutineScope when (connectedSocket) {
-                        is Right -> {
-                            val connection = Connection(
-                                name = bluetoothDevice.name,
-                                address = bluetoothDevice.address,
-                            )
-                            connectedSockets.update { it + socket }
-                            connectionListeners.forEach {
-                                it.onConnectionOpened(
-                                    address = address,
-                                    streams = SocketStreams(
-                                        outputStream = connectedSocket.value.outputStream,
-                                        inputStream = connectedSocket.value.inputStream,
-                                    )
+                    val connectedSocketResult = connectedSocketDeferred.await()
+                    connectedSocketResult.map { connectedSocket ->
+                        connectedSockets.update { it + connectedSocket }
+                        connectionListeners.forEach { listener ->
+                            listener.onConnectionOpened(
+                                address = address,
+                                streams = SocketStreams(
+                                    outputStream = connectedSocket.outputStream,
+                                    inputStream = connectedSocket.inputStream,
                                 )
-                            }
-                            Right(connection)
+                            )
                         }
-
-                        is Left -> connectedSocket
+                        Connection(
+                            name = bluetoothDevice.name,
+                            address = bluetoothDevice.address,
+                        )
                     }
                 } catch (e: CancellationException) {
                     socket?.close()
