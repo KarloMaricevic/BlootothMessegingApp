@@ -56,7 +56,7 @@ class AppBluetoothManager @Inject constructor(
                                     discoveredDevices.put(
                                         device.address,
                                         BluetoothDeviceResponse(
-                                            name = device.name,
+                                            name = device.name ?: "No name",
                                             address = device.address,
                                         )
                                     )
