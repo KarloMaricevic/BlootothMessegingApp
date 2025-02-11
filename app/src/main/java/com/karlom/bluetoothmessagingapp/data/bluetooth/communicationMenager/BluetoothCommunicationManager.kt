@@ -42,28 +42,27 @@ class BluetoothCommunicationManager @Inject constructor(
     private val _receivedMessageEvent = Channel<BluetoothMessage>(Channel.BUFFERED)
     val receivedMessageEvent = _receivedMessageEvent.receiveAsFlow()
 
-    private val readingJob = mutableMapOf<String, Job>()
+    private var readingJob: Job? = null
 
     init {
         connectionManager.registerConnectionStateListener(this)
     }
 
     override fun onConnectionOpened(address: String, streams: SocketStreams) {
-        readingJob[address] = startReadingInputStream(
+        readingJob = startReadingInputStream(
             inputStream = streams.inputStream,
             address = address,
         )
     }
 
     override fun onConnectionClosed(address: String) {
-        readingJob[address]?.cancel()
+        readingJob?.cancel()
     }
 
     suspend fun sendText(
         text: String,
-        address: String,
     ): Either<Failure.ErrorMessage, Unit> {
-        return when (val outputStream = connectionManager.getOutputStream(address)) {
+        return when (val outputStream = connectionManager.getOutputStream()) {
             is Either.Left -> outputStream
             is Either.Right -> {
                 withContext(ioDispatcher) {
@@ -77,7 +76,7 @@ class BluetoothCommunicationManager @Inject constructor(
                         outputStream.value.write(dataArray)
                         Either.Right(Unit)
                     } catch (error: IOException) {
-                        connectionManager.closeConnection(address)
+                        connectionManager.closeConnection()
                         Either.Left(Failure.ErrorMessage(error.message ?: "Unknown"))
                     }
                 }
@@ -88,9 +87,8 @@ class BluetoothCommunicationManager @Inject constructor(
     suspend fun sendImage(
         stream: InputStream,
         streamSize: Int,
-        address: String,
     ): Either<Failure.ErrorMessage, Unit> {
-        return when (val outputStream = connectionManager.getOutputStream(address)) {
+        return when (val outputStream = connectionManager.getOutputStream()) {
             is Either.Left -> outputStream
             is Either.Right -> {
                 withContext(ioDispatcher) {
@@ -110,7 +108,7 @@ class BluetoothCommunicationManager @Inject constructor(
                         }
                         Either.Right(Unit)
                     } catch (e: Exception) {
-                        connectionManager.closeConnection(address)
+                        connectionManager.closeConnection()
                         Either.Left(Failure.ErrorMessage(e.message ?: "Unknown"))
                     }
                 }
@@ -121,9 +119,8 @@ class BluetoothCommunicationManager @Inject constructor(
     suspend fun sendAudio(
         stream: InputStream,
         streamSize: Int,
-        address: String,
     ): Either<Failure.ErrorMessage, Unit> {
-        return when (val outputStream = connectionManager.getOutputStream(address)) {
+        return when (val outputStream = connectionManager.getOutputStream()) {
             is Either.Left -> outputStream
             is Either.Right -> {
                 withContext(ioDispatcher) {
@@ -143,7 +140,7 @@ class BluetoothCommunicationManager @Inject constructor(
                         }
                         Either.Right(Unit)
                     } catch (e: Exception) {
-                        connectionManager.closeConnection(address)
+                        connectionManager.closeConnection()
                         Either.Left(Failure.ErrorMessage(e.message ?: "Unknown"))
                     }
                 }
@@ -237,8 +234,8 @@ class BluetoothCommunicationManager @Inject constructor(
                     dataLength = null
                 }
             } catch (_: IOException) {
-                readingJob[address]?.cancel()
-                connectionManager.closeConnection(address)
+                readingJob?.cancel()
+                connectionManager.closeConnection()
                 break
             }
         }

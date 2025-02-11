@@ -34,18 +34,18 @@ class BluetoothConnectionManager @Inject constructor(
     @ApplicationContext private val context: Context,
 ) {
 
-    private val connectedSockets = MutableStateFlow<List<BluetoothSocket>>(listOf())
+    private val connectedSocket = MutableStateFlow<BluetoothSocket?>(null)
 
     private val connectionListeners = mutableListOf<ConnectionStateListener>()
 
     @SuppressLint("MissingPermission")
-    val connectedDevices = connectedSockets.map { sockets ->
-        sockets.map { socket ->
+    val connectedDevice = connectedSocket.map { socket ->
+        if (socket != null) {
             Connection(
                 socket.remoteDevice.name,
                 socket.remoteDevice.address
             )
-        }
+        } else null
     }
 
     @SuppressLint("MissingPermission") // checked inside second condition
@@ -76,7 +76,7 @@ class BluetoothConnectionManager @Inject constructor(
                     val connectedSocket = connectedSocketDeferred.await()
                     serverSocket.close()
                     connectedSocket.map { socket ->
-                        connectedSockets.update { it + socket }
+                        this@BluetoothConnectionManager.connectedSocket.update { socket }
                         connectionListeners.forEach {
                             it.onConnectionOpened(
                                 address = socket.remoteDevice.address,
@@ -128,7 +128,7 @@ class BluetoothConnectionManager @Inject constructor(
                     }
                     val connectedSocketResult = connectedSocketDeferred.await()
                     connectedSocketResult.map { connectedSocket ->
-                        connectedSockets.update { it + connectedSocket }
+                        this@BluetoothConnectionManager.connectedSocket.update { connectedSocket }
                         connectionListeners.forEach { listener ->
                             listener.onConnectionOpened(
                                 address = address,
@@ -165,33 +165,27 @@ class BluetoothConnectionManager @Inject constructor(
         ) == PackageManager.PERMISSION_GRANTED
     }
 
-    fun closeAllConnections() {
+    fun closeConnection() {
+        val socket = connectedSocket.value
         connectionListeners.forEach { listener ->
-            connectedSockets.value.forEach { socket ->
+            val socket = connectedSocket.value
+            if(socket != null) {
                 listener.onConnectionClosed(socket.remoteDevice.address)
             }
         }
-        connectedSockets.value.forEach { socket -> socket.close() }
-        connectedSockets.update { listOf() }
-    }
-
-    fun closeConnection(address: String) {
-        val socket = connectedSockets.value.firstOrNull { it.remoteDevice.address == address }
         socket?.close()
-        connectedSockets.update { sockets -> sockets.toMutableList().apply { remove(socket) } }
-        connectionListeners.forEach { listener -> listener.onConnectionClosed(address) }
+        connectedSocket.update { null }
     }
 
     fun isConnectedToDevice(address: String) =
-        connectedSockets.value.firstOrNull { it.remoteDevice.address == address } != null
+        connectedSocket.value?.remoteDevice?.address == address
 
-    fun getOutputStream(address: String): Either<ErrorMessage, OutputStream> {
-        val inputStream =
-            connectedSockets.value.firstOrNull { it.remoteDevice.address == address }?.outputStream
-        return if (inputStream == null) {
-            Left(ErrorMessage("No device connected with that address"))
+    fun getOutputStream(): Either<ErrorMessage, OutputStream> {
+        val outputStream = connectedSocket.value?.outputStream
+        return if (outputStream == null) {
+            Left(ErrorMessage("No device connected"))
         } else {
-            Right(inputStream)
+            Right(outputStream)
         }
     }
 

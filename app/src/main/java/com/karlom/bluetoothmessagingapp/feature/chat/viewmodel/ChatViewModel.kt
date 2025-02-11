@@ -26,7 +26,7 @@ import com.karlom.bluetoothmessagingapp.domain.chat.usecase.SendImage
 import com.karlom.bluetoothmessagingapp.domain.chat.usecase.SendMessage
 import com.karlom.bluetoothmessagingapp.domain.chat.usecase.StartChatServerAndWaitForConnection
 import com.karlom.bluetoothmessagingapp.domain.connection.models.Connection
-import com.karlom.bluetoothmessagingapp.domain.connection.usecase.GetConnectedDevicesNotifier
+import com.karlom.bluetoothmessagingapp.domain.connection.usecase.GetConnectedDeviceNotifier
 import com.karlom.bluetoothmessagingapp.domain.connection.usecase.IsConnectedTo
 import com.karlom.bluetoothmessagingapp.feature.chat.mappers.ChatMessageMapper
 import com.karlom.bluetoothmessagingapp.feature.chat.mappers.DateIndicatorMapper
@@ -79,7 +79,7 @@ class ChatViewModel @AssistedInject constructor(
     private val isConnectedTo: IsConnectedTo,
     private val sendImage: SendImage,
     private val getAudioPlayer: GetAudioPlayer,
-    private val getConnectionStateNotifier: GetConnectedDevicesNotifier,
+    private val getConnectionStateNotifier: GetConnectedDeviceNotifier,
     private val startChatServerAndWaitForConnection: StartChatServerAndWaitForConnection,
     private val getVoiceRecorder: GetVoiceRecorder,
     private val createAudioFile: CreateAudioFile,
@@ -160,7 +160,7 @@ class ChatViewModel @AssistedInject constructor(
     init {
         viewModelScope.launch(ioDispatcher) {
             getConnectionStateNotifier().collect { connectedDevices ->
-                showConnectToDeviceButton.update { connectedDevices.firstOrNull { it.address == params.address } == null }
+                showConnectToDeviceButton.update { connectedDevices?.address == params.address }
             }
         }
     }
@@ -281,8 +281,12 @@ class ChatViewModel @AssistedInject constructor(
     }
 
     private fun areSameDate(timestamp1: Long, timestamp2: Long): Boolean {
-        val calendar1 = Calendar.Builder().setInstant(timestamp1).build()
-        val calendar2 = Calendar.Builder().setInstant(timestamp2).build()
+        val calendar1 = Calendar.getInstance().apply {
+            timeInMillis = timestamp1
+        }
+        val calendar2 = Calendar.getInstance().apply {
+            timeInMillis = timestamp2
+        }
         return calendar1.get(Calendar.YEAR) == calendar2.get(Calendar.YEAR) &&
             calendar2.get(Calendar.MONTH) == calendar2.get(Calendar.MONTH) &&
             calendar1.get(Calendar.DAY_OF_MONTH) == calendar2.get(Calendar.DAY_OF_MONTH)

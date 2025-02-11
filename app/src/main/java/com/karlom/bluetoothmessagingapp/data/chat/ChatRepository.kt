@@ -49,7 +49,7 @@ class ChatRepository @Inject constructor(
         val id = messageDao.insert(messageEntity)
         messageEntity = messageEntity.copy(id = id)
         emit(SENDING)
-        val result = communicationManager.sendText(text = message, address = address)
+        val result = communicationManager.sendText(text = message)
         result.fold(
             { messageDao.update(messageEntity.copy(state = MessageState.NOT_SENT)) },
             { messageDao.update(messageEntity.copy(state = MessageState.SENT)) },
@@ -93,7 +93,6 @@ class ChatRepository @Inject constructor(
             val result = communicationManager.sendImage(
                 stream = inputStream.value,
                 streamSize = imageSize.value.toInt(),
-                address = address,
             )
             result.fold(
                 { _ -> messageDao.update(messageEntity.copy(state = MessageState.NOT_SENT)) },
@@ -123,7 +122,6 @@ class ChatRepository @Inject constructor(
             val result = communicationManager.sendAudio(
                 stream = inputStream.value,
                 streamSize = imageSize.value.toInt(),
-                address = address,
             )
             result.fold(
                 { _ -> messageDao.update(messageEntity.copy(state = MessageState.NOT_SENT)) },

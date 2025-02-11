@@ -48,9 +48,9 @@ class BluetoothCommunicationManagerTest {
 
     @Before
     fun setUp() {
-        every { connectionManager.getOutputStream(deviceAddress) } returns Either.Right(outputStream)
+        every { connectionManager.getOutputStream() } returns Either.Right(outputStream)
         every { connectionManager.registerConnectionStateListener(any()) } returns Unit
-        every { connectionManager.closeConnection(deviceAddress) } returns Unit
+        every { connectionManager.closeConnection() } returns Unit
     }
 
     @After
@@ -67,7 +67,7 @@ class BluetoothCommunicationManagerTest {
             ioDispatcher = mainDispatcherRule.testDispatcher,
         )
 
-        sut.sendText(text = textMessage, address = deviceAddress)
+        sut.sendText(text = textMessage)
 
         val dataLengthIndicator = outputStream.toByteArray().sliceArray(0 until 4)
         assertEquals(textMessage.length, bytesToInt(dataLengthIndicator))
@@ -80,7 +80,7 @@ class BluetoothCommunicationManagerTest {
             ioDispatcher = mainDispatcherRule.testDispatcher,
         )
 
-        sut.sendText(text = textMessage, address = deviceAddress)
+        sut.sendText(text = textMessage)
 
         val typeIndicator = outputStream.toByteArray().sliceArray(4 until 8)
         assertEquals(textMessageType, bytesToInt(typeIndicator))
@@ -93,7 +93,7 @@ class BluetoothCommunicationManagerTest {
             ioDispatcher = mainDispatcherRule.testDispatcher,
         )
 
-        sut.sendText(text = textMessage, address = deviceAddress)
+        sut.sendText(text = textMessage)
 
         val data = outputStream.toByteArray().sliceArray(8 until 8 + textMessage.length)
         data shouldBe textMessage.toByteArray(Charsets.UTF_8)
@@ -109,7 +109,6 @@ class BluetoothCommunicationManagerTest {
         sut.sendImage(
             stream = imageStream,
             streamSize = imageByteArray.size,
-            address = deviceAddress,
         )
 
         val dataLengthIndicator = outputStream.toByteArray().sliceArray(0 until 4)
@@ -126,7 +125,6 @@ class BluetoothCommunicationManagerTest {
         sut.sendImage(
             stream = imageStream,
             streamSize = imageByteArray.size,
-            address = deviceAddress,
         )
 
         val typeIndicator = outputStream.toByteArray().sliceArray(4 until 8)
@@ -143,7 +141,6 @@ class BluetoothCommunicationManagerTest {
         sut.sendImage(
             stream = imageStream,
             streamSize = imageByteArray.size,
-            address = deviceAddress,
         )
 
         val sentMessage = outputStream.toByteArray()
