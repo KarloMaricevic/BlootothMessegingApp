@@ -33,7 +33,9 @@ fun Contact(
             .fillMaxWidth(),
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        CircleWithLetter(model.contact.name.firstOrNull()?.uppercase() ?: "?")
+        CircleWithLetter(
+            color = model.color,
+            letter = model.contact.name.firstOrNull()?.uppercase() ?: "?")
         Column(
             Modifier.padding(
                 start = 8.dp,
@@ -56,14 +58,17 @@ fun Contact(
 }
 
 @Composable
-private fun CircleWithLetter(letter: String) {
+private fun CircleWithLetter(
+    color: Color,
+    letter: String,
+) {
     Box(
         contentAlignment = Alignment.Center,
         modifier = Modifier.size(48.dp)
     ) {
         Canvas(modifier = Modifier.matchParentSize()) {
             drawCircle(
-                color = Color.Blue,
+                color = color,
                 radius = size.minDimension / 2
             )
         }
@@ -76,7 +81,7 @@ private fun CircleWithLetter(letter: String) {
     }
 }
 
-@Preview
+@Preview(showBackground = true)
 @Composable
 fun ContactPreview() {
     BluetoothMessagingAppTheme {
@@ -90,7 +95,7 @@ fun ContactPreview() {
     }
 }
 
-@Preview
+@Preview(showBackground = true)
 @Composable
 fun ContactLongTextPreview() {
     BluetoothMessagingAppTheme {
