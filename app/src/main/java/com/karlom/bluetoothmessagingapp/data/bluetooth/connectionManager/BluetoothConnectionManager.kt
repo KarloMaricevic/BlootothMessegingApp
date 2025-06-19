@@ -1,21 +1,18 @@
 package com.karlom.bluetoothmessagingapp.data.bluetooth.connectionManager
 
-import android.Manifest
 import android.annotation.SuppressLint
 import android.bluetooth.BluetoothServerSocket
 import android.bluetooth.BluetoothSocket
-import android.content.Context
-import android.content.pm.PackageManager
-import android.os.Build
-import androidx.core.app.ActivityCompat
 import arrow.core.Either
 import arrow.core.Either.Left
 import arrow.core.Either.Right
+import arrow.core.flatMap
+import com.karlom.bluetoothmessagingapp.core.di.IoDispatcher
 import com.karlom.bluetoothmessagingapp.core.models.Failure.ErrorMessage
 import com.karlom.bluetoothmessagingapp.data.bluetooth.AppBluetoothManager
 import com.karlom.bluetoothmessagingapp.data.bluetooth.models.SocketStreams
+import com.karlom.bluetoothmessagingapp.data.shared.utils.PermissionChecker
 import com.karlom.bluetoothmessagingapp.domain.connection.models.Connection
-import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
@@ -27,12 +24,22 @@ import java.io.OutputStream
 import java.util.UUID
 import javax.inject.Inject
 import javax.inject.Singleton
+import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.Deferred
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 
 @Singleton
 class BluetoothConnectionManager @Inject constructor(
     private val bluetoothManager: AppBluetoothManager,
-    @ApplicationContext private val context: Context,
+    private val permissionChecker: PermissionChecker,
+    @IoDispatcher private val ioDispatcher: CoroutineDispatcher,
 ) {
+
+    private companion object {
+        const val CONNECTION_ACCEPTED_MESSAGE = "CONN"
+        const val CONNECTION_REFUSED_MESSAGE = "REFS"
+    }
 
     private val connectedSocket = MutableStateFlow<BluetoothSocket?>(null)
 
@@ -52,11 +59,13 @@ class BluetoothConnectionManager @Inject constructor(
     suspend fun startServerAndWaitForConnection(
         serviceName: String,
         serviceUUID: UUID,
+        clientAddress: String? = null,
+        timeout: Int = -1,
     ): Either<ErrorMessage, Connection> {
         val adapter = bluetoothManager.adapter
         return if (adapter == null) {
             Left(ErrorMessage("Device doesn't have bluetooth feature"))
-        } else if (!hasPermissionsToStartOrConnectToAServer()) {
+        } else if (!permissionChecker.hasPermissionToStartOrConnectToBtServer()) {
             Left(ErrorMessage("Insufficient permissions to start bluetooth server"))
         } else {
             coroutineScope {
@@ -66,19 +75,38 @@ class BluetoothConnectionManager @Inject constructor(
                         /* name = */ serviceName,
                         /* uuid = */ serviceUUID,
                     )
-                    val connectedSocketDeferred = async {
-                        return@async try {
-                            Right(serverSocket.accept())
-                        } catch (e: IOException) {
-                            Left(ErrorMessage(e.message ?: "Unknown"))
+                    var specifiedClientConnected = false
+                    var connectedSocketDeferred: Deferred<Either<ErrorMessage, BluetoothSocket>>
+                    do {
+                        connectedSocketDeferred = async<Either<ErrorMessage, BluetoothSocket>>(ioDispatcher) {
+                             try {
+                                 Right(serverSocket.accept(timeout))
+                            } catch (e: IOException) {
+                                Left(ErrorMessage(e.message ?: "Unknown"))
+                            }
                         }
-                    }
+                        launch {
+                            if(timeout == -1) {
+                                return@launch
+                            } else {
+                                delay(timeout.toLong())
+                                serverSocket.close()
+                            }
+                        }
+                        connectedSocketDeferred.await().onRight { acceptedSocket ->
+                            if(acceptedSocket.remoteDevice.address == clientAddress || clientAddress == null) {
+                                specifiedClientConnected = true
+                            } else {
+                                acceptedSocket.close()
+                            }
+                        }
+                    } while (!specifiedClientConnected || !connectedSocketDeferred.await().isLeft())
                     val connectedSocket = connectedSocketDeferred.await()
                     serverSocket.close()
                     connectedSocket.map { socket ->
                         this@BluetoothConnectionManager.connectedSocket.update { socket }
-                        connectionListeners.forEach {
-                            it.onConnectionOpened(
+                        connectionListeners.forEach { listener ->
+                            listener.onConnectionOpened(
                                 address = socket.remoteDevice.address,
                                 streams = SocketStreams(
                                     outputStream = socket.outputStream,
@@ -91,11 +119,11 @@ class BluetoothConnectionManager @Inject constructor(
                             socket.remoteDevice.address,
                         )
                     }
-                } catch (e: CancellationException) {
-                    serverSocket?.close()
-                    Left(ErrorMessage("Canceled"))
                 } catch (e: IOException) {
                     Left(ErrorMessage(e.message ?: "Unknown"))
+                } catch (e: CancellationException) {
+                    serverSocket?.close()
+                    throw e
                 }
             }
         }
@@ -109,7 +137,7 @@ class BluetoothConnectionManager @Inject constructor(
         val adapter = bluetoothManager.adapter
         return if (adapter == null) {
             Left(ErrorMessage("Device doesn't have bluetooth feature"))
-        } else if (!hasPermissionsToStartOrConnectToAServer()) {
+        } else if (!permissionChecker.hasPermissionToStartOrConnectToBtServer()) {
             Left(ErrorMessage("Insufficient permissions to connect to a bluetooth server"))
         } else {
             adapter.cancelDiscovery()
@@ -122,12 +150,11 @@ class BluetoothConnectionManager @Inject constructor(
                         return@async try {
                             socket.connect()
                             Right(socket)
-                        } catch (e: IOException) {
+                        } catch (e: Exception) {
                             Left(ErrorMessage(e.message ?: "Unknown"))
                         }
                     }
-                    val connectedSocketResult = connectedSocketDeferred.await()
-                    connectedSocketResult.map { connectedSocket ->
+                    connectedSocketDeferred.await().map { connectedSocket ->
                         this@BluetoothConnectionManager.connectedSocket.update { connectedSocket }
                         connectionListeners.forEach { listener ->
                             listener.onConnectionOpened(
@@ -151,18 +178,6 @@ class BluetoothConnectionManager @Inject constructor(
                 }
             }
         }
-    }
-
-    private fun hasPermissionsToStartOrConnectToAServer(): Boolean {
-        val permission = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-            Manifest.permission.BLUETOOTH_CONNECT
-        } else {
-            Manifest.permission.BLUETOOTH
-        }
-        return ActivityCompat.checkSelfPermission(
-            /* context = */ context,
-            /* permission = */ permission,
-        ) == PackageManager.PERMISSION_GRANTED
     }
 
     fun closeConnection() {
@@ -192,4 +207,23 @@ class BluetoothConnectionManager @Inject constructor(
     fun registerConnectionStateListener(listener: ConnectionStateListener) {
         connectionListeners.add(listener)
     }
+
+    suspend fun connectToKnownDevice(serviceName: String ,serviceUUID: UUID, address: String) : Either<ErrorMessage, Connection> =
+        permissionChecker.hasAccessToBluetoothMacAddress().flatMap { hasPermissions ->
+            if(hasPermissions) {
+                Right(bluetoothManager.adapter!!.address)
+            } else {
+                Left(ErrorMessage("Insufficient permissions"))
+            }
+        }.flatMap { deviceAddress ->
+            if (deviceAddress > address ) {
+                connectToServer(serviceUUID = serviceUUID, address = address)
+            } else {
+                startServerAndWaitForConnection(
+                    serviceName = serviceName,
+                    serviceUUID = serviceUUID,
+                    clientAddress = address,
+                )
+            }
+        }
 }

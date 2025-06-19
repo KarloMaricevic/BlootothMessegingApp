@@ -11,7 +11,6 @@ import com.karlom.bluetoothmessagingapp.core.base.BaseViewModel
 import com.karlom.bluetoothmessagingapp.core.base.TIMEOUT_DELAY
 import com.karlom.bluetoothmessagingapp.core.di.IoDispatcher
 import com.karlom.bluetoothmessagingapp.core.extensions.combine
-import com.karlom.bluetoothmessagingapp.core.models.Failure
 import com.karlom.bluetoothmessagingapp.core.navigation.NavigationEvent.NavigateBack
 import com.karlom.bluetoothmessagingapp.core.navigation.Navigator
 import com.karlom.bluetoothmessagingapp.data.chat.models.SendState.SENDING
@@ -19,13 +18,11 @@ import com.karlom.bluetoothmessagingapp.domain.audio.CreateAudioFile
 import com.karlom.bluetoothmessagingapp.domain.audio.DeleteAudioFile
 import com.karlom.bluetoothmessagingapp.domain.audio.GetAudioPlayer
 import com.karlom.bluetoothmessagingapp.domain.audio.GetVoiceRecorder
-import com.karlom.bluetoothmessagingapp.domain.chat.usecase.ConnectToServer
+import com.karlom.bluetoothmessagingapp.domain.chat.usecase.ConnectToKnownUser
 import com.karlom.bluetoothmessagingapp.domain.chat.usecase.GetMessages
 import com.karlom.bluetoothmessagingapp.domain.chat.usecase.SendAudio
 import com.karlom.bluetoothmessagingapp.domain.chat.usecase.SendImage
 import com.karlom.bluetoothmessagingapp.domain.chat.usecase.SendMessage
-import com.karlom.bluetoothmessagingapp.domain.chat.usecase.StartChatServerAndWaitForConnection
-import com.karlom.bluetoothmessagingapp.domain.connection.models.Connection
 import com.karlom.bluetoothmessagingapp.domain.connection.usecase.GetConnectedDeviceNotifier
 import com.karlom.bluetoothmessagingapp.domain.connection.usecase.IsConnectedTo
 import com.karlom.bluetoothmessagingapp.feature.chat.mappers.ChatMessageMapper
@@ -56,10 +53,7 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import java.util.Calendar
 import java.util.UUID
 import kotlinx.coroutines.CoroutineDispatcher
-import kotlinx.coroutines.async
-import kotlinx.coroutines.cancelAndJoin
 import kotlinx.coroutines.channels.Channel
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.combine
@@ -69,7 +63,6 @@ import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.selects.select
 
 @HiltViewModel(assistedFactory = ChatViewModel.ChatViewModelFactory::class)
 class ChatViewModel @AssistedInject constructor(
@@ -80,12 +73,11 @@ class ChatViewModel @AssistedInject constructor(
     private val sendImage: SendImage,
     private val getAudioPlayer: GetAudioPlayer,
     private val getConnectionStateNotifier: GetConnectedDeviceNotifier,
-    private val startChatServerAndWaitForConnection: StartChatServerAndWaitForConnection,
     private val getVoiceRecorder: GetVoiceRecorder,
     private val createAudioFile: CreateAudioFile,
     private val deleteAudioFile: DeleteAudioFile,
     private val sendAudio: SendAudio,
-    private val connectToServer: ConnectToServer,
+    private val connectToKnownUser: ConnectToKnownUser,
     private val chatMessageMapper: ChatMessageMapper,
     private val dateIndicatorMapper: DateIndicatorMapper,
     private val separatorMapper: SeparatorMapper,
@@ -242,35 +234,7 @@ class ChatViewModel @AssistedInject constructor(
     private fun startServerAndPeriodicallyTryToConnectToAddress() {
         isTryingToConnect.update { true }
         viewModelScope.launch(ioDispatcher) {
-            val waitForClientJob = async { startChatServerAndWaitForConnection() }
-            val tryToConnectJob = async {
-                var connectToServer: Either<Failure.ErrorMessage, Connection>? = null
-                repeat(NUMBER_OF_RETRIES_WHEN_CONNECTING) { timesRun ->
-                    connectToServer = connectToServer(params.address).fold(
-                        { failure ->
-                            if (timesRun < NUMBER_OF_RETRIES_WHEN_CONNECTING - 1) {
-                                delay(RETRY_DELAY_MILLIS)
-                                null
-                            } else {
-                                Either.Left(failure)
-                            }
-                        },
-                        { connection -> Either.Right(connection) },
-                    )
-                    connectToServer?.let { return@repeat }
-                }
-                connectToServer!!
-            }
-            select {
-                waitForClientJob.onAwait { result ->
-                    tryToConnectJob.cancelAndJoin()
-                    result
-                }
-                tryToConnectJob.onAwait { result ->
-                    waitForClientJob.cancelAndJoin()
-                    result
-                }
-            }
+            connectToKnownUser.invoke(params.address)
             isTryingToConnect.update { false }
         }
     }

@@ -11,6 +11,7 @@ import com.karlom.bluetoothmessagingapp.ruless.MainDispatcherRule
 import io.kotest.matchers.shouldBe
 import io.mockk.every
 import io.mockk.mockk
+import io.mockk.verify
 import junit.framework.TestCase.assertEquals
 import kotlinx.coroutines.test.runTest
 import org.junit.After
@@ -19,6 +20,8 @@ import org.junit.Rule
 import org.junit.Test
 import java.io.ByteArrayInputStream
 import java.io.ByteArrayOutputStream
+import java.io.IOException
+import java.io.InputStream
 import java.nio.ByteBuffer
 
 class BluetoothCommunicationManagerTest {
@@ -37,14 +40,19 @@ class BluetoothCommunicationManagerTest {
     private val imageStream = ByteArrayInputStream(imageByteArray)
     private val textInputStream = ByteArrayInputStream(
         ByteBuffer.allocate(Int.SIZE_BYTES).apply { putInt(textMessage.length) }.array() +
-                ByteBuffer.allocate(Int.SIZE_BYTES).apply { putInt(textMessageType) }.array() +
-                textMessage.toByteArray()
+            ByteBuffer.allocate(Int.SIZE_BYTES).apply { putInt(textMessageType) }.array() +
+            textMessage.toByteArray()
     )
     private val imageInputStream = ByteArrayInputStream(
         ByteBuffer.allocate(Int.SIZE_BYTES).apply { putInt(imageByteArray.size) }.array() +
-                ByteBuffer.allocate(Int.SIZE_BYTES).apply { putInt(imageMessageType) }.array() +
-                imageByteArray
+            ByteBuffer.allocate(Int.SIZE_BYTES).apply { putInt(imageMessageType) }.array() +
+            imageByteArray
     )
+    private val exceptionInputStream = object : InputStream() {
+        override fun read(): Int {
+            throw IOException("Forced exception")
+        }
+    }
 
     @Before
     fun setUp() {
@@ -186,5 +194,25 @@ class BluetoothCommunicationManagerTest {
 
             awaitItem() shouldBe BluetoothMessage.Image(deviceAddress, imageByteArray)
         }
+    }
+
+
+
+    @Test
+    fun shouldTerminateConnectionIfIOExceptionAccusesWhileReading() = runTest {
+        val sut = BluetoothCommunicationManager(
+            connectionManager = connectionManager,
+            ioDispatcher = mainDispatcherRule.testDispatcher,
+        )
+
+        sut.onConnectionOpened(
+            address = deviceAddress,
+            streams = SocketStreams(
+                outputStream = ByteArrayOutputStream(),
+                inputStream = exceptionInputStream,
+            )
+        )
+
+        verify { connectionManager.closeConnection() }
     }
 }

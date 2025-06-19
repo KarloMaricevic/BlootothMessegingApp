@@ -82,5 +82,7 @@ dependencies {
     testImplementation(libs.coorutine.test)
     testImplementation(libs.turbine)
     testImplementation(libs.kotest)
+    testImplementation(libs.kotest.assertion.arrow)
     testImplementation(libs.mockK)
+    testImplementation(libs.roboelectric)
 }

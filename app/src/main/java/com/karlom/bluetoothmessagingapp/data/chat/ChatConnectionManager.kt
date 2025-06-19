@@ -22,4 +22,10 @@ class ChatConnectionManager @Inject constructor(
             serviceName = SERVICE_NAME,
             serviceUUID = UUID.fromString(SERVICE_UUID),
         )
+
+    suspend fun connectToKnowClient(address: String) = connectionManager.connectToKnownDevice(
+        serviceName = SERVICE_NAME,
+        serviceUUID = UUID.fromString(SERVICE_UUID),
+        address = address,
+    )
 }
