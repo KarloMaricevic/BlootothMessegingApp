@@ -1,0 +1,11 @@
+participantgroup #lightgreen #blue:3
+  participant "Client1(lower MAC)" as Client1
+  participant "Client2(higher MAC)" as Client2
+end
+
+box over Client1:Opens socket waiting for specific client
+Client1<-Client2: Connects to socket
+box over Client1:Check MAC Address
+box over Client1:Close socket
+Client1-->Client2: Send message "CONN"
+Client1<->Client2: Data send
