@@ -48,6 +48,7 @@ import com.karlom.bluetoothmessagingapp.feature.addDevice.models.AddDeviceScreen
 import com.karlom.bluetoothmessagingapp.feature.addDevice.models.AddDeviceScreenEvent.OnDiscoverableSwitchChecked
 import com.karlom.bluetoothmessagingapp.feature.addDevice.models.AddDeviceScreenEvent.OnScanForDevicesClicked
 import com.karlom.bluetoothmessagingapp.feature.addDevice.viewmodel.AddDeviceViewModel
+import com.karlom.bluetoothmessagingapp.feature.chat.models.ChatScreenEvent.OnBackClicked
 import com.karlom.bluetoothmessagingapp.feature.shared.SimpleLazyColumn
 
 @Composable
@@ -117,9 +118,19 @@ fun AddDeviceScreen(
             modifier = Modifier
                 .fillMaxWidth()
                 .background(MaterialTheme.colorScheme.surface)
-                .padding(top = 2.dp, bottom = 4.dp, start = 8.dp),
+                .padding(bottom = 4.dp),
         ) {
             Icon(
+                painter = painterResource(id = R.drawable.ic_back),
+                contentDescription = stringResource(R.string.default_icon_content_description),
+                modifier = Modifier
+                    .padding(start = 4.dp, bottom = 8.dp)
+                    .clip(CircleShape)
+                    .clickable { viewModel.onEvent(AddDeviceScreenEvent.OnBackClicked)  }
+                    .padding(12.dp)
+                    .size(16.dp)
+            )
+            /*Icon(
                 painter = painterResource(R.drawable.ic_back),
                 contentDescription = stringResource(R.string.default_icon_content_description),
                 modifier = Modifier
@@ -128,7 +139,7 @@ fun AddDeviceScreen(
                     .clickable { viewModel.onEvent(AddDeviceScreenEvent.OnBackClicked) }
                     .padding(4.dp)
                     .size(25.dp)
-            )
+            )*/
         }
         Row(
             modifier = Modifier
@@ -140,11 +151,14 @@ fun AddDeviceScreen(
                 text = stringResource(id = R.string.add_device_screen_make_device_visible_message),
                 modifier = Modifier.weight(1f, true),
                 color = gray500,
-                style = MaterialTheme.typography.titleLarge,
+                style = MaterialTheme.typography.titleMedium,
             )
             Switch(
                 checked = state.isDiscoverable,
                 enabled = !state.isDiscoverable,
+                modifier = Modifier
+                    .padding(end = 16.dp)
+                    .size(height = 20.dp, width = 16.dp),
                 onCheckedChange = { makeDeviceDiscoverablePermission.launchMultiplePermissionRequest() },
                 colors = SwitchDefaults.colors(
                     disabledCheckedBorderColor = blue,
@@ -157,7 +171,7 @@ fun AddDeviceScreen(
         Text(
             text = stringResource(R.string.add_device_screen_bluetooth_devices_title),
             style = MaterialTheme.typography.headlineMedium,
-            modifier = Modifier.padding(start = 8.dp)
+            modifier = Modifier.padding(start = 8.dp, top = 24.dp)
         )
         if (!state.isBluetoothDeviceListShown) {
             Box(
