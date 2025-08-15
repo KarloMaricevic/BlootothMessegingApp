@@ -3,7 +3,8 @@ participantgroup #lightgreen #blue:3
   participant "Client2(higher MAC)" as Client2
 end
 
-box over Client1:Opens socket waiting for specific client
+box over Client1:Opens socket
+box over Client1:Wait for connection
 Client1<-Client2: Connects to socket
 box over Client1:Check MAC Address
 box over Client1:Close socket

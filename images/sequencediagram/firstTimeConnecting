@@ -1,0 +1,11 @@
+participantgroup #lightgreen #blue:3
+  participant "Client1" as Client1
+  participant "Client2" as Client2
+end
+
+box over Client1:Opens socket
+box over Client1:Wait for connection
+Client1<-Client2: Connects to socket
+box over Client1:Close socket
+Client1-->Client2: Send message "CONN"
+Client1<->Client2: Data send
