@@ -1,6 +1,7 @@
 package com.karlom.bluetoothmessagingapp.core.components
 
 import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
@@ -42,7 +43,10 @@ fun BluetoothMessagingAppNavigation(
         }
     }
     val snackbarHostState = remember { SnackbarHostState() }
-    Scaffold(snackbarHost = { SnackbarHost(snackbarHostState) }) { innerPadding ->
+    Scaffold(
+        snackbarHost = { SnackbarHost(snackbarHostState) },
+        containerColor = MaterialTheme.colorScheme.surface,
+        ) { innerPadding ->
         NavHost(
             navController = navController,
             startDestination = ContactsRouter.route(),
