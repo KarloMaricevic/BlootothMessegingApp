@@ -9,6 +9,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -28,12 +29,12 @@ fun ContactsScreen(
 ) {
     val contacts = viewModel.contacts.collectAsLazyPagingItems()
 
-    Box(Modifier.padding(top = 8.dp)) {
+    Box {
         Column {
             Text(
                 text = stringResource(id = R.string.contacts_screen_chat_title),
                 style = MaterialTheme.typography.headlineMedium,
-                modifier = Modifier.padding(start = 8.dp),
+                modifier = Modifier.padding(start = 8.dp, bottom = 4.dp),
             )
             SimpleLazyColumn(
                 items = contacts,
@@ -41,14 +42,16 @@ fun ContactsScreen(
                 uiItemBuilder = { contactUi ->
                     Contact(
                         model = contactUi,
-                        modifier = Modifier.clickable {
-                            viewModel.onEvent(
-                                OnContactClicked(
-                                    contactName = contactUi.contact.name,
-                                    address = contactUi.contact.address,
+                        modifier = Modifier
+                            .testTag("contact-${contactUi.contact.address}")
+                            .clickable {
+                                viewModel.onEvent(
+                                    OnContactClicked(
+                                        contactName = contactUi.contact.name,
+                                        address = contactUi.contact.address,
+                                    )
                                 )
-                            )
-                        }
+                            }
                     )
                 },
                 noItemsItem = { NoContactsIndicator(viewModel::onEvent) },
