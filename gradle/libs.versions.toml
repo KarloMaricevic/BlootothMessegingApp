@@ -1,6 +1,6 @@
 [versions]
-agp = "8.3.1"
-kotlin = "1.9.20"
+agp = "8.12.0"
+kotlin = "2.0.21"
 arrow = "1.2.0-RC"
 coorutines = "1.8.0"
 appcompat = "1.6.1"
@@ -62,5 +62,6 @@ roboelectric = { group  = "org.robolectric", name = "robolectric", version.ref =
 [plugins]
 androidApplication = { id = "com.android.application", version.ref = "agp" }
 jetbrainsKotlinAndroid = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
+compose-compiler = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }
 hilt = { id = "com.google.dagger.hilt.android", version.ref = "hilt" }
 kapt = { id = "org.jetbrains.kotlin.kapt", version.ref = "kotlin" }
