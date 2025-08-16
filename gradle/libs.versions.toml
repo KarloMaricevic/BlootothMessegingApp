@@ -21,6 +21,10 @@ kotest = "5.8.1"
 kotest-arrow = "1.3.3"
 robolectric = "4.9"
 mockK = "1.13.11"
+coreKtx = "1.17.0"
+junitVersion = "1.3.0"
+espressoCore = "3.7.0"
+material = "1.12.0"
 
 [libraries]
 arrow-core = { group = "io.arrow-kt", name = "arrow-core", version.ref = "arrow" }
@@ -58,9 +62,14 @@ kotest-assertion-arrow = { group = "io.kotest.extensions", name = "kotest-assert
 coorutine-test = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-test", version.ref = "coorutines" }
 mockK = { group = "io.mockk", name = "mockk", version.ref = "mockK" }
 roboelectric = { group  = "org.robolectric", name = "robolectric", version.ref = "robolectric" }
+androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
+androidx-junit = { group = "androidx.test.ext", name = "junit", version.ref = "junitVersion" }
+androidx-espresso-core = { group = "androidx.test.espresso", name = "espresso-core", version.ref = "espressoCore" }
+material = { group = "com.google.android.material", name = "material", version.ref = "material" }
 
 [plugins]
 androidApplication = { id = "com.android.application", version.ref = "agp" }
+androidLibrary = { id = "com.android.library", version.ref = "agp" }
 jetbrainsKotlinAndroid = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
 compose-compiler = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }
 hilt = { id = "com.google.dagger.hilt.android", version.ref = "hilt" }
