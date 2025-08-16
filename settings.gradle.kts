@@ -23,3 +23,4 @@ rootProject.name = "BlootothMessegingApp"
 include(":app")
 //include(":domain")
 include(":app2")
+include(":core-navigation")

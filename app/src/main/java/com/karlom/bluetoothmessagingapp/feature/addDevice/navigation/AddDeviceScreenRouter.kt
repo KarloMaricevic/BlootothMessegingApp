@@ -1,6 +1,6 @@
-package com.karlom.bluetoothmessagingapp.feature.addDevice.router
+package com.karlom.bluetoothmessagingapp.feature.addDevice.navigation
 
-import com.karlom.bluetoothmessagingapp.core.navigation.NavigationDestination
+import com.karlomaricevic.core_navigation.NavigationDestination
 
 object AddDeviceScreenRouter : NavigationDestination {
 

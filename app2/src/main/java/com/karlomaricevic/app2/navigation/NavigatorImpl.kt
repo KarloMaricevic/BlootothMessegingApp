@@ -1,4 +1,4 @@
-package com.karlom.bluetoothmessagingapp.core.navigation
+package com.karlomaricevic.app2.navigation
 
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.receiveAsFlow

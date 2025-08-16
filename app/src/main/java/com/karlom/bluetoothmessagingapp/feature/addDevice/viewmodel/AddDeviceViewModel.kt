@@ -5,9 +5,6 @@ import androidx.paging.PagingData
 import com.karlom.bluetoothmessagingapp.core.base.BaseViewModel
 import com.karlom.bluetoothmessagingapp.core.base.TIMEOUT_DELAY
 import com.karlom.bluetoothmessagingapp.core.di.IoDispatcher
-import com.karlom.bluetoothmessagingapp.core.navigation.NavigationEvent
-import com.karlom.bluetoothmessagingapp.core.navigation.NavigationEvent.Destination
-import com.karlom.bluetoothmessagingapp.core.navigation.Navigator
 import com.karlom.bluetoothmessagingapp.domain.connection.models.Connection
 import com.karlom.bluetoothmessagingapp.domain.connection.usecase.GetAvailableConnections
 import com.karlom.bluetoothmessagingapp.domain.connection.usecase.GetIsDeviceDiscoverableNotifier
@@ -20,8 +17,7 @@ import com.karlom.bluetoothmessagingapp.feature.addDevice.models.AddDeviceScreen
 import com.karlom.bluetoothmessagingapp.feature.addDevice.models.AddDeviceScreenEvent.OnDiscoverableSwitchChecked
 import com.karlom.bluetoothmessagingapp.feature.addDevice.models.AddDeviceScreenEvent.OnScanForDevicesClicked
 import com.karlom.bluetoothmessagingapp.feature.addDevice.models.AddDeviceScreenState
-import com.karlom.bluetoothmessagingapp.feature.chat.router.ChatRouter
-import com.karlom.bluetoothmessagingapp.feature.contacts.router.ContactsRouter
+import com.karlom.bluetoothmessagingapp.feature.addDevice.navigation.AddDeviceNavigator
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Job
@@ -42,7 +38,7 @@ class AddDeviceViewModel @Inject constructor(
     private val connectToServer: ConnectToServer,
     private val addContact: AddContact,
     private val startServerAndWaitForConnection: StartServerAndWaitForConnection,
-    private val navigator: Navigator,
+    private val navigator: AddDeviceNavigator,
     @IoDispatcher private val ioDispatcher: CoroutineDispatcher,
 ) : BaseViewModel<AddDeviceScreenEvent>() {
 
@@ -76,7 +72,7 @@ class AddDeviceViewModel @Inject constructor(
                 bluetoothDevicesList.update { getAvailableConnections() }
             }
             is AddDeviceScreenEvent.OnBackClicked -> viewModelScope.launch {
-                navigator.emitDestination(NavigationEvent.NavigateUp)
+                navigator.navigateUp()
             }
             is OnDeviceClicked -> viewModelScope.launch(ioDispatcher) {
                 val connectToServer = connectToServer(event.address)
@@ -88,19 +84,7 @@ class AddDeviceViewModel @Inject constructor(
                             address = device.address,
                         )
                     )
-                    navigator.emitDestination(
-                        Destination(
-                            destination = ChatRouter.creteChatRoute(
-                                contactName = device.name,
-                                address = device.address,
-                            ),
-                            builder = {
-                                popUpTo(ContactsRouter.route()) {
-                                    this.inclusive = false
-                                }
-                            }
-                        )
-                    )
+                    navigator.navigateToChatScreen(device)
                 }
             }
         }
@@ -122,19 +106,7 @@ class AddDeviceViewModel @Inject constructor(
                             address = bluetoothDevice.address,
                         )
                     )
-                    navigator.emitDestination(
-                        Destination(
-                            destination = ChatRouter.creteChatRoute(
-                                contactName = bluetoothDevice.name,
-                                address = bluetoothDevice.address,
-                            ),
-                            builder = {
-                                popUpTo(ContactsRouter.route()) {
-                                    this.inclusive = false
-                                }
-                            }
-                        )
-                    )
+                    navigator.navigateToChatScreen(bluetoothDevice)
                 }
             }
         }

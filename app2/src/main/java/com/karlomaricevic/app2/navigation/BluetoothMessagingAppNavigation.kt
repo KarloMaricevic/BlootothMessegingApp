@@ -1,4 +1,4 @@
-package com.karlom.bluetoothmessagingapp.core.components
+package com.karlomaricevic.app2.navigation
 
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.MaterialTheme
@@ -13,17 +13,14 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
-import com.karlom.bluetoothmessagingapp.core.navigation.NavigationEvent.Destination
-import com.karlom.bluetoothmessagingapp.core.navigation.NavigationEvent.NavigateBack
-import com.karlom.bluetoothmessagingapp.core.navigation.NavigationEvent.NavigateUp
-import com.karlom.bluetoothmessagingapp.core.navigation.Navigator
 import com.karlom.bluetoothmessagingapp.feature.addDevice.AddDeviceScreen
-import com.karlom.bluetoothmessagingapp.feature.addDevice.router.AddDeviceScreenRouter
+import com.karlom.bluetoothmessagingapp.feature.addDevice.navigation.AddDeviceScreenRouter
 import com.karlom.bluetoothmessagingapp.feature.chat.ChatScreen
-import com.karlom.bluetoothmessagingapp.feature.chat.router.ChatRouter
-import com.karlom.bluetoothmessagingapp.feature.chat.router.ChatRouter.CONTACT_NAME_PARAM
+import com.karlom.bluetoothmessagingapp.feature.chat.navigation.ChatRouter
+import com.karlom.bluetoothmessagingapp.feature.chat.navigation.ChatRouter.CONTACT_NAME_PARAM
 import com.karlom.bluetoothmessagingapp.feature.contacts.ContactsScreen
-import com.karlom.bluetoothmessagingapp.feature.contacts.router.ContactsRouter
+import com.karlom.bluetoothmessagingapp.feature.contacts.navigation.ContactsRouter
+import com.karlomaricevic.app2.navigation.NavigationEvent.*
 
 @Composable
 fun BluetoothMessagingAppNavigation(

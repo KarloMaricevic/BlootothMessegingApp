@@ -10,6 +10,7 @@ room = "2.6.1"
 pagging = "3.2.1"
 compose-activity = "1.9.0"
 compose = "1.6.7"
+navigation = "2.7.3"
 compsoseMaterial3 = "1.2.1"
 coilCompose = "2.6.0"
 hilt = "2.49"
@@ -39,6 +40,7 @@ androidx-room-ktx = { group = "androidx.room", name = "room-ktx", version.ref = 
 androidx-room-paging = { group = "androidx.room", name = "room-paging", version.ref = "room" }
 
 androidx-compose-activity = { group = "androidx.activity", name = "activity-compose", version.ref = "compose-activity" }
+androidx-navigation-compose = { group = "androidx.navigation", name = "navigation-compose", version.ref = "navigation" }
 androidx-pagging-runtime = { group = "androidx.paging", name = "paging-runtime", version.ref = "pagging" }
 androidx-pagging-compose = { group = "androidx.paging", name = "paging-compose", version.ref = "pagging" }
 androidx-compose-material = { group = "androidx.compose.material3", name = "material3", version.ref = "compsoseMaterial3" }

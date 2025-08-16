@@ -11,8 +11,6 @@ import com.karlom.bluetoothmessagingapp.core.base.BaseViewModel
 import com.karlom.bluetoothmessagingapp.core.base.TIMEOUT_DELAY
 import com.karlom.bluetoothmessagingapp.core.di.IoDispatcher
 import com.karlom.bluetoothmessagingapp.core.extensions.combine
-import com.karlom.bluetoothmessagingapp.core.navigation.NavigationEvent.NavigateBack
-import com.karlom.bluetoothmessagingapp.core.navigation.Navigator
 import com.karlom.bluetoothmessagingapp.data.chat.models.SendState.SENDING
 import com.karlom.bluetoothmessagingapp.domain.audio.CreateAudioFile
 import com.karlom.bluetoothmessagingapp.domain.audio.DeleteAudioFile
@@ -46,6 +44,7 @@ import com.karlom.bluetoothmessagingapp.feature.chat.models.ChatScreenEvent.OnSt
 import com.karlom.bluetoothmessagingapp.feature.chat.models.ChatScreenEvent.OnTextChanged
 import com.karlom.bluetoothmessagingapp.feature.chat.models.ChatScreenState
 import com.karlom.bluetoothmessagingapp.feature.chat.models.ChatViewModelParams
+import com.karlom.bluetoothmessagingapp.feature.chat.navigation.ChatNavigator
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
@@ -82,7 +81,7 @@ class ChatViewModel @AssistedInject constructor(
     private val dateIndicatorMapper: DateIndicatorMapper,
     private val separatorMapper: SeparatorMapper,
     @IoDispatcher private val ioDispatcher: CoroutineDispatcher,
-    private val navigator: Navigator,
+    private val navigator: ChatNavigator,
 ) : BaseViewModel<ChatScreenEvent>() {
 
     private companion object {
@@ -159,7 +158,7 @@ class ChatViewModel @AssistedInject constructor(
 
     override fun onEvent(event: ChatScreenEvent) {
         when (event) {
-            is OnBackClicked -> viewModelScope.launch { navigator.emitDestination(NavigateBack) }
+            is OnBackClicked -> viewModelScope.launch { navigator.navigateBack() }
             is OnTextChanged -> textToSend.update { event.text }
             is OnSendClicked -> viewModelScope.launch(ioDispatcher) {
                 when (inputMode.value) {

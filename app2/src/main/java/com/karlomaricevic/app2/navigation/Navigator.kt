@@ -1,4 +1,4 @@
-package com.karlom.bluetoothmessagingapp.core.navigation
+package com.karlomaricevic.app2.navigation
 
 import kotlinx.coroutines.flow.Flow
 

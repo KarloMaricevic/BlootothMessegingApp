@@ -44,6 +44,7 @@ android {
 }
 
 dependencies {
+    implementation(project(":core-navigation"))
     implementation(libs.arrow.core)
 
     implementation(libs.androidx.activity)
