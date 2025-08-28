@@ -1,31 +1,28 @@
 package com.karlom.bluetoothmessagingapp.feature.addDevice.viewmodel
 
 import androidx.lifecycle.viewModelScope
-import androidx.paging.PagingData
 import com.karlom.bluetoothmessagingapp.core.base.BaseViewModel
 import com.karlom.bluetoothmessagingapp.core.base.TIMEOUT_DELAY
 import com.karlom.bluetoothmessagingapp.core.di.IoDispatcher
-import com.karlom.bluetoothmessagingapp.domain.connection.models.Connection
-import com.karlom.bluetoothmessagingapp.domain.connection.usecase.GetAvailableConnections
-import com.karlom.bluetoothmessagingapp.domain.connection.usecase.GetIsDeviceDiscoverableNotifier
-import com.karlom.bluetoothmessagingapp.domain.chat.usecase.ConnectToServer
-import com.karlom.bluetoothmessagingapp.domain.chat.usecase.StartServerAndWaitForConnection
-import com.karlom.bluetoothmessagingapp.domain.contacts.models.Contact
-import com.karlom.bluetoothmessagingapp.domain.contacts.usecase.AddContact
 import com.karlom.bluetoothmessagingapp.feature.addDevice.models.AddDeviceScreenEvent
 import com.karlom.bluetoothmessagingapp.feature.addDevice.models.AddDeviceScreenEvent.OnDeviceClicked
 import com.karlom.bluetoothmessagingapp.feature.addDevice.models.AddDeviceScreenEvent.OnDiscoverableSwitchChecked
 import com.karlom.bluetoothmessagingapp.feature.addDevice.models.AddDeviceScreenEvent.OnScanForDevicesClicked
 import com.karlom.bluetoothmessagingapp.feature.addDevice.models.AddDeviceScreenState
 import com.karlom.bluetoothmessagingapp.feature.addDevice.navigation.AddDeviceNavigator
+import com.karlomaricevic.domain.connection.models.Connection
+import com.karlomaricevic.domain.connection.usecase.ConnectToServer
+import com.karlomaricevic.domain.connection.usecase.GetAvailableConnections
+import com.karlomaricevic.domain.connection.usecase.ObserveDiscoverableState
+import com.karlomaricevic.domain.connection.usecase.ListenForConnection
+import com.karlomaricevic.domain.contacts.models.Contact
+import com.karlomaricevic.domain.contacts.usecase.AddContact
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Job
-import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
@@ -33,18 +30,18 @@ import javax.inject.Inject
 
 @HiltViewModel
 class AddDeviceViewModel @Inject constructor(
-    private val getIsDeviceDiscoverableNotifier: GetIsDeviceDiscoverableNotifier,
+    private val observeDiscoverableState: ObserveDiscoverableState,
     private val getAvailableConnections: GetAvailableConnections,
     private val connectToServer: ConnectToServer,
     private val addContact: AddContact,
-    private val startServerAndWaitForConnection: StartServerAndWaitForConnection,
+    private val listenForConnection: ListenForConnection,
     private val navigator: AddDeviceNavigator,
     @IoDispatcher private val ioDispatcher: CoroutineDispatcher,
 ) : BaseViewModel<AddDeviceScreenEvent>() {
 
     private val isDiscoverableEnabled = MutableStateFlow(false)
     private val isBluetoothDeviceListShown = MutableStateFlow(false)
-    private val bluetoothDevicesList = MutableStateFlow<Flow<PagingData<Connection>>>(flowOf())
+    private val bluetoothDevicesList = MutableStateFlow<List<Connection>?>(null)
     private val showMakeDeviceVisibleError = MutableStateFlow(false)
     private val showConnectingToDeviceError = MutableStateFlow(false)
 
@@ -69,7 +66,12 @@ class AddDeviceViewModel @Inject constructor(
             is OnDiscoverableSwitchChecked -> handleDiscoverableSwitchChanged()
             is OnScanForDevicesClicked -> {
                 isBluetoothDeviceListShown.update { true }
-                bluetoothDevicesList.update { getAvailableConnections() }
+                viewModelScope.launch {
+                    getAvailableConnections().fold(
+                        ifLeft = { /* TODO */ },
+                        ifRight = { connections -> bluetoothDevicesList.update { connections } }
+                    )
+                }
             }
             is AddDeviceScreenEvent.OnBackClicked -> viewModelScope.launch {
                 navigator.navigateUp()
@@ -94,7 +96,7 @@ class AddDeviceViewModel @Inject constructor(
         isDiscoverableEnabled.update { true }
         if (waitingForClientJob == null) {
             waitingForClientJob = viewModelScope.launch(ioDispatcher) {
-                val connection = startServerAndWaitForConnection()
+                val connection = listenForConnection()
                 connection.onLeft {
                     waitingForClientJob = null
                     isDiscoverableEnabled.update { false }
@@ -112,7 +114,7 @@ class AddDeviceViewModel @Inject constructor(
         }
         if (isDeviceDiscoverableListenerJob == null) {
             isDeviceDiscoverableListenerJob = viewModelScope.launch(ioDispatcher) {
-                val notifier = getIsDeviceDiscoverableNotifier()
+                val notifier = observeDiscoverableState()
                 notifier.onLeft {
                     isDeviceDiscoverableListenerJob = null
                     isDiscoverableEnabled.update { false }

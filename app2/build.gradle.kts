@@ -3,7 +3,7 @@ plugins {
     alias(libs.plugins.compose.compiler)
     alias(libs.plugins.jetbrainsKotlinAndroid)
     alias(libs.plugins.hilt)
-    alias(libs.plugins.kapt)
+    alias(libs.plugins.ksp)
 }
 
 android {
@@ -37,7 +37,11 @@ android {
 
 dependencies {
     implementation(project(":app"))
-    implementation(project(":core-navigation"))
+    implementation(project(":core:navigation"))
+    implementation(project(":core:platform"))
+    implementation(project(":domain"))
+    implementation(project(":data"))
+    implementation(project(":bluetooth"))
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.appcompat)
     implementation(libs.material)
@@ -48,8 +52,10 @@ dependencies {
     implementation(libs.androidx.compose.material)
     implementation(libs.androidx.compose.runtime)
 
+    implementation(libs.androidx.room.runtime)
+
     implementation(libs.hilt.android)
-    kapt(libs.hilt.compiler)
+    ksp(libs.hilt.compiler)
     implementation(libs.hilt.navigation.compose)
 
     testImplementation(libs.junit)

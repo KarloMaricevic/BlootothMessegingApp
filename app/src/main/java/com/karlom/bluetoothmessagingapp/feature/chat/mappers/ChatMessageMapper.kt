@@ -4,13 +4,13 @@ import android.content.Context
 import android.graphics.BitmapFactory
 import android.media.MediaMetadataRetriever
 import androidx.core.net.toUri
-import com.karlom.bluetoothmessagingapp.domain.chat.models.Message
-import com.karlom.bluetoothmessagingapp.domain.chat.models.Message.AudioMessage
-import com.karlom.bluetoothmessagingapp.domain.chat.models.Message.ImageMessage
-import com.karlom.bluetoothmessagingapp.domain.chat.models.Message.TextMessage
 import com.karlom.bluetoothmessagingapp.feature.chat.models.ChatItem.ChatMessage.Audio
 import com.karlom.bluetoothmessagingapp.feature.chat.models.ChatItem.ChatMessage.Image
 import com.karlom.bluetoothmessagingapp.feature.chat.models.ChatItem.ChatMessage.Text
+import com.karlomaricevic.domain.messaging.models.Message
+import com.karlomaricevic.domain.messaging.models.Message.AudioMessage
+import com.karlomaricevic.domain.messaging.models.Message.ImageMessage
+import com.karlomaricevic.domain.messaging.models.Message.TextMessage
 import dagger.hilt.android.qualifiers.ApplicationContext
 import java.io.File
 import java.util.concurrent.TimeUnit

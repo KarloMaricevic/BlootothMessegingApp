@@ -1,36 +1,21 @@
 package com.karlom.bluetoothmessagingapp.feature.chat.viewmodel
 
 import androidx.lifecycle.viewModelScope
-import androidx.paging.cachedIn
-import androidx.paging.insertFooterItem
-import androidx.paging.insertSeparators
-import androidx.paging.map
 import arrow.core.Either
 import arrow.core.flatMap
 import com.karlom.bluetoothmessagingapp.core.base.BaseViewModel
 import com.karlom.bluetoothmessagingapp.core.base.TIMEOUT_DELAY
 import com.karlom.bluetoothmessagingapp.core.di.IoDispatcher
 import com.karlom.bluetoothmessagingapp.core.extensions.combine
-import com.karlom.bluetoothmessagingapp.data.chat.models.SendState.SENDING
-import com.karlom.bluetoothmessagingapp.domain.audio.CreateAudioFile
-import com.karlom.bluetoothmessagingapp.domain.audio.DeleteAudioFile
-import com.karlom.bluetoothmessagingapp.domain.audio.GetAudioPlayer
-import com.karlom.bluetoothmessagingapp.domain.audio.GetVoiceRecorder
-import com.karlom.bluetoothmessagingapp.domain.chat.usecase.ConnectToKnownUser
-import com.karlom.bluetoothmessagingapp.domain.chat.usecase.GetMessages
-import com.karlom.bluetoothmessagingapp.domain.chat.usecase.SendAudio
-import com.karlom.bluetoothmessagingapp.domain.chat.usecase.SendImage
-import com.karlom.bluetoothmessagingapp.domain.chat.usecase.SendMessage
-import com.karlom.bluetoothmessagingapp.domain.connection.usecase.GetConnectedDeviceNotifier
-import com.karlom.bluetoothmessagingapp.domain.connection.usecase.IsConnectedTo
 import com.karlom.bluetoothmessagingapp.feature.chat.mappers.ChatMessageMapper
 import com.karlom.bluetoothmessagingapp.feature.chat.mappers.DateIndicatorMapper
 import com.karlom.bluetoothmessagingapp.feature.chat.mappers.SeparatorMapper
 import com.karlom.bluetoothmessagingapp.feature.chat.models.ChatInputMode.TEXT
 import com.karlom.bluetoothmessagingapp.feature.chat.models.ChatInputMode.VOICE
+import com.karlom.bluetoothmessagingapp.feature.chat.models.ChatItem
 import com.karlom.bluetoothmessagingapp.feature.chat.models.ChatItem.ChatMessage.Audio
-import com.karlom.bluetoothmessagingapp.feature.chat.models.ChatItem.StartOfMessagingIndicator
 import com.karlom.bluetoothmessagingapp.feature.chat.models.ChatScreenEffect
+import com.karlom.bluetoothmessagingapp.feature.chat.models.ChatScreenEffect.Error
 import com.karlom.bluetoothmessagingapp.feature.chat.models.ChatScreenEvent
 import com.karlom.bluetoothmessagingapp.feature.chat.models.ChatScreenEvent.OnBackClicked
 import com.karlom.bluetoothmessagingapp.feature.chat.models.ChatScreenEvent.OnConnectClicked
@@ -45,16 +30,27 @@ import com.karlom.bluetoothmessagingapp.feature.chat.models.ChatScreenEvent.OnTe
 import com.karlom.bluetoothmessagingapp.feature.chat.models.ChatScreenState
 import com.karlom.bluetoothmessagingapp.feature.chat.models.ChatViewModelParams
 import com.karlom.bluetoothmessagingapp.feature.chat.navigation.ChatNavigator
+import com.karlomaricevic.domain.audio.DeleteAudio
+import com.karlomaricevic.domain.audio.GetAudioPlayer
+import com.karlomaricevic.domain.audio.GetVoiceRecorder
+import com.karlomaricevic.domain.connection.usecase.ConnectToKnownContact
+import com.karlomaricevic.domain.connection.usecase.ObserveConnectionState
+import com.karlomaricevic.domain.connection.usecase.IsConnectedTo
+import com.karlomaricevic.domain.messaging.models.SendMessageStatus.*
+import com.karlomaricevic.domain.messaging.usecase.GetMessages
+import com.karlomaricevic.domain.messaging.usecase.SendAudio
+import com.karlomaricevic.domain.messaging.usecase.SendImage
+import com.karlomaricevic.domain.messaging.usecase.SendText
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
 import dagger.hilt.android.lifecycle.HiltViewModel
 import java.util.Calendar
-import java.util.UUID
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
@@ -67,16 +63,15 @@ import kotlinx.coroutines.launch
 class ChatViewModel @AssistedInject constructor(
     @Assisted private val params: ChatViewModelParams,
     private val getMessages: GetMessages,
-    private val sendMessage: SendMessage,
+    private val sendText: SendText,
     private val isConnectedTo: IsConnectedTo,
     private val sendImage: SendImage,
     private val getAudioPlayer: GetAudioPlayer,
-    private val getConnectionStateNotifier: GetConnectedDeviceNotifier,
+    private val getConnectionStateNotifier: ObserveConnectionState,
     private val getVoiceRecorder: GetVoiceRecorder,
-    private val createAudioFile: CreateAudioFile,
-    private val deleteAudioFile: DeleteAudioFile,
+    private val deleteAudio: DeleteAudio,
     private val sendAudio: SendAudio,
-    private val connectToKnownUser: ConnectToKnownUser,
+    private val connectToKnownContact: ConnectToKnownContact,
     private val chatMessageMapper: ChatMessageMapper,
     private val dateIndicatorMapper: DateIndicatorMapper,
     private val separatorMapper: SeparatorMapper,
@@ -98,34 +93,32 @@ class ChatViewModel @AssistedInject constructor(
     private val inputMode = MutableStateFlow(TEXT)
     private val audioMessagePlaying = MutableStateFlow<Audio?>(null)
     private val isRecordingVoice = MutableStateFlow(false)
-    private val messages = MutableStateFlow(getMessages(params.address).map { page ->
-        page
-            .map { message -> chatMessageMapper.map(message) }
-            .insertSeparators { before, after ->
-                if (before != null && after != null) {
-                    if (areSameDate(before.timestamp, after.timestamp)) {
-                        null
-                    } else {
-                        dateIndicatorMapper.map(before)
-                    }
-                } else if (after == null && before != null) {
-                    dateIndicatorMapper.map(before)
-                } else {
-                    null
+    private val messages: StateFlow<List<ChatItem>> = getMessages(params.address)
+        .map { messages ->
+            val estimatedSize = messages.size + messages.size / 10
+            val result = ArrayList<ChatItem>(estimatedSize)
+            for (i in messages.indices) {
+                val before = if (i > 0) messages[i - 1] else null
+                val current = messages[i]
+                if (before == null || !areSameDate(before.timestamp, current.timestamp)) {
+                    result.add(dateIndicatorMapper.map(current))
                 }
+                result.add(chatMessageMapper.map(current))
+                val after = if (i < messages.size - 1) messages[i + 1] else null
+                separatorMapper.map(current, after)?.let { result.add(it) }
             }
-            .insertSeparators { before, after -> separatorMapper.map(before = before, after = after) }
-            .insertFooterItem(item = StartOfMessagingIndicator(params.name))
-    }.cachedIn(viewModelScope)
-        .combine(audioMessagePlaying) { page, audioPlaying ->
-            page.map { message ->
+            result
+        }
+        .combine(audioMessagePlaying) { chatItems, audioPlaying ->
+            chatItems.map { message ->
                 if (audioPlaying != null && message is Audio && message.id == audioPlaying.id) {
                     audioPlaying
                 } else {
                     message
                 }
             }
-        })
+        }
+        .stateIn(viewModelScope, SharingStarted.Lazily, emptyList())
 
     private var voiceRecordingFilePath: String? = null
 
@@ -162,7 +155,7 @@ class ChatViewModel @AssistedInject constructor(
             is OnTextChanged -> textToSend.update { event.text }
             is OnSendClicked -> viewModelScope.launch(ioDispatcher) {
                 when (inputMode.value) {
-                    TEXT -> sendMessage(message = textToSend.value, address = params.address)
+                    TEXT -> sendText(message = textToSend.value, address = params.address)
 
                     VOICE -> voiceRecordingFilePath?.let { voiceRecordingFilePath ->
                         sendAudio(imagePath = voiceRecordingFilePath, address = params.address)
@@ -187,11 +180,11 @@ class ChatViewModel @AssistedInject constructor(
                 }
             }
 
-            is OnStartRecordingVoiceClicked -> createAudioFile(UUID.randomUUID().toString())
-                .flatMap { fileName -> voiceRecorder.startRecording(fileName) }
+            is OnStartRecordingVoiceClicked ->
+                voiceRecorder.startRecording()
                 .fold(
-                    { failure -> _viewEffect.trySend(ChatScreenEffect.Error(failure.errorMessage)) },
-                    { filePath ->
+                    ifLeft = { failure -> _viewEffect.trySend(Error( "TODO")) },
+                    ifRight = { filePath ->
                         voiceRecordingFilePath = filePath
                         isRecordingVoice.update { true }
                         inputMode.update { VOICE }
@@ -199,13 +192,13 @@ class ChatViewModel @AssistedInject constructor(
                 )
 
             is OnStopRecordingVoiceClicked -> {
-                voiceRecorder.endRecording()
+                voiceRecorder.stopRecording()
                 isRecordingVoice.update { false }
             }
 
             is OnDeleteVoiceRecordingClicked -> {
-                voiceRecorder.endRecording()
-                voiceRecordingFilePath?.let { filePath -> deleteAudioFile(filePath) }
+                voiceRecorder.stopRecording()
+                voiceRecordingFilePath?.let { path -> deleteAudio(path) }
                 voiceRecordingFilePath = null
                 isRecordingVoice.update { false }
                 inputMode.update { TEXT }
@@ -223,7 +216,7 @@ class ChatViewModel @AssistedInject constructor(
                     Either.Right(Unit)
                 }
                 settingUp.flatMap { audioPlayer.play() }.fold(
-                    { failure -> _viewEffect.trySend(ChatScreenEffect.Error(failure.errorMessage)) },
+                    { failure -> _viewEffect.trySend(Error(failure.errorMessage)) },
                     { audioMessagePlaying.update { event.message.copy(isPlaying = true) } },
                 )
             }
@@ -233,14 +226,14 @@ class ChatViewModel @AssistedInject constructor(
     private fun startServerAndPeriodicallyTryToConnectToAddress() {
         isTryingToConnect.update { true }
         viewModelScope.launch(ioDispatcher) {
-            connectToKnownUser.invoke(params.address)
+            connectToKnownContact.invoke(params.address)
             isTryingToConnect.update { false }
         }
     }
 
     override fun onCleared() {
-        audioPlayer.releaseMediaPlayer()
-        voiceRecorder.relase()
+        audioPlayer.release()
+        voiceRecorder.release()
     }
 
     private fun areSameDate(timestamp1: Long, timestamp2: Long): Boolean {

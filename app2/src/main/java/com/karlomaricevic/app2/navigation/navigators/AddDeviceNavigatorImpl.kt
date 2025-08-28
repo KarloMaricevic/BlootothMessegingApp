@@ -1,12 +1,12 @@
 package com.karlomaricevic.app2.navigation.navigators
 
-import com.karlom.bluetoothmessagingapp.domain.connection.models.Connection
 import com.karlom.bluetoothmessagingapp.feature.addDevice.navigation.AddDeviceNavigator
 import com.karlom.bluetoothmessagingapp.feature.chat.navigation.ChatRouter
 import com.karlom.bluetoothmessagingapp.feature.contacts.navigation.ContactsRouter
 import com.karlomaricevic.app2.navigation.NavigationEvent.NavigateUp
 import com.karlomaricevic.app2.navigation.NavigationEvent.Destination
 import com.karlomaricevic.app2.navigation.Navigator
+import com.karlomaricevic.domain.connection.models.Connection
 import javax.inject.Inject
 
 class AddDeviceNavigatorImpl @Inject constructor(

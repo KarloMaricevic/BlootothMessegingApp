@@ -3,7 +3,7 @@ plugins {
     alias(libs.plugins.jetbrainsKotlinAndroid)
     alias(libs.plugins.compose.compiler)
     alias(libs.plugins.hilt)
-    alias(libs.plugins.kapt)
+    alias(libs.plugins.ksp)
 }
 
 android {
@@ -12,6 +12,7 @@ android {
 
     defaultConfig {
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+        minSdk = 21
     }
 
     buildTypes {
@@ -44,7 +45,11 @@ android {
 }
 
 dependencies {
-    implementation(project(":core-navigation"))
+    implementation(project(":core:common"))
+    implementation(project(":domain"))
+    implementation(project(":core:platform"))
+    implementation(project(":core:navigation"))
+    implementation(project(":bluetooth"))
     implementation(libs.arrow.core)
 
     implementation(libs.androidx.activity)
@@ -52,7 +57,7 @@ dependencies {
     implementation(libs.androidx.splashscreen)
     implementation(libs.appcompanist.permissions)
     implementation(libs.androidx.room.runtime)
-    kapt(libs.androidx.room.compiler)
+    ksp(libs.androidx.room.compiler)
     implementation(libs.androidx.room.ktx)
     implementation(libs.androidx.room.paging)
 
@@ -69,7 +74,7 @@ dependencies {
     implementation(libs.androidx.compose.ui.tooling.preview)
 
     implementation(libs.hilt.android)
-    kapt(libs.hilt.compiler)
+    ksp(libs.hilt.compiler)
     implementation(libs.hilt.navigation.compose)
 
     implementation(libs.timber)

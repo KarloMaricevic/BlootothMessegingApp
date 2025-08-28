@@ -1,6 +1,6 @@
 package com.karlom.bluetoothmessagingapp.feature.contacts.navigation
 
-import com.karlomaricevic.core_navigation.NavigationDestination
+import com.karlomaricevic.core.navigation.NavigationDestination
 
 object ContactsRouter : NavigationDestination {
 

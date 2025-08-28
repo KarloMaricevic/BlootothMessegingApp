@@ -31,9 +31,9 @@ import androidx.compose.ui.unit.dp
 import com.karlom.bluetoothmessagingapp.R
 import com.karlom.bluetoothmessagingapp.designSystem.theme.BluetoothMessagingAppTheme
 import com.karlom.bluetoothmessagingapp.designSystem.theme.black
-import com.karlom.bluetoothmessagingapp.domain.chat.models.MessageState
 import com.karlom.bluetoothmessagingapp.feature.chat.models.ChatItem.ChatMessage.Audio
 import com.karlom.bluetoothmessagingapp.feature.chat.models.ChatScreenEvent
+import com.karlomaricevic.domain.messaging.models.SendMessageStatus.*
 
 @Composable
 fun AudioChatBox(
@@ -52,7 +52,7 @@ fun AudioChatBox(
                 .clip(RoundedCornerShape(16.dp))
                 .background(MaterialTheme.colorScheme.surface)
                 .align(if (message.isFromMe) Alignment.CenterEnd else Alignment.CenterStart)
-                .then(if (message.state == MessageState.SENDING || message.state == MessageState.NOT_SENT) {
+                .then(if (message.state == SENDING || message.state == NOT_SENT) {
                     Modifier.graphicsLayer {
                         alpha = 0.5f
                         shadowElevation = 0f
@@ -62,7 +62,7 @@ fun AudioChatBox(
                     Modifier
                 })
                 .then(
-                    if (message.state == MessageState.NOT_SENT) {
+                    if (message.state == NOT_SENT) {
                         Modifier.border(
                             1.dp, Color.Red, RoundedCornerShape(16.dp)
                         )
@@ -154,7 +154,7 @@ fun AudioChatSendingBoxPreview() {
                 filePath = "",
                 isFromMe = false,
                 totalTime = "1:32",
-                state = MessageState.SENDING,
+                state = SENDING,
                 timestamp = 0,
             ),
             onInteraction = {},
@@ -172,7 +172,7 @@ fun AudioChatSentBoxPreview() {
                 filePath = "",
                 isFromMe = false,
                 totalTime = "1:32",
-                state = MessageState.SENT,
+                state = SENT,
                 timestamp = 0,
             ),
             onInteraction = {},
@@ -190,7 +190,7 @@ fun AudioChatNotSentBoxPreview() {
                 filePath = "",
                 isFromMe = true,
                 totalTime = "1:32",
-                state = MessageState.NOT_SENT,
+                state = NOT_SENT,
                 timestamp = 0,
             ),
             onInteraction = {},

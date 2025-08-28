@@ -1,6 +1,6 @@
 package com.karlom.bluetoothmessagingapp.feature.chat.models
 
-import com.karlom.bluetoothmessagingapp.domain.chat.models.MessageState
+import com.karlomaricevic.domain.messaging.models.SendMessageStatus
 
 sealed interface ChatItem {
 
@@ -16,14 +16,14 @@ sealed interface ChatItem {
     sealed class ChatMessage(
         open val id: Long,
         open val isFromMe: Boolean,
-        open val state: MessageState,
+        open val state: SendMessageStatus,
         open val timestamp: Long,
     ) : ChatItem {
         data class Text(
             override val id: Long,
             val message: String,
             override val isFromMe: Boolean,
-            override val state: MessageState,
+            override val state: SendMessageStatus,
             override val timestamp: Long,
         ) : ChatMessage(id, isFromMe, state, timestamp)
 
@@ -32,7 +32,7 @@ sealed interface ChatItem {
             val imageUri: String,
             val aspectRatio: Float,
             override val isFromMe: Boolean,
-            override val state: MessageState,
+            override val state: SendMessageStatus,
             override val timestamp: Long,
         ) : ChatMessage(id, isFromMe, state, timestamp)
 
@@ -43,7 +43,7 @@ sealed interface ChatItem {
             val isPlaying: Boolean = false,
             val currentTime: String? = null,
             override val isFromMe: Boolean,
-            override val state: MessageState,
+            override val state: SendMessageStatus,
             override val timestamp: Long,
         ) : ChatMessage(id, isFromMe, state, timestamp)
     }

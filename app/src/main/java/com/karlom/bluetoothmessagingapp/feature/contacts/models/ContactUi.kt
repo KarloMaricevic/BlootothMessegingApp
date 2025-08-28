@@ -1,7 +1,7 @@
 package com.karlom.bluetoothmessagingapp.feature.contacts.models
 
 import androidx.compose.ui.graphics.Color
-import com.karlom.bluetoothmessagingapp.domain.contacts.models.Contact
+import com.karlomaricevic.domain.contacts.models.Contact
 
 data class ContactUi(
     val contact: Contact,

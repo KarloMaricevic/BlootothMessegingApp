@@ -21,6 +21,10 @@ dependencyResolutionManagement {
 
 rootProject.name = "BlootothMessegingApp"
 include(":app")
-//include(":domain")
 include(":app2")
-include(":core-navigation")
+include(":domain")
+include(":bluetooth")
+include(":core:platform")
+include(":core:common")
+include(":core:navigation")
+include(":data")

@@ -12,6 +12,7 @@ import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -19,6 +20,8 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.Icon
@@ -37,7 +40,6 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
-import androidx.paging.compose.collectAsLazyPagingItems
 import com.google.accompanist.permissions.rememberMultiplePermissionsState
 import com.karlom.bluetoothmessagingapp.R
 import com.karlom.bluetoothmessagingapp.designSystem.theme.blue
@@ -48,8 +50,6 @@ import com.karlom.bluetoothmessagingapp.feature.addDevice.models.AddDeviceScreen
 import com.karlom.bluetoothmessagingapp.feature.addDevice.models.AddDeviceScreenEvent.OnDiscoverableSwitchChecked
 import com.karlom.bluetoothmessagingapp.feature.addDevice.models.AddDeviceScreenEvent.OnScanForDevicesClicked
 import com.karlom.bluetoothmessagingapp.feature.addDevice.viewmodel.AddDeviceViewModel
-import com.karlom.bluetoothmessagingapp.feature.chat.models.ChatScreenEvent.OnBackClicked
-import com.karlom.bluetoothmessagingapp.feature.shared.SimpleLazyColumn
 
 @Composable
 fun AddDeviceScreen(
@@ -57,7 +57,6 @@ fun AddDeviceScreen(
 ) {
     val context = LocalContext.current
     val state by viewModel.state.collectAsState()
-    val bluetoothDevices = state.bluetoothDevices.collectAsLazyPagingItems()
     val makeDiscoverable = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.StartActivityForResult(),
         onResult = { result ->
@@ -87,7 +86,8 @@ fun AddDeviceScreen(
         }
     }
     val enabledBluetooth =
-        rememberLauncherForActivityResult(contract = ActivityResultContracts.StartActivityForResult(),
+        rememberLauncherForActivityResult(
+            contract = ActivityResultContracts.StartActivityForResult(),
             onResult = { result ->
                 if (result.resultCode == Activity.RESULT_OK) {
                     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S || isLocationEnabled(context)) {
@@ -126,7 +126,7 @@ fun AddDeviceScreen(
                 modifier = Modifier
                     .padding(start = 4.dp, bottom = 8.dp)
                     .clip(CircleShape)
-                    .clickable { viewModel.onEvent(AddDeviceScreenEvent.OnBackClicked)  }
+                    .clickable { viewModel.onEvent(AddDeviceScreenEvent.OnBackClicked) }
                     .padding(12.dp)
                     .size(16.dp)
             )
@@ -187,24 +187,30 @@ fun AddDeviceScreen(
                 }
             }
         } else {
-            SimpleLazyColumn(
-                items = bluetoothDevices,
-                key = { address },
-                uiItemBuilder = { device ->
-                    BluetoothDeviceItem(
-                        device = device,
-                        modifier = Modifier.clickable { viewModel.onEvent(OnDeviceClicked(device.address)) }
+            val devices = state.bluetoothDevices
+            if (devices == null) {
+                Box(modifier = Modifier.fillMaxSize()) {
+                    Text(
+                        text = stringResource(R.string.bluetooth_device_screen_no_devices_nearby),
+                        modifier = Modifier.align(Alignment.Center),
                     )
-                },
-                noItemsItem = {
-                    Box(modifier = Modifier.fillMaxSize()) {
-                        Text(
-                            text = stringResource(R.string.bluetooth_device_screen_no_devices_nearby),
-                            modifier = Modifier.align(Alignment.Center),
+                }
+            } else {
+                LazyColumn(
+                    modifier = Modifier.fillMaxSize(),
+                    verticalArrangement = Arrangement.spacedBy(8.dp),
+                ) {
+                    items(items = devices, key = { device -> device.address }) { device ->
+                        BluetoothDeviceItem(
+                            device = device,
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .clickable { viewModel.onEvent(OnDeviceClicked(device.address)) }
+                                .padding(horizontal = 16.dp, vertical = 8.dp)
                         )
                     }
-                },
-            )
+                }
+            }
         }
     }
 }

@@ -16,7 +16,9 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import com.karlom.bluetoothmessagingapp.domain.chat.models.MessageState
+import com.karlomaricevic.domain.messaging.models.SendMessageStatus.NOT_SENT
+import com.karlomaricevic.domain.messaging.models.SendMessageStatus.SENDING
+import com.karlomaricevic.domain.messaging.models.SendMessageStatus.SENT
 import com.karlom.bluetoothmessagingapp.feature.chat.models.ChatItem.ChatMessage.Text
 
 @Composable
@@ -36,7 +38,7 @@ fun TextChatBox(
             text = message.message,
             modifier = Modifier
                 .align(if (message.isFromMe) Alignment.CenterEnd else Alignment.CenterStart)
-                .then(if (message.state == MessageState.SENDING || message.state == MessageState.NOT_SENT) {
+                .then(if (message.state == SENDING || message.state == NOT_SENT) {
                     Modifier.graphicsLayer {
                         alpha = 0.5f
                         shadowElevation = 0f
@@ -46,7 +48,7 @@ fun TextChatBox(
                     Modifier
                 })
                 .then(
-                    if (message.state == MessageState.NOT_SENT) {
+                    if (message.state == NOT_SENT) {
                         Modifier.border(1.dp, Color.Red, RoundedCornerShape(16.dp))
                     } else {
                         Modifier
@@ -67,7 +69,7 @@ private fun TextChatBoxSendingPreview() {
             id = 0,
             message = "Hello!",
             isFromMe = false,
-            state = MessageState.SENDING,
+            state = SENDING,
             timestamp = 0,
         )
     )
@@ -81,7 +83,7 @@ private fun TextChatBoxSentPreview() {
             id = 0,
             message = "Hello!",
             isFromMe = false,
-            state = MessageState.SENT,
+            state = SENT,
             timestamp = 0,
         )
     )
@@ -95,7 +97,7 @@ private fun TextChatBoxNotSentPreview() {
             id = 0,
             message = "Hello!",
             isFromMe = false,
-            state = MessageState.NOT_SENT,
+            state = NOT_SENT,
             timestamp = 0,
         )
     )

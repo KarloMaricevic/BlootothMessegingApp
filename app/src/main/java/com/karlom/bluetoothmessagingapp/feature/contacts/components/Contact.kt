@@ -19,8 +19,8 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.karlom.bluetoothmessagingapp.designSystem.theme.BluetoothMessagingAppTheme
-import com.karlom.bluetoothmessagingapp.domain.contacts.models.Contact
 import com.karlom.bluetoothmessagingapp.feature.contacts.models.ContactUi
+import com.karlomaricevic.domain.contacts.models.Contact as ContactModel
 
 @Composable
 fun Contact(
@@ -87,7 +87,7 @@ fun ContactPreview() {
     BluetoothMessagingAppTheme {
         Contact(
             ContactUi(
-                contact = Contact(name = "Contact 1", address = ""),
+                contact = ContactModel(name = "Contact 1", address = ""),
                 lastMessage = "You: Hello this is a fake message",
                 color = Color.Blue,
             )
@@ -101,7 +101,7 @@ fun ContactLongTextPreview() {
     BluetoothMessagingAppTheme {
         Contact(
             ContactUi(
-                contact = Contact(
+                contact = ContactModel(
                     name = List(size = 20, init = { "Contact 1" }).joinToString(""),
                     address = "",
                 ),

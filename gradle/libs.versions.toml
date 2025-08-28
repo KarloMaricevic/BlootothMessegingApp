@@ -2,7 +2,9 @@
 agp = "8.12.0"
 kotlin = "2.0.21"
 arrow = "1.2.0-RC"
-coorutines = "1.8.0"
+ksp = "2.0.21-1.0.27"
+coorutineCore = "1.10.2"
+coorutinesTest = "1.8.0"
 appcompat = "1.6.1"
 splashScreen = "1.0.1"
 appcompanistPermissions = "0.31.0-alpha"
@@ -13,7 +15,7 @@ compose = "1.6.7"
 navigation = "2.7.3"
 compsoseMaterial3 = "1.2.1"
 coilCompose = "2.6.0"
-hilt = "2.49"
+hilt = "2.51.1"
 hilt-navigation-compose = "1.2.0"
 junit = "4.13.2"
 timber = "5.0.1"
@@ -26,8 +28,10 @@ coreKtx = "1.17.0"
 junitVersion = "1.3.0"
 espressoCore = "3.7.0"
 material = "1.12.0"
+jetbrainsKotlinJvm = "2.0.21"
 
 [libraries]
+coroutines-core = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-core", version.ref = "coorutineCore" }
 arrow-core = { group = "io.arrow-kt", name = "arrow-core", version.ref = "arrow" }
 
 androidx-activity = { group = "androidx.activity", name = "activity-ktx", version = "1.9.0" }
@@ -61,7 +65,7 @@ junit = { group = "junit", name = "junit", version.ref = "junit" }
 turbine = { group = "app.cash.turbine", name = "turbine", version.ref = "turbine" }
 kotest = { group = "io.kotest", name = "kotest-runner-junit4", version.ref = "kotest" }
 kotest-assertion-arrow = { group = "io.kotest.extensions", name = "kotest-assertions-arrow", version.ref = "kotest-arrow"}
-coorutine-test = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-test", version.ref = "coorutines" }
+coorutine-test = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-test", version.ref = "coorutinesTest" }
 mockK = { group = "io.mockk", name = "mockk", version.ref = "mockK" }
 roboelectric = { group  = "org.robolectric", name = "robolectric", version.ref = "robolectric" }
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
@@ -73,6 +77,7 @@ material = { group = "com.google.android.material", name = "material", version.r
 androidApplication = { id = "com.android.application", version.ref = "agp" }
 androidLibrary = { id = "com.android.library", version.ref = "agp" }
 jetbrainsKotlinAndroid = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
+jetbrainsKotlinJvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "jetbrainsKotlinJvm" }
 compose-compiler = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }
 hilt = { id = "com.google.dagger.hilt.android", version.ref = "hilt" }
-kapt = { id = "org.jetbrains.kotlin.kapt", version.ref = "kotlin" }
+ksp = { id = "com.google.devtools.ksp", version.ref = "ksp" }

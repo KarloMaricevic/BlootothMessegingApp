@@ -3,8 +3,8 @@ package com.karlom.bluetoothmessagingapp.feature.shared.viewmodel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.karlom.bluetoothmessagingapp.core.di.IoDispatcher
-import com.karlom.bluetoothmessagingapp.domain.chat.usecase.StartSavingReceivedMessages
-import com.karlom.bluetoothmessagingapp.domain.connection.usecase.CloseConnection
+import com.karlomaricevic.domain.connection.usecase.CloseConnection
+import com.karlomaricevic.domain.messaging.usecase.StartSavingReceivedMessages
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.launch

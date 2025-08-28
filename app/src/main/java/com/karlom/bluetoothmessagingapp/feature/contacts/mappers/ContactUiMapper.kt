@@ -1,8 +1,8 @@
 package com.karlom.bluetoothmessagingapp.feature.contacts.mappers
 
 import androidx.compose.ui.graphics.Color
-import com.karlom.bluetoothmessagingapp.domain.contacts.models.Contact
 import com.karlom.bluetoothmessagingapp.feature.contacts.models.ContactUi
+import com.karlomaricevic.domain.contacts.models.Contact
 import javax.inject.Inject
 import kotlin.math.absoluteValue
 

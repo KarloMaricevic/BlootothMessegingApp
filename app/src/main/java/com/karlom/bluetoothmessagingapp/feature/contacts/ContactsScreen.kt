@@ -7,6 +7,8 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
@@ -22,13 +24,14 @@ import com.karlom.bluetoothmessagingapp.feature.contacts.models.ContactScreenEve
 import com.karlom.bluetoothmessagingapp.feature.contacts.models.ContactScreenEvent.OnContactClicked
 import com.karlom.bluetoothmessagingapp.feature.contacts.viewmodel.ContactsViewModel
 import com.karlom.bluetoothmessagingapp.feature.shared.SimpleLazyColumn
+import com.karlom.bluetoothmessagingapp.feature.shared.SimplifiedSimpleLazyColumn
 
 @Composable
 fun ContactsScreen(
     viewModel: ContactsViewModel = hiltViewModel()
 ) {
-    val contacts = viewModel.contacts.collectAsLazyPagingItems()
-
+    val contactsState = viewModel.contacts.collectAsState()
+    val contacts = contactsState.value
     Box {
         Column {
             Text(
@@ -36,27 +39,29 @@ fun ContactsScreen(
                 style = MaterialTheme.typography.headlineMedium,
                 modifier = Modifier.padding(start = 8.dp, bottom = 4.dp),
             )
-            SimpleLazyColumn(
-                items = contacts,
-                key = { contact.address },
-                uiItemBuilder = { contactUi ->
-                    Contact(
-                        model = contactUi,
-                        modifier = Modifier
-                            .testTag("contact-${contactUi.contact.address}")
-                            .clickable {
-                                viewModel.onEvent(
-                                    OnContactClicked(
-                                        contactName = contactUi.contact.name,
-                                        address = contactUi.contact.address,
+            if (contacts != null) {
+                SimplifiedSimpleLazyColumn(
+                    items = contacts,
+                    key = { contact -> contact.contact.address },
+                    uiItemBuilder = { contactUi ->
+                        Contact(
+                            model = contactUi,
+                            modifier = Modifier
+                                .testTag("contact-${contactUi.contact.address}")
+                                .clickable {
+                                    viewModel.onEvent(
+                                        OnContactClicked(
+                                            contactName = contactUi.contact.name,
+                                            address = contactUi.contact.address,
+                                        )
                                     )
-                                )
-                            }
-                    )
-                },
-                noItemsItem = { NoContactsIndicator(viewModel::onEvent) },
-                modifier = Modifier.weight(weight = 1f, fill = true),
-            )
+                                }
+                        )
+                    },
+                    noItemsItem = { NoContactsIndicator(viewModel::onEvent) },
+                    modifier = Modifier.weight(weight = 1f, fill = true),
+                )
+            }
         }
         NewChatFloatingButton(
             onClick = { viewModel.onEvent(OnAddContactClicked) },

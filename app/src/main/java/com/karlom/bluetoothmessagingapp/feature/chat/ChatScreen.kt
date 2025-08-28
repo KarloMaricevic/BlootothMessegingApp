@@ -25,19 +25,16 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
-import androidx.paging.compose.collectAsLazyPagingItems
 import com.google.accompanist.permissions.rememberPermissionState
 import com.karlom.bluetoothmessagingapp.designSystem.theme.gray500
 import com.karlom.bluetoothmessagingapp.feature.chat.components.AudioChatBox
 import com.karlom.bluetoothmessagingapp.feature.chat.components.ChatInputFiled
 import com.karlom.bluetoothmessagingapp.feature.chat.components.ChatScreenToolbar
-import com.karlom.bluetoothmessagingapp.feature.chat.components.ConnectToButton
 import com.karlom.bluetoothmessagingapp.feature.chat.components.ContactIndicator
 import com.karlom.bluetoothmessagingapp.feature.chat.components.ImageChatBox
 import com.karlom.bluetoothmessagingapp.feature.chat.components.TextChatBox
@@ -49,12 +46,11 @@ import com.karlom.bluetoothmessagingapp.feature.chat.models.ChatItem.ChatMessage
 import com.karlom.bluetoothmessagingapp.feature.chat.models.ChatItem.DateIndicator
 import com.karlom.bluetoothmessagingapp.feature.chat.models.ChatItem.StartOfMessagingIndicator
 import com.karlom.bluetoothmessagingapp.feature.chat.models.ChatScreenEffect
-import com.karlom.bluetoothmessagingapp.feature.chat.models.ChatScreenEvent.OnConnectClicked
 import com.karlom.bluetoothmessagingapp.feature.chat.models.ChatScreenEvent.OnSendImageClicked
 import com.karlom.bluetoothmessagingapp.feature.chat.models.ChatScreenEvent.OnStartRecordingVoiceClicked
 import com.karlom.bluetoothmessagingapp.feature.chat.models.ChatViewModelParams
 import com.karlom.bluetoothmessagingapp.feature.chat.viewmodel.ChatViewModel
-import com.karlom.bluetoothmessagingapp.feature.shared.SimpleLazyColumn
+import com.karlom.bluetoothmessagingapp.feature.shared.SimplifiedSimpleLazyColumn
 
 @Composable
 fun ChatScreen(
@@ -67,7 +63,6 @@ fun ChatScreen(
         factory.create((ChatViewModelParams(name = contactName, address = address)))
     }
     val state by viewModel.state.collectAsState()
-    val messages = state.messages.collectAsLazyPagingItems()
 
     val galleryLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.StartActivityForResult()
@@ -102,14 +97,16 @@ fun ChatScreen(
             onInteraction = viewModel::onEvent,
         )
         Box(Modifier.weight(weight = 1f, fill = true)) {
-            SimpleLazyColumn(
-                items = messages,
-                key = {
-                    when (this) {
-                        is ChatItem.MessageSeparator -> id
-                        is StartOfMessagingIndicator -> "startOfMessagingIndicator"
-                        is DateIndicator -> date
-                        is ChatMessage -> "$id"
+            SimplifiedSimpleLazyColumn(
+                items = state.messages,
+                reverseLayout = true,
+                modifier = Modifier.fillMaxSize(),
+                key = { message ->
+                    when (message) {
+                        is ChatItem.MessageSeparator -> "separator_${message.id}"
+                        is StartOfMessagingIndicator -> "start_indicator"
+                        is DateIndicator -> "date_${message.date.hashCode()}"
+                        is ChatMessage -> "msg_${message.id}"
                     }
                 },
                 uiItemBuilder = { message ->
@@ -120,7 +117,7 @@ fun ChatScreen(
                         is Image -> ImageChatBox(message)
                         is Audio -> AudioChatBox(
                             message = message,
-                            onInteraction = viewModel::onEvent,
+                            onInteraction = viewModel::onEvent
                         )
 
                         is DateIndicator -> Text(
@@ -130,26 +127,12 @@ fun ChatScreen(
                                 .padding(top = 16.dp, bottom = 24.dp),
                             textAlign = TextAlign.Center,
                             style = MaterialTheme.typography.bodySmall,
-                            color = gray500,
+                            color = gray500
                         )
                     }
                 },
-                state = listState,
-                reverseLayout = true,
-                noItemsItem = { },
-                modifier = Modifier.fillMaxSize()
+                noItemsItem = {},
             )
-            if (state.showConnectToDeviceButton) {
-                ConnectToButton(
-                    isConnecting = state.isTryingToConnect,
-                    onClick = if (state.isTryingToConnect) {
-                        null
-                    } else {
-                        { viewModel.onEvent(OnConnectClicked) }
-                    },
-                    modifier = Modifier.align(Alignment.TopCenter),
-                )
-            }
         }
         AnimatedVisibility(
             visible = !state.showConnectToDeviceButton,

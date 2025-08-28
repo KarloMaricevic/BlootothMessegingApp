@@ -19,8 +19,10 @@ import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import com.karlom.bluetoothmessagingapp.R
-import com.karlom.bluetoothmessagingapp.domain.chat.models.MessageState
 import com.karlom.bluetoothmessagingapp.feature.chat.models.ChatItem.ChatMessage.Image
+import com.karlomaricevic.domain.messaging.models.SendMessageStatus.NOT_SENT
+import com.karlomaricevic.domain.messaging.models.SendMessageStatus.SENDING
+import com.karlomaricevic.domain.messaging.models.SendMessageStatus.SENT
 
 @Composable
 fun ImageChatBox(
@@ -37,7 +39,7 @@ fun ImageChatBox(
             contentDescription = stringResource(R.string.default_icon_content_description),
             modifier = Modifier
                 .align(if (message.isFromMe) Alignment.CenterEnd else Alignment.CenterStart)
-                .then(if (message.state == MessageState.SENDING || message.state == MessageState.NOT_SENT) {
+                .then(if (message.state == SENDING || message.state == NOT_SENT) {
                     Modifier.graphicsLayer {
                         alpha = 0.5f
                         shadowElevation = 0f
@@ -47,7 +49,7 @@ fun ImageChatBox(
                     Modifier
                 })
                 .then(
-                    if (message.state == MessageState.NOT_SENT) {
+                    if (message.state == NOT_SENT) {
                         Modifier.border(
                             1.dp, Color.Red, RoundedCornerShape(
                                 topStart = 16.dp,
@@ -83,7 +85,7 @@ private fun TextChatBoxSendingPreview() {
             imageUri = "",
             isFromMe = false,
             aspectRatio = 16 / 9f,
-            state = MessageState.SENDING,
+            state = SENDING,
             timestamp = 0,
         )
     )
@@ -98,7 +100,7 @@ private fun TextChatBoxSentPreview() {
             imageUri = "",
             isFromMe = false,
             aspectRatio = 16 / 9f,
-            state = MessageState.SENT,
+            state = SENT,
             timestamp = 0,
         )
     )
@@ -113,7 +115,7 @@ private fun TextChatBoxNotSentPreview() {
             imageUri = "",
             isFromMe = false,
             aspectRatio = 16 / 9f,
-            state = MessageState.NOT_SENT,
+            state = NOT_SENT,
             timestamp = 0,
         )
     )
