@@ -1,4 +1,4 @@
-package com.karlomaricevic.data.db.entites
+package com.karlomaricevic.bluetoothmessagingapp.data.db.entites
 
 import androidx.room.Entity
 import androidx.room.PrimaryKey

@@ -1,4 +1,4 @@
-package com.karlomaricevic.data.audio
+package com.karlomaricevic.bluetoothmessagingapp.data.audio
 
 import android.content.Context
 import android.media.AudioAttributes

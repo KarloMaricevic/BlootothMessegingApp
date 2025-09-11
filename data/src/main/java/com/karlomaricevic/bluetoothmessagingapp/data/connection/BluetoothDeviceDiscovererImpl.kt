@@ -1,4 +1,4 @@
-package com.karlomaricevic.data.connection
+package com.karlomaricevic.bluetoothmessagingapp.data.connection
 
 import com.karlomaricevic.bluetoothmessagingapp.bluetooth.AppBluetoothManager
 import com.karlomaricevic.bluetoothmessagingapp.domain.connection.DeviceDiscoverer

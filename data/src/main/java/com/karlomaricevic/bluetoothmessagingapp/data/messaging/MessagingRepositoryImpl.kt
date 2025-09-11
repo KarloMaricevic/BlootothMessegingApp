@@ -1,4 +1,4 @@
-package com.karlomaricevic.data.messaging
+package com.karlomaricevic.bluetoothmessagingapp.data.messaging
 
 import arrow.core.Either
 import arrow.core.flatMap

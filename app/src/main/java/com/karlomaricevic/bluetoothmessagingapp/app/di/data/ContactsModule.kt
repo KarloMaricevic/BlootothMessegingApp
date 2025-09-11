@@ -1,7 +1,7 @@
 package com.karlomaricevic.bluetoothmessagingapp.app.di.data
 
-import com.karlomaricevic.data.db.daos.ContactDao
-import com.karlomaricevic.data.contact.ContactRepositoryImpl
+import com.karlomaricevic.bluetoothmessagingapp.data.db.daos.ContactDao
+import com.karlomaricevic.bluetoothmessagingapp.data.contact.ContactRepositoryImpl
 import com.karlomaricevic.bluetoothmessagingapp.domain.contacts.ContactRepository
 import dagger.Binds
 import dagger.Module

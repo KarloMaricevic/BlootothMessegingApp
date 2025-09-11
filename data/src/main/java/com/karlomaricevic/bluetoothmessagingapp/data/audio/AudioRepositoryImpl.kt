@@ -1,4 +1,4 @@
-package com.karlomaricevic.data.audio
+package com.karlomaricevic.bluetoothmessagingapp.data.audio
 
 import com.karlomaricevic.bluetoothmessagingapp.domain.audio.AudioRepository
 import com.karlomaricevic.platform.utils.FileStorage

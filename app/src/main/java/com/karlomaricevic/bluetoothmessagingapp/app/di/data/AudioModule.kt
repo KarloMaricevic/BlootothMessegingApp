@@ -1,9 +1,9 @@
 package com.karlomaricevic.bluetoothmessagingapp.app.di.data
 
 import android.content.Context
-import com.karlomaricevic.data.audio.AudioPlayerImpl
-import com.karlomaricevic.data.audio.AudioRepositoryImpl
-import com.karlomaricevic.data.audio.VoiceRecorderImpl
+import com.karlomaricevic.bluetoothmessagingapp.data.audio.AudioPlayerImpl
+import com.karlomaricevic.bluetoothmessagingapp.data.audio.AudioRepositoryImpl
+import com.karlomaricevic.bluetoothmessagingapp.data.audio.VoiceRecorderImpl
 import com.karlomaricevic.bluetoothmessagingapp.domain.audio.AudioPlayer
 import com.karlomaricevic.bluetoothmessagingapp.domain.audio.AudioRepository
 import com.karlomaricevic.bluetoothmessagingapp.domain.audio.VoiceRecorder

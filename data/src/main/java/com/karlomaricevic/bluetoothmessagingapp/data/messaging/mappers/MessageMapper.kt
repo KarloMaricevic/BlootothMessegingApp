@@ -1,9 +1,9 @@
-package com.karlomaricevic.data.messaging.mappers
+package com.karlomaricevic.bluetoothmessagingapp.data.messaging.mappers
 
-import com.karlomaricevic.data.db.entites.MessageEntity
-import com.karlomaricevic.data.db.entites.MessageType.TEXT
-import com.karlomaricevic.data.db.entites.MessageType.AUDIO
-import com.karlomaricevic.data.db.entites.MessageType.IMAGE
+import com.karlomaricevic.bluetoothmessagingapp.data.db.entites.MessageEntity
+import com.karlomaricevic.bluetoothmessagingapp.data.db.entites.MessageType.AUDIO
+import com.karlomaricevic.bluetoothmessagingapp.data.db.entites.MessageType.IMAGE
+import com.karlomaricevic.bluetoothmessagingapp.data.db.entites.MessageType.TEXT
 import com.karlomaricevic.bluetoothmessagingapp.domain.messaging.models.Message.AudioMessage
 import com.karlomaricevic.bluetoothmessagingapp.domain.messaging.models.Message.ImageMessage
 import com.karlomaricevic.bluetoothmessagingapp.domain.messaging.models.Message.TextMessage

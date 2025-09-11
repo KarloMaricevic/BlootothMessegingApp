@@ -2,7 +2,7 @@ package com.karlomaricevic.bluetoothmessagingapp.app.di.data
 
 import android.content.Context
 import androidx.room.Room
-import com.karlomaricevic.data.db.AppDatabase
+import com.karlomaricevic.bluetoothmessagingapp.data.db.AppDatabase
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn

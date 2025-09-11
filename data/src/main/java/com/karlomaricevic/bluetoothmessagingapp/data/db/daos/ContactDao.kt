@@ -1,9 +1,9 @@
-package com.karlomaricevic.data.db.daos
+package com.karlomaricevic.bluetoothmessagingapp.data.db.daos
 
 import androidx.room.Dao
 import androidx.room.Insert
 import androidx.room.Query
-import com.karlomaricevic.data.db.entites.ContactEntity
+import com.karlomaricevic.bluetoothmessagingapp.data.db.entites.ContactEntity
 import kotlinx.coroutines.flow.Flow
 
 @Dao

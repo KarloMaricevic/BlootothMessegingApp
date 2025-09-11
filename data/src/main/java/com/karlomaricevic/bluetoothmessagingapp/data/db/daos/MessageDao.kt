@@ -1,10 +1,10 @@
-package com.karlomaricevic.data.db.daos
+package com.karlomaricevic.bluetoothmessagingapp.data.db.daos
 
 import androidx.room.Dao
 import androidx.room.Insert
 import androidx.room.Query
 import androidx.room.Update
-import com.karlomaricevic.data.db.entites.MessageEntity
+import com.karlomaricevic.bluetoothmessagingapp.data.db.entites.MessageEntity
 import com.karlomaricevic.bluetoothmessagingapp.domain.messaging.models.SendMessageStatus
 import kotlinx.coroutines.flow.Flow
 
