@@ -1,4 +1,4 @@
-package com.karlomaricevic.bluetooth.models
+package com.karlomaricevic.bluetoothmessagingapp.bluetooth.models
 
 sealed class TransportMessage(open val address: String) {
 

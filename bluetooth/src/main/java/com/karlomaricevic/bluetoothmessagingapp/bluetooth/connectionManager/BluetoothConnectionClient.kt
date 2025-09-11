@@ -1,4 +1,4 @@
-package com.karlomaricevic.bluetooth.connectionManager
+package com.karlomaricevic.bluetoothmessagingapp.bluetooth.connectionManager
 
 import android.annotation.SuppressLint
 import android.bluetooth.BluetoothServerSocket
@@ -6,8 +6,8 @@ import android.bluetooth.BluetoothSocket
 import arrow.core.Either
 import arrow.core.Either.Left
 import arrow.core.Either.Right
-import com.karlomaricevic.bluetooth.AppBluetoothManager
-import com.karlomaricevic.bluetooth.models.SocketStreams
+import com.karlomaricevic.bluetoothmessagingapp.bluetooth.AppBluetoothManager
+import com.karlomaricevic.bluetoothmessagingapp.bluetooth.models.SocketStreams
 import com.karlomaricevic.core.common.Failure.ErrorMessage
 import com.karlomaricevic.domain.connection.models.Connection
 import com.karlomaricevic.platform.utils.PermissionChecker

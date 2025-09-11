@@ -1,4 +1,4 @@
-package com.karlomaricevic.bluetooth.utils
+package com.karlomaricevic.bluetoothmessagingapp.bluetooth.utils
 
 object MessageConstants {
     const val DATA_SIZE_PREFIX_SIZE = Int.SIZE_BYTES

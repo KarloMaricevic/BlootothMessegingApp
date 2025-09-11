@@ -1,7 +1,7 @@
-package com.karlomaricevic.bluetooth.utils
+package com.karlomaricevic.bluetoothmessagingapp.bluetooth.utils
 
-import com.karlomaricevic.bluetooth.models.TransportMessage.*
-import com.karlomaricevic.bluetooth.utils.MessageConstants.CHARSET_UTF_8
+import com.karlomaricevic.bluetoothmessagingapp.bluetooth.models.TransportMessage.*
+import com.karlomaricevic.bluetoothmessagingapp.bluetooth.utils.MessageConstants.CHARSET_UTF_8
 import java.nio.ByteBuffer
 
 class MessageDecoder {

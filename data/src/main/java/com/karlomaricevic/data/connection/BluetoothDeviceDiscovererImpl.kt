@@ -1,6 +1,6 @@
 package com.karlomaricevic.data.connection
 
-import com.karlomaricevic.bluetooth.AppBluetoothManager
+import com.karlomaricevic.bluetoothmessagingapp.bluetooth.AppBluetoothManager
 import com.karlomaricevic.domain.connection.DeviceDiscoverer
 
 class BluetoothDeviceDiscovererImpl(

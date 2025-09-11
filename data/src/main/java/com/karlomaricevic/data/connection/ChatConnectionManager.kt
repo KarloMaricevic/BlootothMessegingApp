@@ -1,6 +1,6 @@
 package com.karlomaricevic.data.connection
 
-import com.karlomaricevic.bluetooth.connectionManager.BluetoothConnectionClient
+import com.karlomaricevic.bluetoothmessagingapp.bluetooth.connectionManager.BluetoothConnectionClient
 import com.karlomaricevic.domain.connection.ConnectionManager
 import com.karlomaricevic.domain.connection.models.Connection
 import kotlinx.coroutines.flow.Flow

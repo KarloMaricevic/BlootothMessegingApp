@@ -1,4 +1,4 @@
-package com.karlomaricevic.bluetooth.utils;
+package com.karlomaricevic.bluetoothmessagingapp.bluetooth.utils
 
 fun bytesToInt(bytes: ByteArray): Int {
     bytes[0].toInt()

@@ -1,4 +1,4 @@
-package com.karlomaricevic.bluetooth
+package com.karlomaricevic.bluetoothmessagingapp.bluetooth
 
 import android.Manifest
 import android.annotation.SuppressLint
@@ -20,7 +20,7 @@ import arrow.core.Either.Left
 import arrow.core.Either.Right
 import arrow.core.left
 import arrow.core.right
-import com.karlomaricevic.bluetooth.models.BluetoothDeviceResponse
+import com.karlomaricevic.bluetoothmessagingapp.bluetooth.models.BluetoothDeviceResponse
 import com.karlomaricevic.core.common.Failure.ErrorMessage
 import com.karlomaricevic.domain.connection.models.Connection
 import kotlin.coroutines.resume

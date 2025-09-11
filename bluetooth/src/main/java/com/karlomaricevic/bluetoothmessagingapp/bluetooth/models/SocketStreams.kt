@@ -1,4 +1,4 @@
-package com.karlomaricevic.bluetooth.models
+package com.karlomaricevic.bluetoothmessagingapp.bluetooth.models
 
 import java.io.InputStream
 import java.io.OutputStream

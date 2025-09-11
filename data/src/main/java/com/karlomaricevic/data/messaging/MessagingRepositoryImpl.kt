@@ -2,10 +2,10 @@ package com.karlomaricevic.data.messaging
 
 import arrow.core.Either
 import arrow.core.flatMap
-import com.karlomaricevic.bluetooth.communicationMenager.BluetoothCommunicationManager
-import com.karlomaricevic.bluetooth.models.TransportMessage.Audio
-import com.karlomaricevic.bluetooth.models.TransportMessage.Image
-import com.karlomaricevic.bluetooth.models.TransportMessage.Text
+import com.karlomaricevic.bluetoothmessagingapp.bluetooth.communicationMenager.BluetoothCommunicationManager
+import com.karlomaricevic.bluetoothmessagingapp.bluetooth.models.TransportMessage.Audio
+import com.karlomaricevic.bluetoothmessagingapp.bluetooth.models.TransportMessage.Image
+import com.karlomaricevic.bluetoothmessagingapp.bluetooth.models.TransportMessage.Text
 import com.karlomaricevic.domain.messaging.MessageGateway
 import com.karlomaricevic.domain.messaging.models.SendMessageStatus.NOT_SENT
 import com.karlomaricevic.domain.messaging.models.SendMessageStatus.SENDING

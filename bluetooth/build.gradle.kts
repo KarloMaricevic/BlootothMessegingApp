@@ -4,7 +4,7 @@ plugins {
 }
 
 android {
-    namespace = "com.karlomaricevic.bluetooth"
+    namespace = "com.karlomaricevic.bluetoothmessagingapp.bluetooth"
     compileSdk = 36
 
     defaultConfig {

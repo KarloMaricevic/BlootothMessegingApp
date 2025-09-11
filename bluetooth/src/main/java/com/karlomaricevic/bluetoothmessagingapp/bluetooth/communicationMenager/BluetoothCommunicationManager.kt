@@ -1,18 +1,18 @@
-package com.karlomaricevic.bluetooth.communicationMenager
+package com.karlomaricevic.bluetoothmessagingapp.bluetooth.communicationMenager
 
 import arrow.core.Either
 import arrow.core.Either.Left
 import arrow.core.Either.Right
 import arrow.core.left
 import arrow.core.right
-import com.karlomaricevic.bluetooth.connectionManager.BluetoothConnectionClient
-import com.karlomaricevic.bluetooth.connectionManager.ConnectionStateListener
-import com.karlomaricevic.bluetooth.models.SocketStreams
-import com.karlomaricevic.bluetooth.models.TransportMessage
-import com.karlomaricevic.bluetooth.utils.MessageConstants
-import com.karlomaricevic.bluetooth.utils.MessageConstants.CHUNK_SIZE
-import com.karlomaricevic.bluetooth.utils.MessageDecoder
-import com.karlomaricevic.bluetooth.utils.MessageEncoder
+import com.karlomaricevic.bluetoothmessagingapp.bluetooth.connectionManager.BluetoothConnectionClient
+import com.karlomaricevic.bluetoothmessagingapp.bluetooth.connectionManager.ConnectionStateListener
+import com.karlomaricevic.bluetoothmessagingapp.bluetooth.models.SocketStreams
+import com.karlomaricevic.bluetoothmessagingapp.bluetooth.models.TransportMessage
+import com.karlomaricevic.bluetoothmessagingapp.bluetooth.utils.MessageConstants
+import com.karlomaricevic.bluetoothmessagingapp.bluetooth.utils.MessageConstants.CHUNK_SIZE
+import com.karlomaricevic.bluetoothmessagingapp.bluetooth.utils.MessageDecoder
+import com.karlomaricevic.bluetoothmessagingapp.bluetooth.utils.MessageEncoder
 import com.karlomaricevic.core.common.Failure.ErrorMessage
 import java.io.IOException
 import java.io.InputStream
@@ -91,7 +91,7 @@ class BluetoothCommunicationManager(
                 val payload = ByteArray(dataLength)
                 var bytesReadTotal = 0
                 while (bytesReadTotal < dataLength) {
-                    val chunkSize = minOf(MessageConstants.CHUNK_SIZE, dataLength - bytesReadTotal)
+                    val chunkSize = minOf(CHUNK_SIZE, dataLength - bytesReadTotal)
                     val read = inputStream.read(payload, bytesReadTotal, chunkSize)
                     if (read == -1) throw IOException("Stream closed unexpectedly")
                     bytesReadTotal += read

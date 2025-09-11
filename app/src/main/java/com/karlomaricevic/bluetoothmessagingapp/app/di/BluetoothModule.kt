@@ -1,11 +1,11 @@
 package com.karlomaricevic.bluetoothmessagingapp.app.di
 
 import android.content.Context
-import com.karlomaricevic.bluetooth.AppBluetoothManager
-import com.karlomaricevic.bluetooth.communicationMenager.BluetoothCommunicationManager
-import com.karlomaricevic.bluetooth.connectionManager.BluetoothConnectionClient
-import com.karlomaricevic.bluetooth.utils.MessageDecoder
-import com.karlomaricevic.bluetooth.utils.MessageEncoder
+import com.karlomaricevic.bluetoothmessagingapp.bluetooth.AppBluetoothManager
+import com.karlomaricevic.bluetoothmessagingapp.bluetooth.communicationMenager.BluetoothCommunicationManager
+import com.karlomaricevic.bluetoothmessagingapp.bluetooth.connectionManager.BluetoothConnectionClient
+import com.karlomaricevic.bluetoothmessagingapp.bluetooth.utils.MessageDecoder
+import com.karlomaricevic.bluetoothmessagingapp.bluetooth.utils.MessageEncoder
 import com.karlomaricevic.bluetoothmessagingapp.dispatchers.IoDispatcher
 import com.karlomaricevic.platform.utils.PermissionChecker
 import dagger.Module

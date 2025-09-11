@@ -1,10 +1,10 @@
-package com.karlomaricevic.bluetooth.utils
+package com.karlomaricevic.bluetoothmessagingapp.bluetooth.utils
 
-import com.karlomaricevic.bluetooth.utils.MessageConstants.DATA_SIZE_PREFIX_SIZE
-import com.karlomaricevic.bluetooth.utils.MessageConstants.MESSAGE_TYPE_AUDIO
-import com.karlomaricevic.bluetooth.utils.MessageConstants.MESSAGE_TYPE_IMAGE
-import com.karlomaricevic.bluetooth.utils.MessageConstants.MESSAGE_TYPE_PREFIX_SIZE
-import com.karlomaricevic.bluetooth.utils.MessageConstants.MESSAGE_TYPE_TEXT
+import com.karlomaricevic.bluetoothmessagingapp.bluetooth.utils.MessageConstants.DATA_SIZE_PREFIX_SIZE
+import com.karlomaricevic.bluetoothmessagingapp.bluetooth.utils.MessageConstants.MESSAGE_TYPE_AUDIO
+import com.karlomaricevic.bluetoothmessagingapp.bluetooth.utils.MessageConstants.MESSAGE_TYPE_IMAGE
+import com.karlomaricevic.bluetoothmessagingapp.bluetooth.utils.MessageConstants.MESSAGE_TYPE_PREFIX_SIZE
+import com.karlomaricevic.bluetoothmessagingapp.bluetooth.utils.MessageConstants.MESSAGE_TYPE_TEXT
 import java.nio.ByteBuffer
 
 class MessageEncoder {

@@ -1,6 +1,6 @@
 package com.karlomaricevic.bluetoothmessagingapp.app.di.data
 
-import com.karlomaricevic.bluetooth.communicationMenager.BluetoothCommunicationManager
+import com.karlomaricevic.bluetoothmessagingapp.bluetooth.communicationMenager.BluetoothCommunicationManager
 import com.karlomaricevic.data.db.daos.MessageDao
 import com.karlomaricevic.data.messaging.MessageLocalDataSource
 import com.karlomaricevic.data.messaging.MessagingRepositoryImpl

@@ -1,4 +1,4 @@
-package com.karlomaricevic.bluetooth.models
+package com.karlomaricevic.bluetoothmessagingapp.bluetooth.models
 
 data class BluetoothDeviceResponse(
     val name: String,
