@@ -1,11 +1,11 @@
-package com.karlomaricevic.platform.utils
+package com.karlomaricevic.bluetoothmessagingapp.platform.utils
 
 import android.content.Context
 import androidx.core.net.toUri
 import arrow.core.Either
 import arrow.core.left
 import arrow.core.right
-import com.karlomaricevic.core.common.Failure.ErrorMessage
+import com.karlomaricevic.bluetoothmessagingapp.core.common.Failure.ErrorMessage
 import java.io.File
 import java.io.FileNotFoundException
 import java.io.FileOutputStream

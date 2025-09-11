@@ -1,8 +1,8 @@
 package com.karlomaricevic.bluetoothmessagingapp.app.di
 
 import android.content.Context
-import com.karlomaricevic.platform.utils.FileStorage
-import com.karlomaricevic.platform.utils.PermissionChecker
+import com.karlomaricevic.bluetoothmessagingapp.platform.utils.FileStorage
+import com.karlomaricevic.bluetoothmessagingapp.platform.utils.PermissionChecker
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn

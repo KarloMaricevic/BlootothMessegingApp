@@ -1,6 +1,6 @@
 package com.karlomaricevic.bluetoothmessagingapp.feature.chat.navigation
 
-import com.karlomaricevic.core.navigation.NavigationDestination
+import com.karlomaricevic.bluetoothmessagingapp.core.navigation.NavigationDestination
 
 object ChatRouter : NavigationDestination {
 

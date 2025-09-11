@@ -1,7 +1,7 @@
 package com.karlomaricevic.bluetoothmessagingapp.domain.audio
 
 import arrow.core.Either
-import com.karlomaricevic.core.common.Failure.ErrorMessage
+import com.karlomaricevic.bluetoothmessagingapp.core.common.Failure.ErrorMessage
 
 interface VoiceRecorder {
     val isRecording: Boolean

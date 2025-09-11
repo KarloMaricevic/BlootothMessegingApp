@@ -1,8 +1,8 @@
-package com.karlomaricevic.core.common
+package com.karlomaricevic.bluetoothmessagingapp.core.common
 
 import arrow.core.Either.Left
-import com.karlomaricevic.core.common.Failure.ErrorMessage
-import com.karlomaricevic.core.common.Failure.Unknown
+import com.karlomaricevic.bluetoothmessagingapp.core.common.Failure.ErrorMessage
+import com.karlomaricevic.bluetoothmessagingapp.core.common.Failure.Unknown
 
 sealed interface Failure {
     data class ErrorMessage(val errorMessage: String) : Failure

@@ -13,7 +13,7 @@ import com.karlomaricevic.bluetoothmessagingapp.bluetooth.utils.MessageConstants
 import com.karlomaricevic.bluetoothmessagingapp.bluetooth.utils.MessageConstants.CHUNK_SIZE
 import com.karlomaricevic.bluetoothmessagingapp.bluetooth.utils.MessageDecoder
 import com.karlomaricevic.bluetoothmessagingapp.bluetooth.utils.MessageEncoder
-import com.karlomaricevic.core.common.Failure.ErrorMessage
+import com.karlomaricevic.bluetoothmessagingapp.core.common.Failure.ErrorMessage
 import java.io.IOException
 import java.io.InputStream
 import java.io.OutputStream

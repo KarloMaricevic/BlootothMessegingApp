@@ -10,7 +10,7 @@ import com.karlomaricevic.bluetoothmessagingapp.domain.messaging.MessageGateway
 import com.karlomaricevic.bluetoothmessagingapp.domain.messaging.models.SendMessageStatus.NOT_SENT
 import com.karlomaricevic.bluetoothmessagingapp.domain.messaging.models.SendMessageStatus.SENDING
 import com.karlomaricevic.bluetoothmessagingapp.domain.messaging.models.SendMessageStatus.SENT
-import com.karlomaricevic.platform.utils.FileStorage
+import com.karlomaricevic.bluetoothmessagingapp.platform.utils.FileStorage
 import java.util.UUID
 import kotlinx.coroutines.flow.flow
 

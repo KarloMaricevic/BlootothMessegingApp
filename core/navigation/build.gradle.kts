@@ -4,7 +4,7 @@ plugins {
 }
 
 android {
-    namespace = "com.karlomaricevic.core.navigation"
+    namespace = "com.karlomaricevic.bluetoothmessagingapp.core.navigation"
     compileSdk = 36
 
     defaultConfig {

@@ -1,4 +1,4 @@
-package com.karlomaricevic.platform.utils
+package com.karlomaricevic.bluetoothmessagingapp.platform.utils
 
 import android.Manifest
 import android.content.Context
@@ -8,7 +8,7 @@ import androidx.core.app.ActivityCompat.checkSelfPermission
 import arrow.core.Either
 import arrow.core.Either.Left
 import arrow.core.Either.Right
-import com.karlomaricevic.core.common.Failure.ErrorMessage
+import com.karlomaricevic.bluetoothmessagingapp.core.common.Failure.ErrorMessage
 
 class PermissionChecker(private val context: Context) {
 

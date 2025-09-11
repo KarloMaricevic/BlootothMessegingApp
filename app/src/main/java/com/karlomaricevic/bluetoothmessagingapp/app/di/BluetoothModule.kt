@@ -7,7 +7,7 @@ import com.karlomaricevic.bluetoothmessagingapp.bluetooth.connectionManager.Blue
 import com.karlomaricevic.bluetoothmessagingapp.bluetooth.utils.MessageDecoder
 import com.karlomaricevic.bluetoothmessagingapp.bluetooth.utils.MessageEncoder
 import com.karlomaricevic.bluetoothmessagingapp.dispatchers.IoDispatcher
-import com.karlomaricevic.platform.utils.PermissionChecker
+import com.karlomaricevic.bluetoothmessagingapp.platform.utils.PermissionChecker
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn

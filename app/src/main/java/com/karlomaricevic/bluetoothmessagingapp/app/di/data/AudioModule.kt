@@ -7,7 +7,7 @@ import com.karlomaricevic.bluetoothmessagingapp.data.audio.VoiceRecorderImpl
 import com.karlomaricevic.bluetoothmessagingapp.domain.audio.AudioPlayer
 import com.karlomaricevic.bluetoothmessagingapp.domain.audio.AudioRepository
 import com.karlomaricevic.bluetoothmessagingapp.domain.audio.VoiceRecorder
-import com.karlomaricevic.platform.utils.FileStorage
+import com.karlomaricevic.bluetoothmessagingapp.platform.utils.FileStorage
 import dagger.Binds
 import dagger.Module
 import dagger.Provides

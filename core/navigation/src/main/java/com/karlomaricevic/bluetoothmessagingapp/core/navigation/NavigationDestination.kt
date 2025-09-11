@@ -1,4 +1,4 @@
-package com.karlomaricevic.core.navigation
+package com.karlomaricevic.bluetoothmessagingapp.core.navigation
 
 import androidx.navigation.NamedNavArgument
 import androidx.navigation.NavDeepLink

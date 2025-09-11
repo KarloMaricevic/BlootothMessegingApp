@@ -1,7 +1,7 @@
 package com.karlomaricevic.bluetoothmessagingapp.data.audio
 
 import com.karlomaricevic.bluetoothmessagingapp.domain.audio.AudioRepository
-import com.karlomaricevic.platform.utils.FileStorage
+import com.karlomaricevic.bluetoothmessagingapp.platform.utils.FileStorage
 
 class AudioRepositoryImpl(private val storage: FileStorage): AudioRepository {
 

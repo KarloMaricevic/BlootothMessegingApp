@@ -6,7 +6,7 @@ import android.os.Build
 import arrow.core.Either
 import arrow.core.left
 import arrow.core.right
-import com.karlomaricevic.core.common.Failure.ErrorMessage
+import com.karlomaricevic.bluetoothmessagingapp.core.common.Failure.ErrorMessage
 import com.karlomaricevic.bluetoothmessagingapp.domain.audio.VoiceRecorder
 import java.util.UUID
 

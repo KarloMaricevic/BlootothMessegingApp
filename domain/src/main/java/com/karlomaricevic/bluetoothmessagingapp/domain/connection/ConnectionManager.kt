@@ -1,7 +1,7 @@
 package com.karlomaricevic.bluetoothmessagingapp.domain.connection
 
 import arrow.core.Either
-import com.karlomaricevic.core.common.Failure.ErrorMessage
+import com.karlomaricevic.bluetoothmessagingapp.core.common.Failure.ErrorMessage
 import com.karlomaricevic.bluetoothmessagingapp.domain.connection.models.Connection
 import kotlinx.coroutines.flow.Flow
 

@@ -8,9 +8,9 @@ import arrow.core.Either.Left
 import arrow.core.Either.Right
 import com.karlomaricevic.bluetoothmessagingapp.bluetooth.AppBluetoothManager
 import com.karlomaricevic.bluetoothmessagingapp.bluetooth.models.SocketStreams
-import com.karlomaricevic.core.common.Failure.ErrorMessage
+import com.karlomaricevic.bluetoothmessagingapp.core.common.Failure.ErrorMessage
 import com.karlomaricevic.bluetoothmessagingapp.domain.connection.models.Connection
-import com.karlomaricevic.platform.utils.PermissionChecker
+import com.karlomaricevic.bluetoothmessagingapp.platform.utils.PermissionChecker
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope

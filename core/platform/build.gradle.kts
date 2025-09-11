@@ -4,7 +4,7 @@ plugins {
 }
 
 android {
-    namespace = "com.karlomaricevic.core.platform"
+    namespace = "com.karlomaricevic.bluetoothmessagingapp.core.platform"
     compileSdk = 36
 
     defaultConfig {

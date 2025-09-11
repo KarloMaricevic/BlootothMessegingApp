@@ -6,7 +6,7 @@ import com.karlomaricevic.bluetoothmessagingapp.data.messaging.MessageLocalDataS
 import com.karlomaricevic.bluetoothmessagingapp.data.messaging.MessagingRepositoryImpl
 import com.karlomaricevic.bluetoothmessagingapp.data.messaging.mappers.MessageMapper
 import com.karlomaricevic.bluetoothmessagingapp.domain.messaging.MessageGateway
-import com.karlomaricevic.platform.utils.FileStorage
+import com.karlomaricevic.bluetoothmessagingapp.platform.utils.FileStorage
 import dagger.Binds
 import dagger.Module
 import dagger.Provides
