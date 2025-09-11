@@ -13,14 +13,14 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
-import com.karlom.bluetoothmessagingapp.feature.addDevice.AddDeviceScreen
-import com.karlom.bluetoothmessagingapp.feature.addDevice.navigation.AddDeviceScreenRouter
-import com.karlom.bluetoothmessagingapp.feature.chat.ChatScreen
-import com.karlom.bluetoothmessagingapp.feature.chat.navigation.ChatRouter
-import com.karlom.bluetoothmessagingapp.feature.chat.navigation.ChatRouter.CONTACT_NAME_PARAM
-import com.karlom.bluetoothmessagingapp.feature.contacts.ContactsScreen
-import com.karlom.bluetoothmessagingapp.feature.contacts.navigation.ContactsRouter
 import com.karlomaricevic.app2.navigation.NavigationEvent.*
+import com.karlomaricevic.bluetoothmessagingapp.feature.addDevice.AddDeviceScreen
+import com.karlomaricevic.bluetoothmessagingapp.feature.addDevice.navigation.AddDeviceScreenRouter
+import com.karlomaricevic.bluetoothmessagingapp.feature.chat.ChatScreen
+import com.karlomaricevic.bluetoothmessagingapp.feature.chat.navigation.ChatRouter
+import com.karlomaricevic.bluetoothmessagingapp.feature.chat.navigation.ChatRouter.CONTACT_NAME_PARAM
+import com.karlomaricevic.bluetoothmessagingapp.feature.contacts.ContactsScreen
+import com.karlomaricevic.bluetoothmessagingapp.feature.contacts.navigation.ContactsRouter
 
 @Composable
 fun BluetoothMessagingAppNavigation(

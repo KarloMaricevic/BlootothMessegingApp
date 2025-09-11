@@ -36,15 +36,18 @@ android {
 }
 
 dependencies {
-    implementation(project(":app"))
     implementation(project(":core:navigation"))
     implementation(project(":core:platform"))
+    implementation(project(":core:dispatchers"))
     implementation(project(":domain"))
     implementation(project(":data"))
     implementation(project(":bluetooth"))
+    implementation(project(":feature"))
+    implementation(project(":designSystem"))
+
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.appcompat)
-    implementation(libs.material)
+    implementation(libs.androidx.splashscreen)
 
     implementation(libs.androidx.compose.activity)
     implementation(libs.androidx.compose.ui)

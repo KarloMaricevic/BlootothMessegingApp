@@ -6,7 +6,7 @@ import com.karlomaricevic.bluetooth.communicationMenager.BluetoothCommunicationM
 import com.karlomaricevic.bluetooth.connectionManager.BluetoothConnectionClient
 import com.karlomaricevic.bluetooth.utils.MessageDecoder
 import com.karlomaricevic.bluetooth.utils.MessageEncoder
-import com.karlomaricevic.domain.connection.ConnectionManager
+import com.karlomaricevic.bluetoothmessagingapp.dispatchers.IoDispatcher
 import com.karlomaricevic.platform.utils.PermissionChecker
 import dagger.Module
 import dagger.Provides

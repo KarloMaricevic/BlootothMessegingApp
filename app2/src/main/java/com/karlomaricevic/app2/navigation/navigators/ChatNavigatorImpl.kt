@@ -1,8 +1,8 @@
 package com.karlomaricevic.app2.navigation.navigators
 
-import com.karlom.bluetoothmessagingapp.feature.chat.navigation.ChatNavigator
 import com.karlomaricevic.app2.navigation.NavigationEvent.NavigateBack
 import com.karlomaricevic.app2.navigation.Navigator
+import com.karlomaricevic.bluetoothmessagingapp.feature.chat.navigation.ChatNavigator
 import javax.inject.Inject
 
 class ChatNavigatorImpl @Inject constructor(

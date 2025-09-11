@@ -1,16 +1,18 @@
 package com.karlomaricevic.app2.di
 
+import com.karlomaricevic.bluetoothmessagingapp.dispatchers.DefaultDispatcher
+import com.karlomaricevic.bluetoothmessagingapp.dispatchers.IoDispatcher
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
-import javax.inject.Qualifier
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
 
 @Module
 @InstallIn(SingletonComponent::class)
 object DispatcherModule {
+
     @DefaultDispatcher
     @Provides
     fun providesDefaultDispatcher(): CoroutineDispatcher = Dispatchers.Default
@@ -19,11 +21,3 @@ object DispatcherModule {
     @Provides
     fun providesIoDispatcher(): CoroutineDispatcher = Dispatchers.IO
 }
-
-@Retention(AnnotationRetention.BINARY)
-@Qualifier
-annotation class DefaultDispatcher
-
-@Retention(AnnotationRetention.BINARY)
-@Qualifier
-annotation class IoDispatcher
