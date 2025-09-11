@@ -32,10 +32,16 @@ android {
 dependencies {
     implementation(project(":core:common"))
     implementation(project(":core:platform"))
+    implementation(project(":core:dispatchers"))
     implementation(project(":domain"))
+
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.appcompat)
+
+    implementation(libs.kodein.di)
+
     implementation(libs.arrow.core)
+
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)

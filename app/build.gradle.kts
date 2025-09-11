@@ -2,7 +2,6 @@ plugins {
     alias(libs.plugins.androidApplication)
     alias(libs.plugins.compose.compiler)
     alias(libs.plugins.jetbrainsKotlinAndroid)
-    alias(libs.plugins.hilt)
     alias(libs.plugins.ksp)
 }
 
@@ -48,6 +47,7 @@ dependencies {
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.appcompat)
     implementation(libs.androidx.splashscreen)
+    implementation(libs.androidx.navigation.compose)
 
     implementation(libs.androidx.compose.activity)
     implementation(libs.androidx.compose.ui)
@@ -57,9 +57,7 @@ dependencies {
 
     implementation(libs.androidx.room.runtime)
 
-    implementation(libs.hilt.android)
-    ksp(libs.hilt.compiler)
-    implementation(libs.hilt.navigation.compose)
+    implementation(libs.kodein.di)
 
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)

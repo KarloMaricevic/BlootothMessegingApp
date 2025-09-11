@@ -48,10 +48,13 @@ dependencies {
     implementation(project(":core:dispatchers"))
     implementation(project(":domain"))
     implementation(project(":designSystem"))
+
     implementation(libs.androidx.core.ktx)
-    implementation(libs.androidx.appcompat)
+    implementation(libs.androidx.compose.activity)
 
     implementation(libs.appcompanist.permissions)
+
+    implementation(libs.androidx.lifecycle.viewmodel)
 
     implementation(libs.androidx.compose.ui)
     implementation(libs.androidx.compose.foundation)
@@ -60,9 +63,7 @@ dependencies {
     implementation(libs.androidx.compose.ui.tooling)
     implementation(libs.androidx.compose.ui.tooling.preview)
 
-    implementation(libs.hilt.android)
-    ksp(libs.hilt.compiler)
-    implementation(libs.hilt.navigation.compose)
+    implementation(libs.kodein.di)
 
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)

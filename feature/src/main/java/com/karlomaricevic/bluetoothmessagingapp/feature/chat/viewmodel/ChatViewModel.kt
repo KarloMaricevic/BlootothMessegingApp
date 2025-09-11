@@ -1,9 +1,9 @@
 package com.karlomaricevic.bluetoothmessagingapp.feature.chat.viewmodel
 
+import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.viewModelScope
 import arrow.core.Either
 import arrow.core.flatMap
-import com.karlomaricevic.bluetoothmessagingapp.dispatchers.IoDispatcher
 import com.karlomaricevic.bluetoothmessagingapp.feature.chat.mappers.ChatMessageMapper
 import com.karlomaricevic.bluetoothmessagingapp.feature.chat.mappers.DateIndicatorMapper
 import com.karlomaricevic.bluetoothmessagingapp.feature.chat.mappers.SeparatorMapper
@@ -36,14 +36,10 @@ import com.karlomaricevic.bluetoothmessagingapp.feature.chat.models.ChatScreenEv
 import com.karlomaricevic.bluetoothmessagingapp.feature.chat.models.ChatScreenEvent.OnStopRecordingVoiceClicked
 import com.karlomaricevic.bluetoothmessagingapp.feature.chat.models.ChatScreenEvent.OnTextChanged
 import com.karlomaricevic.bluetoothmessagingapp.feature.chat.models.ChatScreenState
-import com.karlomaricevic.bluetoothmessagingapp.feature.chat.models.ChatViewModelParams
 import com.karlomaricevic.bluetoothmessagingapp.feature.chat.navigation.ChatNavigator
+import com.karlomaricevic.bluetoothmessagingapp.feature.chat.navigation.ChatRouter
 import com.karlomaricevic.bluetoothmessagingapp.feature.shared.TIMEOUT_DELAY
 import com.karlomaricevic.bluetoothmessagingapp.feature.shared.extensions.combine
-import dagger.assisted.Assisted
-import dagger.assisted.AssistedFactory
-import dagger.assisted.AssistedInject
-import dagger.hilt.android.lifecycle.HiltViewModel
 import java.util.Calendar
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.channels.Channel
@@ -58,9 +54,8 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
-@HiltViewModel(assistedFactory = ChatViewModel.ChatViewModelFactory::class)
-class ChatViewModel @AssistedInject constructor(
-    @Assisted private val params: ChatViewModelParams,
+class ChatViewModel(
+    savedStateHandle: SavedStateHandle,
     private val getMessages: GetMessages,
     private val sendText: SendText,
     private val isConnectedTo: IsConnectedTo,
@@ -74,25 +69,25 @@ class ChatViewModel @AssistedInject constructor(
     private val chatMessageMapper: ChatMessageMapper,
     private val dateIndicatorMapper: DateIndicatorMapper,
     private val separatorMapper: SeparatorMapper,
-    @IoDispatcher private val ioDispatcher: CoroutineDispatcher,
+    private val ioDispatcher: CoroutineDispatcher,
     private val navigator: ChatNavigator,
 ) : BaseViewModel<ChatScreenEvent>() {
 
-    private companion object {
-        const val NUMBER_OF_RETRIES_WHEN_CONNECTING = 3
-        const val RETRY_DELAY_MILLIS = 3000L
-    }
+    private val address: String = savedStateHandle.get<String>(ChatRouter.ADDRESS_PARAM)
+        ?: error("Address not provided")
+    private val contactName: String = savedStateHandle.get<String>(ChatRouter.CONTACT_NAME_PARAM)
+        ?: error("Contact name not provided")
 
     private val audioPlayer = getAudioPlayer()
     private val voiceRecorder = getVoiceRecorder()
 
-    private val showConnectToDeviceButton = MutableStateFlow(!isConnectedTo(params.address))
+    private val showConnectToDeviceButton = MutableStateFlow(!isConnectedTo(address))
     private val isTryingToConnect = MutableStateFlow(false)
     private val textToSend = MutableStateFlow("")
     private val inputMode = MutableStateFlow(TEXT)
     private val audioMessagePlaying = MutableStateFlow<Audio?>(null)
     private val isRecordingVoice = MutableStateFlow(false)
-    private val messages: StateFlow<List<ChatItem>> = getMessages(params.address)
+    private val messages: StateFlow<List<ChatItem>> = getMessages(address)
         .map { messages ->
             val estimatedSize = messages.size + messages.size / 10
             val result = ArrayList<ChatItem>(estimatedSize)
@@ -133,7 +128,7 @@ class ChatViewModel @AssistedInject constructor(
         scope = viewModelScope,
         started = SharingStarted.WhileSubscribed(TIMEOUT_DELAY),
         initialValue = ChatScreenState(
-            showConnectToDeviceButton = !isConnectedTo(params.address)
+            showConnectToDeviceButton = !isConnectedTo(address)
         ),
     )
 
@@ -143,7 +138,7 @@ class ChatViewModel @AssistedInject constructor(
     init {
         viewModelScope.launch(ioDispatcher) {
             getConnectionStateNotifier().collect { connectedDevices ->
-                showConnectToDeviceButton.update { connectedDevices?.address == params.address }
+                showConnectToDeviceButton.update { connectedDevices?.address == address }
             }
         }
     }
@@ -154,10 +149,10 @@ class ChatViewModel @AssistedInject constructor(
             is OnTextChanged -> textToSend.update { event.text }
             is OnSendClicked -> viewModelScope.launch(ioDispatcher) {
                 when (inputMode.value) {
-                    TEXT -> sendText(message = textToSend.value, address = params.address)
+                    TEXT -> sendText(message = textToSend.value, address = address)
 
                     VOICE -> voiceRecordingFilePath?.let { voiceRecordingFilePath ->
-                        sendAudio(imagePath = voiceRecordingFilePath, address = params.address)
+                        sendAudio(imagePath = voiceRecordingFilePath, address = address)
                     }
                 }?.collect { state ->
                     if (state == SENDING) {
@@ -172,7 +167,7 @@ class ChatViewModel @AssistedInject constructor(
             is OnConnectClicked -> startServerAndPeriodicallyTryToConnectToAddress()
 
             is OnSendImageClicked -> viewModelScope.launch(ioDispatcher) {
-                sendImage(imageUri = event.uri, address = params.address).collect { state ->
+                sendImage(imageUri = event.uri, address = address).collect { state ->
                     if (state == SENDING) {
                         _viewEffect.trySend(ScrollToBottom)
                     }
@@ -225,7 +220,7 @@ class ChatViewModel @AssistedInject constructor(
     private fun startServerAndPeriodicallyTryToConnectToAddress() {
         isTryingToConnect.update { true }
         viewModelScope.launch(ioDispatcher) {
-            connectToKnownContact.invoke(params.address)
+            connectToKnownContact.invoke(address)
             isTryingToConnect.update { false }
         }
     }
@@ -245,11 +240,5 @@ class ChatViewModel @AssistedInject constructor(
         return calendar1.get(Calendar.YEAR) == calendar2.get(Calendar.YEAR) &&
             calendar2.get(Calendar.MONTH) == calendar2.get(Calendar.MONTH) &&
             calendar1.get(Calendar.DAY_OF_MONTH) == calendar2.get(Calendar.DAY_OF_MONTH)
-    }
-
-    @AssistedFactory
-    interface ChatViewModelFactory {
-
-        fun create(params: ChatViewModelParams): ChatViewModel
     }
 }

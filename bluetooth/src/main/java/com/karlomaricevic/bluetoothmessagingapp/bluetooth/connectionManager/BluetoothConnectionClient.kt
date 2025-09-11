@@ -10,7 +10,7 @@ import com.karlomaricevic.bluetoothmessagingapp.bluetooth.AppBluetoothManager
 import com.karlomaricevic.bluetoothmessagingapp.bluetooth.models.SocketStreams
 import com.karlomaricevic.bluetoothmessagingapp.core.common.Failure.ErrorMessage
 import com.karlomaricevic.bluetoothmessagingapp.domain.connection.models.Connection
-import com.karlomaricevic.bluetoothmessagingapp.platform.utils.PermissionChecker
+import com.karlomaricevic.bluetoothmessagingapp.platform.PermissionChecker
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope

@@ -8,15 +8,12 @@ import com.karlomaricevic.bluetoothmessagingapp.feature.contacts.navigation.Cont
 import com.karlomaricevic.bluetoothmessagingapp.feature.shared.BaseViewModel
 import com.karlomaricevic.bluetoothmessagingapp.feature.shared.TIMEOUT_DELAY
 import com.karlomaricevic.bluetoothmessagingapp.domain.contacts.usecase.GetContacts
-import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
-import javax.inject.Inject
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.stateIn
 
-@HiltViewModel
-class ContactsViewModel @Inject constructor(
+class ContactsViewModel(
     private val getContacts: GetContacts,
     private val contactMapper: ContactUiMapper,
     private val navigator: ContactsNavigator,

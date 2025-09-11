@@ -29,7 +29,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import androidx.hilt.navigation.compose.hiltViewModel
 import com.google.accompanist.permissions.rememberPermissionState
 import com.karlomaricevic.bluetoothmessagingapp.designsystem.gray500
 import com.karlomaricevic.bluetoothmessagingapp.feature.chat.components.AudioChatBox
@@ -43,20 +42,16 @@ import com.karlomaricevic.bluetoothmessagingapp.feature.chat.models.ChatItem.Cha
 import com.karlomaricevic.bluetoothmessagingapp.feature.chat.models.ChatScreenEffect.*
 import com.karlomaricevic.bluetoothmessagingapp.feature.chat.models.ChatScreenEvent.OnSendImageClicked
 import com.karlomaricevic.bluetoothmessagingapp.feature.chat.models.ChatScreenEvent.OnStartRecordingVoiceClicked
-import com.karlomaricevic.bluetoothmessagingapp.feature.chat.models.ChatViewModelParams
 import com.karlomaricevic.bluetoothmessagingapp.feature.chat.viewmodel.ChatViewModel
 import com.karlomaricevic.bluetoothmessagingapp.feature.shared.SimplifiedSimpleLazyColumn
 
 @Composable
 fun ChatScreen(
+    viewModel: ChatViewModel,
     contactName: String,
-    address: String,
     scaffoldState: SnackbarHostState,
 ) {
     val context = LocalContext.current
-    val viewModel = hiltViewModel<ChatViewModel, ChatViewModel.ChatViewModelFactory> { factory ->
-        factory.create((ChatViewModelParams(name = contactName, address = address)))
-    }
     val state by viewModel.state.collectAsState()
 
     val galleryLauncher = rememberLauncherForActivityResult(

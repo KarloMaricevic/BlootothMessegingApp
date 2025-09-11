@@ -1,4 +1,4 @@
-package com.karlomaricevic.bluetoothmessagingapp.platform.utils
+package com.karlomaricevic.bluetoothmessagingapp.platform
 
 import android.Manifest
 import android.content.Context

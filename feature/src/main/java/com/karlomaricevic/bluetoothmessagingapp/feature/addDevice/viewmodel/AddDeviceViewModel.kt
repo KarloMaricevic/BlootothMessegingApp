@@ -1,7 +1,7 @@
 package com.karlomaricevic.bluetoothmessagingapp.feature.addDevice.viewmodel
 
 import androidx.lifecycle.viewModelScope
-import com.karlomaricevic.bluetoothmessagingapp.dispatchers.IoDispatcher
+import com.karlomaricevic.bluetoothmessagingapp.dispatchers.IoDispatcherTag
 import com.karlomaricevic.bluetoothmessagingapp.feature.addDevice.models.AddDeviceScreenEvent
 import com.karlomaricevic.bluetoothmessagingapp.feature.addDevice.models.AddDeviceScreenEvent.OnBackClicked
 import com.karlomaricevic.bluetoothmessagingapp.feature.addDevice.models.AddDeviceScreenEvent.OnDeviceClicked
@@ -18,7 +18,7 @@ import com.karlomaricevic.bluetoothmessagingapp.domain.connection.usecase.Observ
 import com.karlomaricevic.bluetoothmessagingapp.domain.connection.usecase.ListenForConnection
 import com.karlomaricevic.bluetoothmessagingapp.domain.contacts.models.Contact
 import com.karlomaricevic.bluetoothmessagingapp.domain.contacts.usecase.AddContact
-import dagger.hilt.android.lifecycle.HiltViewModel
+import com.karlomaricevic.bluetoothmessagingapp.feature.chat.viewmodel.ChatViewModel
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -27,17 +27,15 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import javax.inject.Inject
 
-@HiltViewModel
-class AddDeviceViewModel @Inject constructor(
+class AddDeviceViewModel(
     private val observeDiscoverableState: ObserveDiscoverableState,
     private val getAvailableConnections: GetAvailableConnections,
     private val connectToServer: ConnectToServer,
     private val addContact: AddContact,
     private val listenForConnection: ListenForConnection,
     private val navigator: AddDeviceNavigator,
-    @IoDispatcher private val ioDispatcher: CoroutineDispatcher,
+    private val ioDispatcher: CoroutineDispatcher,
 ) : BaseViewModel<AddDeviceScreenEvent>() {
 
     private val isDiscoverableEnabled = MutableStateFlow(false)
@@ -132,4 +130,9 @@ class AddDeviceViewModel @Inject constructor(
             }
         }
     }
+
+    interface Factory {
+        fun create(address: String): ChatViewModel
+    }
 }
+

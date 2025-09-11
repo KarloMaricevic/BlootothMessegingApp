@@ -4,12 +4,9 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.karlomaricevic.bluetoothmessagingapp.domain.connection.usecase.CloseConnection
 import com.karlomaricevic.bluetoothmessagingapp.domain.messaging.usecase.StartSavingReceivedMessages
-import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.launch
-import javax.inject.Inject
 
-@HiltViewModel
-class GlobalViewModel @Inject constructor(
+class GlobalViewModel(
     private val closeConnection: CloseConnection,
     startSavingReceivedMessages: StartSavingReceivedMessages,
 ) : ViewModel() {

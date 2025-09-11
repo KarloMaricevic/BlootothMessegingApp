@@ -40,7 +40,6 @@ import androidx.compose.ui.res.painterResource
 import com.karlomaricevic.bluetoothmessagingapp.feature.R
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
-import androidx.hilt.navigation.compose.hiltViewModel
 import com.google.accompanist.permissions.rememberMultiplePermissionsState
 import com.karlomaricevic.bluetoothmessagingapp.designsystem.blue
 import com.karlomaricevic.bluetoothmessagingapp.designsystem.gray500
@@ -52,9 +51,7 @@ import com.karlomaricevic.bluetoothmessagingapp.feature.addDevice.models.AddDevi
 import com.karlomaricevic.bluetoothmessagingapp.feature.addDevice.viewmodel.AddDeviceViewModel
 
 @Composable
-fun AddDeviceScreen(
-    viewModel: AddDeviceViewModel = hiltViewModel()
-) {
+fun AddDeviceScreen(viewModel: AddDeviceViewModel) {
     val context = LocalContext.current
     val state by viewModel.state.collectAsState()
     val makeDiscoverable = rememberLauncherForActivityResult(

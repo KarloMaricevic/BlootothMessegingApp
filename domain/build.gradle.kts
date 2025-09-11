@@ -14,5 +14,8 @@ kotlin {
 
 dependencies {
     implementation(project(":core:common"))
+
     implementation(libs.coroutines.core)
+
+    implementation(libs.kodein.di)
 }

@@ -37,5 +37,8 @@ kotlin {
 
 dependencies {
     implementation(project(":core:common"))
+
     implementation(libs.androidx.appcompat)
+
+    implementation(libs.kodein.di)
 }

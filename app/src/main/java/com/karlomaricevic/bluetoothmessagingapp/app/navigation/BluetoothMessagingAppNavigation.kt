@@ -13,20 +13,26 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import com.karlomaricevic.bluetoothmessagingapp.app.di.LocalDI
 import com.karlomaricevic.bluetoothmessagingapp.app.navigation.NavigationEvent.*
 import com.karlomaricevic.bluetoothmessagingapp.feature.addDevice.AddDeviceScreen
 import com.karlomaricevic.bluetoothmessagingapp.feature.addDevice.navigation.AddDeviceScreenRouter
+import com.karlomaricevic.bluetoothmessagingapp.feature.addDevice.viewmodel.AddDeviceViewModel
 import com.karlomaricevic.bluetoothmessagingapp.feature.chat.ChatScreen
 import com.karlomaricevic.bluetoothmessagingapp.feature.chat.navigation.ChatRouter
 import com.karlomaricevic.bluetoothmessagingapp.feature.chat.navigation.ChatRouter.CONTACT_NAME_PARAM
+import com.karlomaricevic.bluetoothmessagingapp.feature.chat.viewmodel.ChatViewModel
 import com.karlomaricevic.bluetoothmessagingapp.feature.contacts.ContactsScreen
 import com.karlomaricevic.bluetoothmessagingapp.feature.contacts.navigation.ContactsRouter
+import com.karlomaricevic.bluetoothmessagingapp.feature.contacts.viewmodel.ContactsViewModel
+import org.kodein.di.instance
 
 @Composable
 fun BluetoothMessagingAppNavigation(
     navigator: Navigator,
     navController: NavHostController = rememberNavController(),
 ) {
+    val di = LocalDI.current
     LaunchedEffect(key1 = Unit) {
         navigator.navigationEvent.collect { navigationEvent ->
             when (navigationEvent) {
@@ -50,18 +56,23 @@ fun BluetoothMessagingAppNavigation(
             modifier = Modifier.padding(innerPadding),
         ) {
             composable(ChatRouter.route()) { entry ->
-                val address = entry.arguments?.getString(ChatRouter.ADDRESS_PARAM)
-                    ?: error("${ChatRouter.ADDRESS_PARAM} was not provided to chat screen")
-                val contactName = entry.arguments?.getString(CONTACT_NAME_PARAM)
-                    ?: error("$CONTACT_NAME_PARAM was not provided to chat screen")
+                val viewModel by di.instance<ChatViewModel>()
+                val contactName = entry.arguments?.getString(ChatRouter.CONTACT_NAME_PARAM)
+                    ?: error("Contact name not provided")
                 ChatScreen(
+                    viewModel = viewModel,
                     contactName = contactName,
-                    address = address,
                     scaffoldState = snackbarHostState,
                 )
             }
-            composable(ContactsRouter.route()) { ContactsScreen() }
-            composable(AddDeviceScreenRouter.route()) { AddDeviceScreen() }
+            composable(ContactsRouter.route()) {
+                val viewmodel by di.instance<ContactsViewModel>()
+                ContactsScreen(viewmodel)
+            }
+            composable(AddDeviceScreenRouter.route()) {
+                val viewModel by di.instance<AddDeviceViewModel>()
+                AddDeviceScreen(viewModel)
+            }
         }
     }
 }

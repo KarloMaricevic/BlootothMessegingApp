@@ -13,7 +13,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
-import androidx.hilt.navigation.compose.hiltViewModel
 import com.karlomaricevic.bluetoothmessagingapp.feature.R
 import com.karlomaricevic.bluetoothmessagingapp.feature.contacts.components.Contact
 import com.karlomaricevic.bluetoothmessagingapp.feature.contacts.components.NewChatFloatingButton
@@ -23,9 +22,7 @@ import com.karlomaricevic.bluetoothmessagingapp.feature.contacts.viewmodel.Conta
 import com.karlomaricevic.bluetoothmessagingapp.feature.shared.SimplifiedSimpleLazyColumn
 
 @Composable
-fun ContactsScreen(
-    viewModel: ContactsViewModel = hiltViewModel()
-) {
+fun ContactsScreen(viewModel: ContactsViewModel) {
     val contactsState = viewModel.contacts.collectAsState()
     val contacts = contactsState.value
     Box {

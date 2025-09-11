@@ -37,6 +37,8 @@ dependencies {
     implementation(project(":bluetooth"))
     implementation(libs.androidx.core.ktx)
 
+    implementation(libs.kodein.di)
+
     implementation(libs.androidx.room.runtime)
     ksp(libs.androidx.room.compiler)
     implementation(libs.androidx.room.ktx)
