@@ -1,7 +1,7 @@
 package com.karlomaricevic.data.connection
 
 import com.karlomaricevic.bluetoothmessagingapp.bluetooth.AppBluetoothManager
-import com.karlomaricevic.domain.connection.DeviceDiscoverer
+import com.karlomaricevic.bluetoothmessagingapp.domain.connection.DeviceDiscoverer
 
 class BluetoothDeviceDiscovererImpl(
     private val bluetoothManager: AppBluetoothManager

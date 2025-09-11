@@ -1,15 +1,15 @@
 package com.karlomaricevic.bluetoothmessagingapp.app.di.domain
 
-import com.karlomaricevic.domain.connection.ConnectionManager
-import com.karlomaricevic.domain.connection.DeviceDiscoverer
-import com.karlomaricevic.domain.connection.usecase.CloseConnection
-import com.karlomaricevic.domain.connection.usecase.ConnectToKnownContact
-import com.karlomaricevic.domain.connection.usecase.ConnectToServer
-import com.karlomaricevic.domain.connection.usecase.GetAvailableConnections
-import com.karlomaricevic.domain.connection.usecase.IsConnectedTo
-import com.karlomaricevic.domain.connection.usecase.ListenForConnection
-import com.karlomaricevic.domain.connection.usecase.ObserveConnectionState
-import com.karlomaricevic.domain.connection.usecase.ObserveDiscoverableState
+import com.karlomaricevic.bluetoothmessagingapp.domain.connection.ConnectionManager
+import com.karlomaricevic.bluetoothmessagingapp.domain.connection.DeviceDiscoverer
+import com.karlomaricevic.bluetoothmessagingapp.domain.connection.usecase.CloseConnection
+import com.karlomaricevic.bluetoothmessagingapp.domain.connection.usecase.ConnectToKnownContact
+import com.karlomaricevic.bluetoothmessagingapp.domain.connection.usecase.ConnectToServer
+import com.karlomaricevic.bluetoothmessagingapp.domain.connection.usecase.GetAvailableConnections
+import com.karlomaricevic.bluetoothmessagingapp.domain.connection.usecase.IsConnectedTo
+import com.karlomaricevic.bluetoothmessagingapp.domain.connection.usecase.ListenForConnection
+import com.karlomaricevic.bluetoothmessagingapp.domain.connection.usecase.ObserveConnectionState
+import com.karlomaricevic.bluetoothmessagingapp.domain.connection.usecase.ObserveDiscoverableState
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn

@@ -4,10 +4,10 @@ import android.content.Context
 import android.graphics.BitmapFactory
 import android.media.MediaMetadataRetriever
 import androidx.core.net.toUri
-import com.karlomaricevic.domain.messaging.models.Message
-import com.karlomaricevic.domain.messaging.models.Message.AudioMessage
-import com.karlomaricevic.domain.messaging.models.Message.ImageMessage
-import com.karlomaricevic.domain.messaging.models.Message.TextMessage
+import com.karlomaricevic.bluetoothmessagingapp.domain.messaging.models.Message
+import com.karlomaricevic.bluetoothmessagingapp.domain.messaging.models.Message.AudioMessage
+import com.karlomaricevic.bluetoothmessagingapp.domain.messaging.models.Message.ImageMessage
+import com.karlomaricevic.bluetoothmessagingapp.domain.messaging.models.Message.TextMessage
 import com.karlomaricevic.bluetoothmessagingapp.feature.chat.models.ChatItem.ChatMessage.Audio
 import com.karlomaricevic.bluetoothmessagingapp.feature.chat.models.ChatItem.ChatMessage.Image
 import com.karlomaricevic.bluetoothmessagingapp.feature.chat.models.ChatItem.ChatMessage.Text

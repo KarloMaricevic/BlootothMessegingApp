@@ -1,11 +1,11 @@
 package com.karlomaricevic.bluetoothmessagingapp.app.di.domain
 
-import com.karlomaricevic.domain.audio.AudioPlayer
-import com.karlomaricevic.domain.audio.AudioRepository
-import com.karlomaricevic.domain.audio.DeleteAudio
-import com.karlomaricevic.domain.audio.GetAudioPlayer
-import com.karlomaricevic.domain.audio.GetVoiceRecorder
-import com.karlomaricevic.domain.audio.VoiceRecorder
+import com.karlomaricevic.bluetoothmessagingapp.domain.audio.AudioPlayer
+import com.karlomaricevic.bluetoothmessagingapp.domain.audio.AudioRepository
+import com.karlomaricevic.bluetoothmessagingapp.domain.audio.DeleteAudio
+import com.karlomaricevic.bluetoothmessagingapp.domain.audio.GetAudioPlayer
+import com.karlomaricevic.bluetoothmessagingapp.domain.audio.GetVoiceRecorder
+import com.karlomaricevic.bluetoothmessagingapp.domain.audio.VoiceRecorder
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn

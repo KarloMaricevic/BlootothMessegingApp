@@ -9,7 +9,7 @@ import arrow.core.Either.Right
 import com.karlomaricevic.bluetoothmessagingapp.bluetooth.AppBluetoothManager
 import com.karlomaricevic.bluetoothmessagingapp.bluetooth.models.SocketStreams
 import com.karlomaricevic.core.common.Failure.ErrorMessage
-import com.karlomaricevic.domain.connection.models.Connection
+import com.karlomaricevic.bluetoothmessagingapp.domain.connection.models.Connection
 import com.karlomaricevic.platform.utils.PermissionChecker
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.async

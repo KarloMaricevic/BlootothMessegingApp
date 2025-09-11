@@ -5,7 +5,7 @@ import com.karlomaricevic.data.db.daos.MessageDao
 import com.karlomaricevic.data.messaging.MessageLocalDataSource
 import com.karlomaricevic.data.messaging.MessagingRepositoryImpl
 import com.karlomaricevic.data.messaging.mappers.MessageMapper
-import com.karlomaricevic.domain.messaging.MessageGateway
+import com.karlomaricevic.bluetoothmessagingapp.domain.messaging.MessageGateway
 import com.karlomaricevic.platform.utils.FileStorage
 import dagger.Binds
 import dagger.Module

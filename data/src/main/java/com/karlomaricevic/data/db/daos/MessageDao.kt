@@ -5,7 +5,7 @@ import androidx.room.Insert
 import androidx.room.Query
 import androidx.room.Update
 import com.karlomaricevic.data.db.entites.MessageEntity
-import com.karlomaricevic.domain.messaging.models.SendMessageStatus
+import com.karlomaricevic.bluetoothmessagingapp.domain.messaging.models.SendMessageStatus
 import kotlinx.coroutines.flow.Flow
 
 @Dao

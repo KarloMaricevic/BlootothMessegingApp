@@ -4,9 +4,9 @@ import android.content.Context
 import com.karlomaricevic.data.audio.AudioPlayerImpl
 import com.karlomaricevic.data.audio.AudioRepositoryImpl
 import com.karlomaricevic.data.audio.VoiceRecorderImpl
-import com.karlomaricevic.domain.audio.AudioPlayer
-import com.karlomaricevic.domain.audio.AudioRepository
-import com.karlomaricevic.domain.audio.VoiceRecorder
+import com.karlomaricevic.bluetoothmessagingapp.domain.audio.AudioPlayer
+import com.karlomaricevic.bluetoothmessagingapp.domain.audio.AudioRepository
+import com.karlomaricevic.bluetoothmessagingapp.domain.audio.VoiceRecorder
 import com.karlomaricevic.platform.utils.FileStorage
 import dagger.Binds
 import dagger.Module

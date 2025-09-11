@@ -31,7 +31,7 @@ import androidx.compose.ui.unit.dp
 import com.karlomaricevic.bluetoothmessagingapp.designsystem.BluetoothMessagingAppTheme
 import com.karlomaricevic.bluetoothmessagingapp.designsystem.black
 import com.karlomaricevic.bluetoothmessagingapp.feature.R
-import com.karlomaricevic.domain.messaging.models.SendMessageStatus.*
+import com.karlomaricevic.bluetoothmessagingapp.domain.messaging.models.SendMessageStatus.*
 import com.karlomaricevic.bluetoothmessagingapp.feature.chat.models.ChatItem.ChatMessage.Audio
 import com.karlomaricevic.bluetoothmessagingapp.feature.chat.models.ChatScreenEvent
 

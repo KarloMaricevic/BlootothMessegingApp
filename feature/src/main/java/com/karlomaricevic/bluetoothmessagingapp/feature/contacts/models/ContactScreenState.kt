@@ -1,6 +1,6 @@
 package com.karlomaricevic.bluetoothmessagingapp.feature.contacts.models
 
-import com.karlomaricevic.domain.contacts.models.Contact
+import com.karlomaricevic.bluetoothmessagingapp.domain.contacts.models.Contact
 
 abstract class ContactScreenState {
     object Loading: ContactScreenState()

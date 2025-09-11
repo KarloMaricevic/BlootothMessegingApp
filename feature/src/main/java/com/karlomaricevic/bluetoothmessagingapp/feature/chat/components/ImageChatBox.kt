@@ -19,9 +19,9 @@ import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import com.karlomaricevic.bluetoothmessagingapp.feature.R
-import com.karlomaricevic.domain.messaging.models.SendMessageStatus.NOT_SENT
-import com.karlomaricevic.domain.messaging.models.SendMessageStatus.SENDING
-import com.karlomaricevic.domain.messaging.models.SendMessageStatus.SENT
+import com.karlomaricevic.bluetoothmessagingapp.domain.messaging.models.SendMessageStatus.NOT_SENT
+import com.karlomaricevic.bluetoothmessagingapp.domain.messaging.models.SendMessageStatus.SENDING
+import com.karlomaricevic.bluetoothmessagingapp.domain.messaging.models.SendMessageStatus.SENT
 import com.karlomaricevic.bluetoothmessagingapp.feature.chat.models.ChatItem.ChatMessage.Image
 
 @Composable

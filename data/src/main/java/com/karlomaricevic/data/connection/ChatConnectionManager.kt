@@ -1,8 +1,8 @@
 package com.karlomaricevic.data.connection
 
 import com.karlomaricevic.bluetoothmessagingapp.bluetooth.connectionManager.BluetoothConnectionClient
-import com.karlomaricevic.domain.connection.ConnectionManager
-import com.karlomaricevic.domain.connection.models.Connection
+import com.karlomaricevic.bluetoothmessagingapp.domain.connection.ConnectionManager
+import com.karlomaricevic.bluetoothmessagingapp.domain.connection.models.Connection
 import kotlinx.coroutines.flow.Flow
 
 class ChatConnectionManager(

@@ -15,7 +15,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.karlomaricevic.bluetoothmessagingapp.feature.R
-import com.karlomaricevic.domain.connection.models.Connection
+import com.karlomaricevic.bluetoothmessagingapp.domain.connection.models.Connection
 
 @Composable
 fun BluetoothDeviceItem(

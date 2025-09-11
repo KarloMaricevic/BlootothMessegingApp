@@ -4,7 +4,7 @@ import androidx.room.ColumnInfo
 import androidx.room.Entity
 import androidx.room.ForeignKey
 import androidx.room.PrimaryKey
-import com.karlomaricevic.domain.messaging.models.SendMessageStatus
+import com.karlomaricevic.bluetoothmessagingapp.domain.messaging.models.SendMessageStatus
 
 @Entity(
     foreignKeys = [ForeignKey(

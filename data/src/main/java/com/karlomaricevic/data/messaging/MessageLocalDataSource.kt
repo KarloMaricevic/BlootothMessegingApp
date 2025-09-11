@@ -2,13 +2,12 @@ package com.karlomaricevic.data.messaging
 
 import com.karlomaricevic.data.db.daos.MessageDao
 import com.karlomaricevic.data.db.entites.MessageEntity
-import com.karlomaricevic.data.db.entites.MessageType
 import com.karlomaricevic.data.db.entites.MessageType.*
 import com.karlomaricevic.data.messaging.mappers.MessageMapper
-import com.karlomaricevic.domain.messaging.models.Message
-import com.karlomaricevic.domain.messaging.models.SendMessageStatus
-import com.karlomaricevic.domain.messaging.models.SendMessageStatus.SENDING
-import com.karlomaricevic.domain.messaging.models.SendMessageStatus.SENT
+import com.karlomaricevic.bluetoothmessagingapp.domain.messaging.models.Message
+import com.karlomaricevic.bluetoothmessagingapp.domain.messaging.models.SendMessageStatus
+import com.karlomaricevic.bluetoothmessagingapp.domain.messaging.models.SendMessageStatus.SENDING
+import com.karlomaricevic.bluetoothmessagingapp.domain.messaging.models.SendMessageStatus.SENT
 import java.util.Date
 import kotlinx.coroutines.flow.map
 

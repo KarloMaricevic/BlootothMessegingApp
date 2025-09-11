@@ -22,7 +22,7 @@ import arrow.core.left
 import arrow.core.right
 import com.karlomaricevic.bluetoothmessagingapp.bluetooth.models.BluetoothDeviceResponse
 import com.karlomaricevic.core.common.Failure.ErrorMessage
-import com.karlomaricevic.domain.connection.models.Connection
+import com.karlomaricevic.bluetoothmessagingapp.domain.connection.models.Connection
 import kotlin.coroutines.resume
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow

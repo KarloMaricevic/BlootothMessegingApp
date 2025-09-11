@@ -7,7 +7,7 @@ import arrow.core.Either
 import arrow.core.left
 import arrow.core.right
 import com.karlomaricevic.core.common.Failure.ErrorMessage
-import com.karlomaricevic.domain.audio.VoiceRecorder
+import com.karlomaricevic.bluetoothmessagingapp.domain.audio.VoiceRecorder
 import java.util.UUID
 
 class VoiceRecorderImpl(private val context: Context) : VoiceRecorder {

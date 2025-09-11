@@ -7,7 +7,7 @@ import com.karlomaricevic.bluetoothmessagingapp.feature.contacts.models.ContactS
 import com.karlomaricevic.bluetoothmessagingapp.feature.contacts.navigation.ContactsNavigator
 import com.karlomaricevic.bluetoothmessagingapp.feature.shared.BaseViewModel
 import com.karlomaricevic.bluetoothmessagingapp.feature.shared.TIMEOUT_DELAY
-import com.karlomaricevic.domain.contacts.usecase.GetContacts
+import com.karlomaricevic.bluetoothmessagingapp.domain.contacts.usecase.GetContacts
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch

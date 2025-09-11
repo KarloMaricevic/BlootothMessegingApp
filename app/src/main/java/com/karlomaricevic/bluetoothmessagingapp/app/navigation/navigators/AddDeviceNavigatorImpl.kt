@@ -6,7 +6,7 @@ import com.karlomaricevic.bluetoothmessagingapp.app.navigation.Navigator
 import com.karlomaricevic.bluetoothmessagingapp.feature.addDevice.navigation.AddDeviceNavigator
 import com.karlomaricevic.bluetoothmessagingapp.feature.chat.navigation.ChatRouter
 import com.karlomaricevic.bluetoothmessagingapp.feature.contacts.navigation.ContactsRouter
-import com.karlomaricevic.domain.connection.models.Connection
+import com.karlomaricevic.bluetoothmessagingapp.domain.connection.models.Connection
 
 class AddDeviceNavigatorImpl(private val navigator: Navigator): AddDeviceNavigator {
 

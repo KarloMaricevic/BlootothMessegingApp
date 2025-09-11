@@ -1,6 +1,6 @@
 package com.karlomaricevic.bluetoothmessagingapp.feature.addDevice.navigation
 
-import com.karlomaricevic.domain.connection.models.Connection
+import com.karlomaricevic.bluetoothmessagingapp.domain.connection.models.Connection
 
 interface AddDeviceNavigator {
 

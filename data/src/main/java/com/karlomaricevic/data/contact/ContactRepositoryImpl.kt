@@ -4,9 +4,9 @@ import arrow.core.left
 import arrow.core.right
 import com.karlomaricevic.data.db.daos.ContactDao
 import com.karlomaricevic.data.db.entites.ContactEntity
-import com.karlomaricevic.domain.contacts.ContactRepository
-import com.karlomaricevic.domain.contacts.models.Contact
-import com.karlomaricevic.domain.core.models.Failure.ErrorMessage
+import com.karlomaricevic.bluetoothmessagingapp.domain.contacts.ContactRepository
+import com.karlomaricevic.bluetoothmessagingapp.domain.contacts.models.Contact
+import com.karlomaricevic.bluetoothmessagingapp.domain.core.models.Failure.ErrorMessage
 import kotlinx.coroutines.flow.map
 import java.lang.Exception
 

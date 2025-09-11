@@ -9,7 +9,7 @@ import arrow.core.Either.Right
 import arrow.core.left
 import arrow.core.right
 import com.karlomaricevic.core.common.Failure.ErrorMessage
-import com.karlomaricevic.domain.audio.AudioPlayer
+import com.karlomaricevic.bluetoothmessagingapp.domain.audio.AudioPlayer
 import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlin.coroutines.resume
 

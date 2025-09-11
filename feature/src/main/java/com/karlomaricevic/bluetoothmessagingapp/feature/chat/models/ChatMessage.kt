@@ -1,6 +1,6 @@
 package com.karlomaricevic.bluetoothmessagingapp.feature.chat.models
 
-import com.karlomaricevic.domain.messaging.models.SendMessageStatus
+import com.karlomaricevic.bluetoothmessagingapp.domain.messaging.models.SendMessageStatus
 
 sealed interface ChatItem {
 

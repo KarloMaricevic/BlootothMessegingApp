@@ -6,10 +6,10 @@ import com.karlomaricevic.bluetoothmessagingapp.bluetooth.communicationMenager.B
 import com.karlomaricevic.bluetoothmessagingapp.bluetooth.models.TransportMessage.Audio
 import com.karlomaricevic.bluetoothmessagingapp.bluetooth.models.TransportMessage.Image
 import com.karlomaricevic.bluetoothmessagingapp.bluetooth.models.TransportMessage.Text
-import com.karlomaricevic.domain.messaging.MessageGateway
-import com.karlomaricevic.domain.messaging.models.SendMessageStatus.NOT_SENT
-import com.karlomaricevic.domain.messaging.models.SendMessageStatus.SENDING
-import com.karlomaricevic.domain.messaging.models.SendMessageStatus.SENT
+import com.karlomaricevic.bluetoothmessagingapp.domain.messaging.MessageGateway
+import com.karlomaricevic.bluetoothmessagingapp.domain.messaging.models.SendMessageStatus.NOT_SENT
+import com.karlomaricevic.bluetoothmessagingapp.domain.messaging.models.SendMessageStatus.SENDING
+import com.karlomaricevic.bluetoothmessagingapp.domain.messaging.models.SendMessageStatus.SENT
 import com.karlomaricevic.platform.utils.FileStorage
 import java.util.UUID
 import kotlinx.coroutines.flow.flow

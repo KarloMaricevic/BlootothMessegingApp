@@ -4,8 +4,8 @@ import com.karlomaricevic.bluetoothmessagingapp.bluetooth.AppBluetoothManager
 import com.karlomaricevic.bluetoothmessagingapp.bluetooth.connectionManager.BluetoothConnectionClient
 import com.karlomaricevic.data.connection.BluetoothDeviceDiscovererImpl
 import com.karlomaricevic.data.connection.ChatConnectionManager
-import com.karlomaricevic.domain.connection.ConnectionManager
-import com.karlomaricevic.domain.connection.DeviceDiscoverer
+import com.karlomaricevic.bluetoothmessagingapp.domain.connection.ConnectionManager
+import com.karlomaricevic.bluetoothmessagingapp.domain.connection.DeviceDiscoverer
 import dagger.Binds
 import dagger.Module
 import dagger.Provides

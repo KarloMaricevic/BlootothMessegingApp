@@ -2,7 +2,7 @@ package com.karlomaricevic.bluetoothmessagingapp.feature.contacts.mappers
 
 import androidx.compose.ui.graphics.Color
 import com.karlomaricevic.bluetoothmessagingapp.feature.contacts.models.ContactUi
-import com.karlomaricevic.domain.contacts.models.Contact
+import com.karlomaricevic.bluetoothmessagingapp.domain.contacts.models.Contact
 import kotlin.math.absoluteValue
 
 class ContactUiMapper {

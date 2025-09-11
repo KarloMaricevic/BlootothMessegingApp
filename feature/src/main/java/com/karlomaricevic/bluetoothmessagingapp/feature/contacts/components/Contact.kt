@@ -20,7 +20,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.karlomaricevic.bluetoothmessagingapp.designsystem.BluetoothMessagingAppTheme
 import com.karlomaricevic.bluetoothmessagingapp.feature.contacts.models.ContactUi
-import com.karlomaricevic.domain.contacts.models.Contact as ContactModel
+import com.karlomaricevic.bluetoothmessagingapp.domain.contacts.models.Contact as ContactModel
 
 @Composable
 fun Contact(

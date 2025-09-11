@@ -1,6 +1,6 @@
 package com.karlomaricevic.bluetoothmessagingapp.feature.chat.mappers
 
-import com.karlomaricevic.domain.messaging.models.Message
+import com.karlomaricevic.bluetoothmessagingapp.domain.messaging.models.Message
 import com.karlomaricevic.bluetoothmessagingapp.feature.chat.models.ChatItem.DateIndicator
 import java.text.SimpleDateFormat
 

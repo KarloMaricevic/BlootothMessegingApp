@@ -1,11 +1,11 @@
 package com.karlomaricevic.bluetoothmessagingapp.app.di.domain
 
-import com.karlomaricevic.domain.messaging.MessageGateway
-import com.karlomaricevic.domain.messaging.usecase.GetMessages
-import com.karlomaricevic.domain.messaging.usecase.SendAudio
-import com.karlomaricevic.domain.messaging.usecase.SendImage
-import com.karlomaricevic.domain.messaging.usecase.SendText
-import com.karlomaricevic.domain.messaging.usecase.StartSavingReceivedMessages
+import com.karlomaricevic.bluetoothmessagingapp.domain.messaging.MessageGateway
+import com.karlomaricevic.bluetoothmessagingapp.domain.messaging.usecase.GetMessages
+import com.karlomaricevic.bluetoothmessagingapp.domain.messaging.usecase.SendAudio
+import com.karlomaricevic.bluetoothmessagingapp.domain.messaging.usecase.SendImage
+import com.karlomaricevic.bluetoothmessagingapp.domain.messaging.usecase.SendText
+import com.karlomaricevic.bluetoothmessagingapp.domain.messaging.usecase.StartSavingReceivedMessages
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn

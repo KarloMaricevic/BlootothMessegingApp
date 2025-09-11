@@ -4,9 +4,9 @@ import com.karlomaricevic.data.db.entites.MessageEntity
 import com.karlomaricevic.data.db.entites.MessageType.TEXT
 import com.karlomaricevic.data.db.entites.MessageType.AUDIO
 import com.karlomaricevic.data.db.entites.MessageType.IMAGE
-import com.karlomaricevic.domain.messaging.models.Message.AudioMessage
-import com.karlomaricevic.domain.messaging.models.Message.ImageMessage
-import com.karlomaricevic.domain.messaging.models.Message.TextMessage
+import com.karlomaricevic.bluetoothmessagingapp.domain.messaging.models.Message.AudioMessage
+import com.karlomaricevic.bluetoothmessagingapp.domain.messaging.models.Message.ImageMessage
+import com.karlomaricevic.bluetoothmessagingapp.domain.messaging.models.Message.TextMessage
 
 class MessageMapper {
 

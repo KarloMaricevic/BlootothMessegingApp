@@ -2,8 +2,8 @@ package com.karlomaricevic.bluetoothmessagingapp.app.viewmodel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.karlomaricevic.domain.connection.usecase.CloseConnection
-import com.karlomaricevic.domain.messaging.usecase.StartSavingReceivedMessages
+import com.karlomaricevic.bluetoothmessagingapp.domain.connection.usecase.CloseConnection
+import com.karlomaricevic.bluetoothmessagingapp.domain.messaging.usecase.StartSavingReceivedMessages
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.launch
 import javax.inject.Inject
