@@ -1,6 +1,7 @@
 plugins {
     alias(libs.plugins.androidLibrary)
     alias(libs.plugins.jetbrainsKotlinAndroid)
+    alias(libs.plugins.sqldelight)
     alias(libs.plugins.ksp)
 }
 
@@ -30,8 +31,17 @@ android {
     }
 }
 
+sqldelight {
+    databases {
+        create("Database") {
+            packageName.set("com.karlomaricevic.bluetoothmessagingapp.data.db")
+        }
+    }
+}
+
 dependencies {
     implementation(project(":core:common"))
+    implementation(project(":core:dispatchers"))
     implementation(project(":core:platform"))
     implementation(project(":domain"))
     implementation(project(":bluetooth"))
@@ -39,9 +49,9 @@ dependencies {
 
     implementation(libs.kodein.di)
 
-    implementation(libs.androidx.room.runtime)
-    ksp(libs.androidx.room.compiler)
-    implementation(libs.androidx.room.ktx)
+    implementation(libs.sqldelight.runtime)
+    implementation(libs.sqldelight.android.driver)
+    implementation(libs.sqldelight.coroutines)
 
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)

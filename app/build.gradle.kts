@@ -55,8 +55,6 @@ dependencies {
     implementation(libs.androidx.compose.material)
     implementation(libs.androidx.compose.runtime)
 
-    implementation(libs.androidx.room.runtime)
-
     implementation(libs.kodein.di)
 
     testImplementation(libs.junit)

@@ -1,33 +1,32 @@
 package com.karlomaricevic.bluetoothmessagingapp.data.contact
 
-import arrow.core.left
-import arrow.core.right
-import com.karlomaricevic.bluetoothmessagingapp.data.db.daos.ContactDao
-import com.karlomaricevic.bluetoothmessagingapp.data.db.entites.ContactEntity
+import app.cash.sqldelight.coroutines.asFlow
+import app.cash.sqldelight.coroutines.mapToList
+import com.karlomaricevic.bluetoothmessagingapp.data.db.ContactQueries
 import com.karlomaricevic.bluetoothmessagingapp.domain.contacts.ContactRepository
 import com.karlomaricevic.bluetoothmessagingapp.domain.contacts.models.Contact
-import com.karlomaricevic.bluetoothmessagingapp.domain.core.models.Failure.ErrorMessage
 import kotlinx.coroutines.flow.map
-import java.lang.Exception
+import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.withContext
 
 class ContactRepositoryImpl(
-    private val contactDao: ContactDao,
+    private val queries: ContactQueries,
+    private val ioDispatcher: CoroutineDispatcher,
 ) : ContactRepository {
 
-    override suspend fun addContact(contact: Contact) = try {
-        contactDao.insertAll(
-            ContactEntity(
+    override suspend fun addContact(contact: Contact) {
+        withContext(ioDispatcher) {
+            queries.insertContact(
                 address = contact.address,
                 name = contact.name,
             )
-        )
-        Unit.right()
-    } catch (e: Exception) {
-        ErrorMessage(e.message ?: e::class.java.name).left()
+        }
     }
 
-    override fun getContacts() = contactDao.getAllContactsFlow().map { entities ->
-        entities.map { entity ->
+    override fun getContacts() = queries.selectAllContacts()
+        .asFlow()
+        .mapToList(ioDispatcher)
+        .map { entities -> entities.map { entity ->
             Contact(
                 name = entity.name,
                 address = entity.address,

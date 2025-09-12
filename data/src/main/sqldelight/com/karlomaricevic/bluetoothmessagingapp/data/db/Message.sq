@@ -1,0 +1,27 @@
+CREATE TABLE MessageEntity (
+    id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+    textContent TEXT,
+    filePath TEXT,
+    messageType TEXT NOT NULL,
+    state TEXT NOT NULL,
+    isSendByMe INTEGER NOT NULL,
+    timestamp INTEGER NOT NULL,
+    withContactAddress TEXT NOT NULL REFERENCES ContactEntity(address) ON DELETE CASCADE
+);
+
+insertMessage:
+INSERT INTO MessageEntity(
+    textContent, filePath, messageType, state, isSendByMe, timestamp, withContactAddress
+) VALUES (?, ?, ?, ?, ?, ?, ?);
+
+updateMessageState:
+UPDATE MessageEntity SET state = ? WHERE id = ?;
+
+updateMessage:
+UPDATE MessageEntity
+SET textContent = ?, filePath = ?, messageType = ?, state = ?, isSendByMe = ?, timestamp = ?, withContactAddress = ?
+WHERE id = ?;
+
+selectMessagesForUser:
+SELECT * FROM MessageEntity
+WHERE withContactAddress = ? ORDER BY id DESC;

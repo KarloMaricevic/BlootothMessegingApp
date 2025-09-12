@@ -9,7 +9,7 @@ lifecycle = "2.6.2"
 appcompat = "1.6.1"
 splashScreen = "1.0.1"
 appcompanistPermissions = "0.31.0-alpha"
-room = "2.6.1"
+sqldelight = "2.1.0"
 compose-activity = "1.9.0"
 compose = "1.6.7"
 navigation = "2.7.3"
@@ -38,9 +38,9 @@ androidx-appcompat = { group = "androidx.appcompat", name = "appcompat", version
 androidx-splashscreen = { group = "androidx.core", name = "core-splashscreen", version.ref = "splashScreen" }
 appcompanist-permissions = { group = "com.google.accompanist", name = "accompanist-permissions", version.ref = "appcompanistPermissions" }
 androidx-lifecycle-viewmodel = { group = "androidx.lifecycle", name = "lifecycle-viewmodel-ktx", version.ref = "lifecycle" }
-androidx-room-runtime = { group = "androidx.room", name = "room-runtime", version.ref = "room" }
-androidx-room-compiler = { group = "androidx.room", name = "room-compiler", version.ref = "room" }
-androidx-room-ktx = { group = "androidx.room", name = "room-ktx", version.ref = "room" }
+sqldelight-runtime = { module = "app.cash.sqldelight:runtime", version.ref = "sqldelight" }
+sqldelight-coroutines = { module = "app.cash.sqldelight:coroutines-extensions", version.ref = "sqldelight" }
+sqldelight-android-driver = { module = "app.cash.sqldelight:android-driver", version.ref = "sqldelight" }
 
 androidx-compose-activity = { group = "androidx.activity", name = "activity-compose", version.ref = "compose-activity" }
 androidx-navigation-compose = { group = "androidx.navigation", name = "navigation-compose", version.ref = "navigation" }
@@ -73,5 +73,6 @@ androidApplication = { id = "com.android.application", version.ref = "agp" }
 androidLibrary = { id = "com.android.library", version.ref = "agp" }
 jetbrainsKotlinAndroid = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
 jetbrainsKotlinJvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "jetbrainsKotlinJvm" }
+sqldelight = { id = "app.cash.sqldelight", version.ref = "sqldelight" }
 compose-compiler = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }
 ksp = { id = "com.google.devtools.ksp", version.ref = "ksp" }

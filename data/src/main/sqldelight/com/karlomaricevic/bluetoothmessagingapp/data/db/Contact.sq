@@ -1,0 +1,10 @@
+CREATE TABLE ContactEntity (
+    address TEXT NOT NULL PRIMARY KEY,
+    name TEXT NOT NULL
+);
+
+insertContact:
+INSERT INTO ContactEntity(address, name) VALUES (?, ?);
+
+selectAllContacts:
+SELECT * FROM ContactEntity ORDER BY name ASC;

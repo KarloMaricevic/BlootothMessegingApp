@@ -24,15 +24,15 @@ class MessagingRepositoryImpl(
         message: String,
         address: String,
     ) = flow {
-        val savedMessage = localMessages.savePendingTextMessage(
+        val messageId = localMessages.savePendingTextMessage(
             text = message,
             address = address,
-        )
+        ).await()
         emit(SENDING)
         val result = communicationManager.sendText(message)
         result.fold(
-            { _ -> localMessages.updateMessageState(id = savedMessage.id, state = NOT_SENT) },
-            { localMessages.updateMessageState(id = savedMessage.id, state = SENT) },
+            { _ -> localMessages.updateMessageState(id = messageId, state = NOT_SENT) },
+            { localMessages.updateMessageState(id = messageId, state = SENT) },
         )
     }
 
@@ -47,18 +47,18 @@ class MessagingRepositoryImpl(
         val inputStream = savedImagePath.flatMap { imagePath -> internalStorage.getFileInputStream(imagePath) }
         val imageSize = savedImagePath.flatMap { imagePath -> internalStorage.getFileSize(imagePath) }
         if (inputStream is Either.Right && imageSize is Either.Right && savedImagePath is Either.Right) {
-            val savedMessage = localMessages.savePendingImageMessage(
+            val messageId = localMessages.savePendingImageMessage(
                 imageFilePath = savedImagePath.toString(),
                 address = address,
-            )
+            ).await()
             emit(SENDING)
             val result = communicationManager.sendImage(
                 stream = inputStream.value,
                 size = imageSize.value.toInt(),
             )
             result.fold(
-                { _ -> localMessages.updateMessageState(id = savedMessage.id, state = NOT_SENT) },
-                { _ -> localMessages.updateMessageState(id = savedMessage.id, state = SENT) },
+                { _ -> localMessages.updateMessageState(id = messageId, state = NOT_SENT) },
+                { _ -> localMessages.updateMessageState(id = messageId, state = SENT) },
             )
         }
         inputStream.onRight { stream -> stream.close() }
@@ -68,18 +68,18 @@ class MessagingRepositoryImpl(
         val inputStream = internalStorage.getFileInputStream(audioUri)
         val imageSize = internalStorage.getFileSize(audioUri)
         if (inputStream is Either.Right && imageSize is Either.Right) {
-            val savedMessage = localMessages.savePendingAudioMessage(
+            val messageId = localMessages.savePendingAudioMessage(
                 audioFilePath = audioUri,
                 address = address,
-            )
+            ).await()
             emit(SENDING)
             val result = communicationManager.sendAudio(
                 stream = inputStream.value,
                 size = imageSize.value.toInt(),
             )
             result.fold(
-                { _ -> localMessages.updateMessageState(id = savedMessage.id, state = NOT_SENT) },
-                { _ -> localMessages.updateMessageState(id = savedMessage.id, state = SENT) },
+                { _ -> localMessages.updateMessageState(id = messageId, state = NOT_SENT) },
+                { _ -> localMessages.updateMessageState(id = messageId, state = SENT) },
             )
         }
         inputStream.onRight { stream -> stream.close() }
