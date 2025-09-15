@@ -18,9 +18,11 @@ import java.io.IOException
 import java.io.InputStream
 import java.io.OutputStream
 import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.launch
@@ -31,6 +33,7 @@ class BluetoothCommunicationManager(
     private val ioDispatcher: CoroutineDispatcher,
     private val encoder: MessageEncoder,
     private val decoder: MessageDecoder,
+    private val listeningScope: CoroutineScope,
 ) : ConnectionStateListener {
 
     private val _receivedMessageEvent = Channel<TransportMessage>(Channel.BUFFERED)
@@ -80,7 +83,7 @@ class BluetoothCommunicationManager(
     private fun startReadingInputStream(
         inputStream: InputStream,
         address: String,
-    ) = GlobalScope.launch(ioDispatcher) {
+    ) = listeningScope.launch {
         val headerSize = MessageConstants.DATA_SIZE_PREFIX_SIZE + MessageConstants.MESSAGE_TYPE_PREFIX_SIZE
         val headerBuffer = ByteArray(headerSize)
         while (true) {

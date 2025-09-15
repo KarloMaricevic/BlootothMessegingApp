@@ -40,9 +40,8 @@ dependencies {
 
     implementation(libs.kodein.di)
 
-    implementation(libs.arrow.core)
-
     testImplementation(libs.junit)
-    androidTestImplementation(libs.androidx.junit)
-    androidTestImplementation(libs.androidx.espresso.core)
+    testImplementation(libs.mockK)
+    testImplementation(libs.kotest)
+    testImplementation(libs.kotest.assertion.arrow)
 }

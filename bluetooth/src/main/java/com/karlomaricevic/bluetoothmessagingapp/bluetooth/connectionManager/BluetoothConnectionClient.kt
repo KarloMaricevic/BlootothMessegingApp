@@ -21,9 +21,7 @@ import java.io.IOException
 import java.io.OutputStream
 import java.util.UUID
 import kotlinx.coroutines.CoroutineDispatcher
-import kotlinx.coroutines.Deferred
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 class BluetoothConnectionClient(
     private val bluetoothManager: AppBluetoothManager,
@@ -63,42 +61,30 @@ class BluetoothConnectionClient(
         } else if (!permissionChecker.hasPermissionToStartOrConnectToBtServer()) {
             Left(ErrorMessage("Insufficient permissions to start bluetooth server"))
         } else {
-            coroutineScope {
+            return coroutineScope {
                 var serverSocket: BluetoothServerSocket? = null
                 try {
                     serverSocket = adapter.listenUsingRfcommWithServiceRecord(
-                        /* name = */ serviceName,
-                        /* uuid = */ UUID.fromString(serviceUUID),
+                        serviceName,
+                        UUID.fromString(serviceUUID),
                     )
-                    var specifiedClientConnected = false
-                    var connectedSocketDeferred: Deferred<Either<ErrorMessage, BluetoothSocket>>
-                    do {
-                        connectedSocketDeferred = async(ioDispatcher) {
+                    var acceptedSocket: BluetoothSocket?
+                    while (true) {
+                        val candidate = withContext(ioDispatcher) {
+                            serverSocket.accept(timeout)
+                        }
+                        if (clientAddress == null || candidate.remoteDevice.address == clientAddress) {
+                            acceptedSocket = candidate
+                            break
+                        } else {
                             try {
-                                Right(serverSocket.accept(timeout))
-                            } catch (e: IOException) {
-                                Left(ErrorMessage(e.message ?: "Unknown"))
+                                candidate.close()
+                            } catch (_: IOException) {
                             }
                         }
-                        launch {
-                            if (timeout == -1) {
-                                return@launch
-                            } else {
-                                delay(timeout.toLong())
-                                serverSocket.close()
-                            }
-                        }
-                        connectedSocketDeferred.await().onRight { acceptedSocket ->
-                            if (acceptedSocket.remoteDevice.address == clientAddress || clientAddress == null) {
-                                specifiedClientConnected = true
-                            } else {
-                                acceptedSocket.close()
-                            }
-                        }
-                    } while (!specifiedClientConnected || !connectedSocketDeferred.await().isLeft())
-                    val connectedSocket = connectedSocketDeferred.await()
+                    }
                     serverSocket.close()
-                    connectedSocket.map { socket ->
+                    acceptedSocket?.let { socket ->
                         this@BluetoothConnectionClient.connectedSocket.update { socket }
                         connectionListeners.forEach { listener ->
                             listener.onConnectionOpened(
@@ -109,15 +95,24 @@ class BluetoothConnectionClient(
                                 )
                             )
                         }
-                        Connection(
-                            socket.remoteDevice.name,
-                            socket.remoteDevice.address,
+                        Right(
+                            Connection(
+                                name = socket.remoteDevice.name,
+                                address = socket.remoteDevice.address,
+                            )
                         )
-                    }
+                    } ?: Left(ErrorMessage("Failed to accept connection"))
                 } catch (e: IOException) {
-                    Left(ErrorMessage(e.message ?: "Unknown"))
+                    try {
+                        serverSocket?.close()
+                    } catch (_: IOException) {
+                    }
+                    Left(ErrorMessage(e.message ?: "Unknown IO error"))
                 } catch (e: CancellationException) {
-                    serverSocket?.close()
+                    try {
+                        serverSocket?.close()
+                    } catch (_: IOException) {
+                    }
                     throw e
                 }
             }
@@ -167,7 +162,7 @@ class BluetoothConnectionClient(
                             address = bluetoothDevice.address,
                         )
                     }
-                } catch (e: CancellationException) {
+                } catch (_: CancellationException) {
                     socket?.close()
                     Left(ErrorMessage("Canceled"))
                 } catch (e: IOException) {

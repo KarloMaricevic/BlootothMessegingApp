@@ -15,10 +15,8 @@ class PermissionChecker(private val context: Context) {
     private fun hasPermissionForBluetoothConnect(): Either<ErrorMessage, Boolean> =
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
             Right(
-                checkSelfPermission(
-                    context,
-                    Manifest.permission.BLUETOOTH_CONNECT,
-                ) == PERMISSION_GRANTED
+                checkSelfPermission(context, Manifest.permission.BLUETOOTH_CONNECT)
+                    == PERMISSION_GRANTED
             )
         } else {
             Left(ErrorMessage("BluetoothConnect permission requires SDK >= 31"))
@@ -27,10 +25,7 @@ class PermissionChecker(private val context: Context) {
     private fun hasPermissionForLocalMacAddress() =
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
             Right(
-                checkSelfPermission(
-                    context,
-                    "android.permission.LOCAL_MAC_ADDRESS",
-                ) == PERMISSION_GRANTED
+                checkSelfPermission(context, "android.permission.LOCAL_MAC_ADDRESS") == PERMISSION_GRANTED
             )
         } else {
             Left(ErrorMessage("AccessToMacAddress permission requires SKD >= 31"))
@@ -42,7 +37,7 @@ class PermissionChecker(private val context: Context) {
     fun hasAccessToBluetoothMacAddress() =
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
             hasPermissionForLocalMacAddress().onRight { hasPermissionForBluetoothConnect() }.fold(
-                ifLeft =  { false },
+                ifLeft = { false },
                 ifRight = { hasPermission -> hasPermission },
             )
         } else {
@@ -57,4 +52,29 @@ class PermissionChecker(private val context: Context) {
             Manifest.permission.BLUETOOTH
         },
     ) == PERMISSION_GRANTED
+
+    fun hasPermissionToStartDiscovery(): Boolean {
+        val permissions = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            listOf(Manifest.permission.BLUETOOTH_SCAN)
+        } else {
+            listOf(
+                Manifest.permission.BLUETOOTH,
+                Manifest.permission.BLUETOOTH_ADMIN,
+                Manifest.permission.ACCESS_FINE_LOCATION,
+                Manifest.permission.ACCESS_COARSE_LOCATION,
+            )
+        }
+        return permissions.all { permission ->
+            checkSelfPermission(context, permission) == PERMISSION_GRANTED
+        }
+    }
+
+    fun hasPermissionToListenForBtChanges(): Boolean {
+        val permission = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            Manifest.permission.BLUETOOTH_SCAN
+        } else {
+            Manifest.permission.BLUETOOTH_ADMIN
+        }
+        return checkSelfPermission(context, permission) == PERMISSION_GRANTED
+    }
 }

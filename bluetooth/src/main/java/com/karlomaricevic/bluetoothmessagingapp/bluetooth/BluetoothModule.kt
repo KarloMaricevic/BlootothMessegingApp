@@ -5,6 +5,9 @@ import com.karlomaricevic.bluetoothmessagingapp.bluetooth.connectionManager.Blue
 import com.karlomaricevic.bluetoothmessagingapp.bluetooth.utils.MessageDecoder
 import com.karlomaricevic.bluetoothmessagingapp.bluetooth.utils.MessageEncoder
 import com.karlomaricevic.bluetoothmessagingapp.dispatchers.IoDispatcherTag
+import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Job
 import org.kodein.di.DI
 import org.kodein.di.bind
 import org.kodein.di.instance
@@ -13,7 +16,10 @@ import org.kodein.di.singleton
 
 val bluetoothModule = DI.Module("BluetoothModule") {
 
-    bind<AppBluetoothManager>() with singleton { AppBluetoothManager(instance()) }
+    bind<AppBluetoothManager>() with singleton { AppBluetoothManager(
+        context = instance(),
+        permissionChecker = instance(),
+    ) }
 
     bind<BluetoothConnectionClient>() with singleton {
         BluetoothConnectionClient(
@@ -32,7 +38,8 @@ val bluetoothModule = DI.Module("BluetoothModule") {
             connectionManager = instance(),
             ioDispatcher = instance(tag = IoDispatcherTag),
             encoder = instance(),
-            decoder = instance()
+            decoder = instance(),
+            listeningScope = CoroutineScope(Job() + instance<CoroutineDispatcher>(IoDispatcherTag)),
         )
     }
 }
