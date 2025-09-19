@@ -28,6 +28,7 @@ import com.karlomaricevic.bluetoothmessagingapp.feature.chat.navigation.ChatRout
 import com.karlomaricevic.bluetoothmessagingapp.feature.chat.viewmodel.ChatViewModel
 import com.karlomaricevic.bluetoothmessagingapp.feature.contacts.ContactsScreen
 import com.karlomaricevic.bluetoothmessagingapp.feature.contacts.navigation.ContactsRouter
+import com.karlomaricevic.bluetoothmessagingapp.feature.contacts.viewmodel.AndroidContactsViewModel
 import com.karlomaricevic.bluetoothmessagingapp.feature.contacts.viewmodel.ContactsViewModel
 import kotlinx.coroutines.CoroutineScope
 import org.kodein.di.direct
@@ -73,8 +74,20 @@ fun BluetoothMessagingAppNavigation(
                 )
             }
             composable(ContactsRouter.route()) {
-                val viewmodel by di.instance<ContactsViewModel>()
-                ContactsScreen(viewmodel)
+                val factory: (CoroutineScope) -> ContactsViewModel =
+                    di.direct.factory<CoroutineScope, ContactsViewModel>()
+                val androidVM: AndroidContactsViewModel = viewModel(
+                    factory = object : ViewModelProvider.Factory {
+                        @Suppress("UNCHECKED_CAST")
+                        override fun <T : ViewModel> create(modelClass: Class<T>): T {
+                            return AndroidContactsViewModel(factory) as T
+                        }
+                    }
+                )
+                ContactsScreen(
+                    contacts = androidVM.contacts.collectAsState().value,
+                    onEvent = androidVM::onEvent,
+                )
             }
             composable(AddDeviceScreenRouter.route()) {
                 val factory: (CoroutineScope) -> AddDeviceViewModel =

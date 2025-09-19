@@ -1,13 +1,15 @@
 package com.karlomaricevic.bluetoothmessagingapp.feature.shared
 
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Box
+import androidx.compose.material3.Icon
+import androidx.compose.material3.LocalContentColor
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import com.karlomaricevic.bluetoothmessagingapp.feature.shared.resolvers.ImageResolver
-import com.karlomaricevic.bluetoothmessagingapp.feature.shared.resolvers.models.ImageResource
+import com.karlomaricevic.bluetoothmessagingapp.feature.shared.resolvers.models.ImageResource.Android
+import com.karlomaricevic.bluetoothmessagingapp.feature.shared.resolvers.models.ImageResource.Mock
 
 @Composable
 fun <T> MultiplatformIcon(
@@ -15,17 +17,17 @@ fun <T> MultiplatformIcon(
     imageResolver: ImageResolver<T>,
     modifier: Modifier = Modifier,
     contentDescription: String? = null,
-    contentScale: ContentScale = ContentScale.Fit,
+    tint: Color = LocalContentColor.current,
 ) {
     when (val res = imageResolver.getImage(imageKey)) {
-        is ImageResource.Android -> {
-            Image(
+        is Android -> {
+            Icon(
                 painter = painterResource(res.resId),
                 contentDescription = contentDescription,
                 modifier = modifier,
-                contentScale = contentScale
+                tint = tint,
             )
         }
-        is ImageResource.Mock -> Box(modifier)
+        is Mock -> Box(modifier)
     }
 }
