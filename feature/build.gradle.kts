@@ -40,11 +40,19 @@ android {
     composeOptions {
         kotlinCompilerExtensionVersion = "1.5.4"
     }
+    packagingOptions {
+        resources {
+            excludes += "/META-INF/{AL2.0,LGPL2.1}"
+            merges += "META-INF/LICENSE.md"
+            merges += "META-INF/LICENSE-notice.md"
+        }
+    }
 }
 
 dependencies {
     implementation(project(":core:common"))
     implementation(project(":core:navigation"))
+    implementation(project(":core:platform"))
     implementation(project(":core:dispatchers"))
     implementation(project(":domain"))
     implementation(project(":designSystem"))
@@ -66,6 +74,9 @@ dependencies {
     implementation(libs.kodein.di)
 
     testImplementation(libs.junit)
+    androidTestImplementation(libs.kotest)
     androidTestImplementation(libs.androidx.junit)
-    androidTestImplementation(libs.androidx.espresso.core)
+    androidTestImplementation(libs.androidx.ui.test.junit4)
+    androidTestImplementation(libs.mockK.android)
+    debugImplementation(libs.ui.test.manifest)
 }

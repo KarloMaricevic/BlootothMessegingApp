@@ -27,7 +27,12 @@
     <string name="add_device_screen_start_search_button">Start search</string>
     <string name="add_device_screen_bluetooth_devices_title">Bluetooth devices</string>
     <string name="add_device_screen_no_devices_nearby">No devices nearby</string>
+    <string name="add_device_screen_make_device_visible_error_title">Device not visible</string>
+    <string name="add_device_screen_make_device_visible_error_message">We couldn’t make your device discoverable. Please check Bluetooth settings and try again.</string>
+    <string name="add_device_screen_connecting_to_device_error_title">Connection failed</string>
+    <string name="add_device_screen_connecting_to_device_error_message">Couldn’t connect to the selected device. Please try again.</string>
 
+    <string name="dialog_confirm_button">OK</string>
     <string name="try_again">Try again</string>
     <string name="unexpected_error_description">Something unexpected happened</string>
     <string name="error">Error</string>

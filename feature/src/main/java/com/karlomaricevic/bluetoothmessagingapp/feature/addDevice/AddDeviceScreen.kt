@@ -1,15 +1,6 @@
 package com.karlomaricevic.bluetoothmessagingapp.feature.addDevice
 
-import android.Manifest
 import android.app.Activity
-import android.bluetooth.BluetoothAdapter
-import android.content.Context
-import android.content.Intent
-import android.location.LocationManager
-import android.os.Build
-import android.provider.Settings
-import androidx.activity.compose.rememberLauncherForActivityResult
-import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -24,120 +15,98 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.Button
-import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Switch
 import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.res.painterResource
-import com.karlomaricevic.bluetoothmessagingapp.feature.R
-import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import com.google.accompanist.permissions.rememberMultiplePermissionsState
+import com.karlomaricevic.bluetoothmessagingapp.designsystem.BluetoothMessagingAppTheme
 import com.karlomaricevic.bluetoothmessagingapp.designsystem.blue
 import com.karlomaricevic.bluetoothmessagingapp.designsystem.gray500
+import com.karlomaricevic.bluetoothmessagingapp.designsystem.white
+import com.karlomaricevic.bluetoothmessagingapp.domain.connection.models.Connection
 import com.karlomaricevic.bluetoothmessagingapp.feature.addDevice.components.BluetoothDeviceItem
+import com.karlomaricevic.bluetoothmessagingapp.feature.addDevice.components.ErrorDialog
 import com.karlomaricevic.bluetoothmessagingapp.feature.addDevice.models.AddDeviceScreenEvent
-import com.karlomaricevic.bluetoothmessagingapp.feature.addDevice.models.AddDeviceScreenEvent.OnDeviceClicked
+import com.karlomaricevic.bluetoothmessagingapp.feature.addDevice.models.AddDeviceScreenEvent.OnBackClicked
 import com.karlomaricevic.bluetoothmessagingapp.feature.addDevice.models.AddDeviceScreenEvent.OnDiscoverableSwitchChecked
+import com.karlomaricevic.bluetoothmessagingapp.feature.addDevice.models.AddDeviceScreenEvent.OnDismissErrorDialogClicked
 import com.karlomaricevic.bluetoothmessagingapp.feature.addDevice.models.AddDeviceScreenEvent.OnScanForDevicesClicked
-import com.karlomaricevic.bluetoothmessagingapp.feature.addDevice.viewmodel.AddDeviceViewModel
+import com.karlomaricevic.bluetoothmessagingapp.feature.addDevice.models.AddDeviceScreenState
+import com.karlomaricevic.bluetoothmessagingapp.feature.addDevice.resolvers.AddDeviceImageResolver
+import com.karlomaricevic.bluetoothmessagingapp.feature.addDevice.resolvers.AddDeviceStringsResolver
+import com.karlomaricevic.bluetoothmessagingapp.feature.addDevice.resolvers.models.AddDeviceScreenImageKeys
+import com.karlomaricevic.bluetoothmessagingapp.feature.addDevice.resolvers.models.AddDeviceScreenStringKeys
+import com.karlomaricevic.bluetoothmessagingapp.feature.addDevice.resolvers.models.AddDeviceScreenStringKeys.BACK_CONTENT_DESCRIPTION
+import com.karlomaricevic.bluetoothmessagingapp.feature.addDevice.resolvers.models.AddDeviceScreenStringKeys.CONNECTING_TO_DEVICE_ERROR_MESSAGE
+import com.karlomaricevic.bluetoothmessagingapp.feature.addDevice.resolvers.models.AddDeviceScreenStringKeys.CONNECTING_TO_DEVICE_ERROR_TITLE
+import com.karlomaricevic.bluetoothmessagingapp.feature.addDevice.resolvers.models.AddDeviceScreenStringKeys.DIALOG_CONFIRM_BUTTON
+import com.karlomaricevic.bluetoothmessagingapp.feature.addDevice.resolvers.models.AddDeviceScreenStringKeys.MAKE_DEVICE_VISIBLE_ERROR_MESSAGE
+import com.karlomaricevic.bluetoothmessagingapp.feature.addDevice.resolvers.models.AddDeviceScreenStringKeys.MAKE_DEVICE_VISIBLE_ERROR_TITLE
+import com.karlomaricevic.bluetoothmessagingapp.feature.addDevice.resolvers.models.AddDeviceScreenStringKeys.NO_DEVICES_NEARBY
+import com.karlomaricevic.bluetoothmessagingapp.feature.addDevice.resolvers.models.AddDeviceScreenStringKeys.START_SEARCH_BUTTON
+import com.karlomaricevic.bluetoothmessagingapp.feature.shared.DevicePermissionsHandler
+import com.karlomaricevic.bluetoothmessagingapp.feature.shared.MultiplatformIcon
+import com.karlomaricevic.bluetoothmessagingapp.feature.shared.rememberAndroidDevicePermissionsHandler
+import com.karlomaricevic.bluetoothmessagingapp.feature.shared.resolvers.ImageResolver
+import com.karlomaricevic.bluetoothmessagingapp.feature.shared.resolvers.StringResolver
+
+const val ADD_DEVICE_SCREEN_SWITCH_TEST_TAG = "add_device_screen_switch_test_tag"
 
 @Composable
-fun AddDeviceScreen(viewModel: AddDeviceViewModel) {
-    val context = LocalContext.current
-    val state by viewModel.state.collectAsState()
-    val makeDiscoverable = rememberLauncherForActivityResult(
-        contract = ActivityResultContracts.StartActivityForResult(),
-        onResult = { result ->
-            if (result.resultCode > 0) viewModel.onEvent(OnDiscoverableSwitchChecked)
-        })
-    val makeDeviceDiscoverablePermission = rememberMultiplePermissionsState(
-        permissions = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-            listOf(
-                Manifest.permission.BLUETOOTH_ADVERTISE,
-                Manifest.permission.BLUETOOTH_SCAN,
-            )
-        } else {
-            listOf(
-                Manifest.permission.BLUETOOTH_ADMIN
-            )
-        }
-    ) { permissionAccepted ->
-        if (permissionAccepted.filter { false }.isEmpty()) {
-            makeDiscoverable.launch(Intent(BluetoothAdapter.ACTION_REQUEST_DISCOVERABLE))
-        }
-    }
-    val gpsEnabled = rememberLauncherForActivityResult(
-        contract = ActivityResultContracts.StartActivityForResult()
-    ) { _ ->
-        if (isLocationEnabled(context)) {
-            viewModel.onEvent(OnScanForDevicesClicked)
-        }
-    }
-    val enabledBluetooth =
-        rememberLauncherForActivityResult(
-            contract = ActivityResultContracts.StartActivityForResult(),
-            onResult = { result ->
-                if (result.resultCode == Activity.RESULT_OK) {
-                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S || isLocationEnabled(context)) {
-                        viewModel.onEvent(OnScanForDevicesClicked)
-                    } else
-                        gpsEnabled.launch(Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS))
-                }
-            }
+fun AddDeviceScreen(
+    state: AddDeviceScreenState,
+    onEvent: (AddDeviceScreenEvent) -> Unit,
+    permissionHandler: DevicePermissionsHandler = rememberAndroidDevicePermissionsHandler(
+        context = LocalContext.current,
+        activity = LocalContext.current as Activity
+    ),
+    stringResolver: StringResolver<AddDeviceScreenStringKeys> = AddDeviceStringsResolver(LocalContext.current),
+    imageResolver: ImageResolver<AddDeviceScreenImageKeys> = AddDeviceImageResolver()
+) {
+    if (state.showMakeDeviceVisibleError) {
+        ErrorDialog(
+            title = stringResolver.getString(MAKE_DEVICE_VISIBLE_ERROR_TITLE),
+            message = stringResolver.getString(MAKE_DEVICE_VISIBLE_ERROR_MESSAGE),
+            confirmButtonText = stringResolver.getString(DIALOG_CONFIRM_BUTTON),
+            onDismiss = { onEvent(OnDismissErrorDialogClicked) },
         )
-    val findBluetoothDevicesPermission = rememberMultiplePermissionsState(
-        permissions = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-            listOf(Manifest.permission.BLUETOOTH_SCAN)
-        } else {
-            listOf(
-                Manifest.permission.BLUETOOTH,
-                Manifest.permission.BLUETOOTH_ADMIN,
-                Manifest.permission.ACCESS_FINE_LOCATION,
-                Manifest.permission.ACCESS_COARSE_LOCATION,
-            )
-        }
-    ) { result ->
-        if (result.filter { entry -> !entry.value }.isEmpty()) {
-            enabledBluetooth.launch(Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE))
-        }
     }
-    Column(Modifier.fillMaxSize()) {
+    if (state.showConnectingToDeviceError) {
+        ErrorDialog(
+            title = stringResolver.getString(CONNECTING_TO_DEVICE_ERROR_TITLE),
+            message = stringResolver.getString(CONNECTING_TO_DEVICE_ERROR_MESSAGE),
+            confirmButtonText = stringResolver.getString(DIALOG_CONFIRM_BUTTON),
+            onDismiss = { onEvent(OnDismissErrorDialogClicked) },
+        )
+    }
+    Column(modifier = Modifier.fillMaxSize()) {
         Box(
             modifier = Modifier
                 .fillMaxWidth()
                 .background(MaterialTheme.colorScheme.surface)
                 .padding(bottom = 4.dp),
         ) {
-            Icon(
-                painter = painterResource(id = R.drawable.ic_back),
-                contentDescription = stringResource(R.string.default_icon_content_description),
+            MultiplatformIcon(
+                imageKey = AddDeviceScreenImageKeys.BACK_ICON,
+                imageResolver = imageResolver,
+                contentDescription = stringResolver.getString(BACK_CONTENT_DESCRIPTION),
                 modifier = Modifier
                     .padding(start = 4.dp, bottom = 8.dp)
                     .clip(CircleShape)
-                    .clickable { viewModel.onEvent(AddDeviceScreenEvent.OnBackClicked) }
+                    .clickable { onEvent(OnBackClicked) }
                     .padding(12.dp)
                     .size(16.dp)
             )
-            /*Icon(
-                painter = painterResource(R.drawable.ic_back),
-                contentDescription = stringResource(R.string.default_icon_content_description),
-                modifier = Modifier
-                    .padding(4.dp)
-                    .clip(CircleShape)
-                    .clickable { viewModel.onEvent(AddDeviceScreenEvent.OnBackClicked) }
-                    .padding(4.dp)
-                    .size(25.dp)
-            )*/
         }
+
         Row(
             modifier = Modifier
                 .align(Alignment.End)
@@ -145,7 +114,7 @@ fun AddDeviceScreen(viewModel: AddDeviceViewModel) {
             verticalAlignment = Alignment.CenterVertically,
         ) {
             Text(
-                text = stringResource(id = R.string.add_device_screen_make_device_visible_message),
+                text = stringResolver.getString(AddDeviceScreenStringKeys.MAKE_DEVICE_VISIBLE_MESSAGE),
                 modifier = Modifier.weight(1f, true),
                 color = gray500,
                 style = MaterialTheme.typography.titleMedium,
@@ -154,65 +123,187 @@ fun AddDeviceScreen(viewModel: AddDeviceViewModel) {
                 checked = state.isDiscoverable,
                 enabled = !state.isDiscoverable,
                 modifier = Modifier
+                    .testTag(ADD_DEVICE_SCREEN_SWITCH_TEST_TAG)
                     .padding(end = 16.dp)
                     .size(height = 20.dp, width = 16.dp),
-                onCheckedChange = { makeDeviceDiscoverablePermission.launchMultiplePermissionRequest() },
+                onCheckedChange = {
+                    permissionHandler.requestDiscoverable { granted ->
+                        if (granted) onEvent(OnDiscoverableSwitchChecked)
+                    }
+                },
                 colors = SwitchDefaults.colors(
                     disabledCheckedBorderColor = blue,
-                    disabledCheckedThumbColor = gray500,
+                    disabledCheckedThumbColor = white,
                     disabledCheckedIconColor = blue,
                     disabledCheckedTrackColor = blue,
                 ),
             )
         }
         Text(
-            text = stringResource(R.string.add_device_screen_bluetooth_devices_title),
+            text = stringResolver.getString(AddDeviceScreenStringKeys.BLUETOOTH_DEVICES_TITLE),
             style = MaterialTheme.typography.headlineMedium,
             modifier = Modifier.padding(start = 8.dp, top = 24.dp)
         )
-        if (!state.isBluetoothDeviceListShown) {
+        if (state.showStartSearchMessage) {
             Box(
                 modifier = Modifier
-                    .weight(weight = 1f, fill = true)
-                    .fillMaxWidth(),
+                    .weight(1f, fill = true)
+                    .fillMaxWidth()
             ) {
                 Button(
-                    onClick = { findBluetoothDevicesPermission.launchMultiplePermissionRequest() },
-                    modifier = Modifier.align(Alignment.Center),
+                    onClick = {
+                        permissionHandler.requestScanPermissions { granted ->
+                            if (granted) onEvent(OnScanForDevicesClicked)
+                        }
+                    },
+                    modifier = Modifier.align(Alignment.Center)
                 ) {
-                    Text(text = stringResource(R.string.add_device_screen_start_search_button))
+                    Text(text = stringResolver.getString(START_SEARCH_BUTTON))
                 }
             }
+        } else if (state.bluetoothDevices.isEmpty()) {
+            Box(modifier = Modifier.fillMaxSize()) {
+                Text(
+                    text = stringResolver.getString(NO_DEVICES_NEARBY),
+                    modifier = Modifier.align(Alignment.Center)
+                )
+            }
         } else {
-            val devices = state.bluetoothDevices
-            if (devices == null) {
-                Box(modifier = Modifier.fillMaxSize()) {
-                    Text(
-                        text = stringResource(R.string.bluetooth_device_screen_no_devices_nearby),
-                        modifier = Modifier.align(Alignment.Center),
+            LazyColumn(
+                modifier = Modifier.fillMaxSize(),
+                verticalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                items(items = state.bluetoothDevices, key = { device -> device.address }) { device ->
+                    BluetoothDeviceItem(
+                        device = device,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clickable { onEvent(AddDeviceScreenEvent.OnDeviceClicked(device.address)) }
+                            .padding(horizontal = 16.dp, vertical = 8.dp)
                     )
-                }
-            } else {
-                LazyColumn(
-                    modifier = Modifier.fillMaxSize(),
-                    verticalArrangement = Arrangement.spacedBy(8.dp),
-                ) {
-                    items(items = devices, key = { device -> device.address }) { device ->
-                        BluetoothDeviceItem(
-                            device = device,
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .clickable { viewModel.onEvent(OnDeviceClicked(device.address)) }
-                                .padding(horizontal = 16.dp, vertical = 8.dp)
-                        )
-                    }
                 }
             }
         }
     }
 }
 
-private fun isLocationEnabled(context: Context): Boolean {
-    val locationManager = context.getSystemService(Context.LOCATION_SERVICE) as LocationManager
-    return locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER)
+@Preview(showBackground = true)
+@Composable
+private fun AddDeviceStartSearchPreview() {
+    BluetoothMessagingAppTheme {
+        AddDeviceScreen(
+            state = AddDeviceScreenState(),
+            onEvent = {},
+            permissionHandler = object : DevicePermissionsHandler {
+                override fun requestDiscoverable(onResult: (Boolean) -> Unit) {
+                }
+
+                override fun requestScanPermissions(onResult: (Boolean) -> Unit) {
+                }
+
+                override fun enableBluetooth(onResult: (Boolean) -> Unit) {
+                }
+
+                override fun ensureGpsEnabled(onResult: (Boolean) -> Unit) {
+                }
+
+            },
+        )
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+private fun AddDeviceDeviceListPreview() {
+    BluetoothMessagingAppTheme {
+        AddDeviceScreen(
+            state = AddDeviceScreenState(
+                isDiscoverable = true,
+                showStartSearchMessage = false,
+                bluetoothDevices = listOf(
+                    Connection("BluetoothDevice1", "01:23:45:67:89:AB"),
+                    Connection("BluetoothDevice2", "F0:99:B6:12:34:56"),
+                    Connection("BluetoothDevice3", "AA:BB:CC:DD:EE:FF")
+                )
+            ),
+            permissionHandler = object : DevicePermissionsHandler {
+                override fun requestDiscoverable(onResult: (Boolean) -> Unit) {
+                }
+
+                override fun requestScanPermissions(onResult: (Boolean) -> Unit) {
+                }
+
+                override fun enableBluetooth(onResult: (Boolean) -> Unit) {
+                }
+
+                override fun ensureGpsEnabled(onResult: (Boolean) -> Unit) {
+                }
+
+            },
+            onEvent = {},
+        )
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+private fun AddDeviceMakeDeviceVisibleErrorPreview() {
+    BluetoothMessagingAppTheme {
+        AddDeviceScreen(
+            state = AddDeviceScreenState(
+                isDiscoverable = false,
+                bluetoothDevices = listOf(),
+                showMakeDeviceVisibleError = true
+            ),
+            permissionHandler = object : DevicePermissionsHandler {
+                override fun requestDiscoverable(onResult: (Boolean) -> Unit) {
+                }
+
+                override fun requestScanPermissions(onResult: (Boolean) -> Unit) {
+                }
+
+                override fun enableBluetooth(onResult: (Boolean) -> Unit) {
+                }
+
+                override fun ensureGpsEnabled(onResult: (Boolean) -> Unit) {
+                }
+
+            },
+            onEvent = {},
+        )
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+private fun AddDeviceConnectingToDeviceErrorErrorPreview() {
+    BluetoothMessagingAppTheme {
+        AddDeviceScreen(
+            state = AddDeviceScreenState(
+                isDiscoverable = false,
+                showStartSearchMessage = false,
+                bluetoothDevices = listOf(
+                    Connection("BluetoothDevice1", "01:23:45:67:89:AB"),
+                    Connection("BluetoothDevice2", "F0:99:B6:12:34:56"),
+                    Connection("BluetoothDevice3", "AA:BB:CC:DD:EE:FF")
+                ),
+                showConnectingToDeviceError = true
+            ),
+            permissionHandler = object : DevicePermissionsHandler {
+                override fun requestDiscoverable(onResult: (Boolean) -> Unit) {
+                }
+
+                override fun requestScanPermissions(onResult: (Boolean) -> Unit) {
+                }
+
+                override fun enableBluetooth(onResult: (Boolean) -> Unit) {
+                }
+
+                override fun ensureGpsEnabled(onResult: (Boolean) -> Unit) {
+                }
+
+            },
+            onEvent = {},
+        )
+    }
 }

@@ -28,6 +28,7 @@ junitVersion = "1.3.0"
 espressoCore = "3.7.0"
 material = "1.12.0"
 jetbrainsKotlinJvm = "2.0.21"
+uiTestJunit4 = "1.9.1"
 
 [libraries]
 coroutines-core = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-core", version.ref = "coorutineCore" }
@@ -62,6 +63,9 @@ kotest = { group = "io.kotest", name = "kotest-runner-junit4", version.ref = "ko
 kotest-assertion-arrow = { group = "io.kotest.extensions", name = "kotest-assertions-arrow", version.ref = "kotest-arrow"}
 coorutine-test = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-test", version.ref = "coorutinesTest" }
 mockK = { group = "io.mockk", name = "mockk", version.ref = "mockK" }
+mockK-android = { group = "io.mockk", name = "mockk-android", version.ref = "mockK" }
+androidx-ui-test-junit4 = { group = "androidx.compose.ui", name = "ui-test-junit4", version.ref = "compose" }
+ui-test-manifest = { group ="androidx.compose.ui", name = "ui-test-manifest", version.ref = "compose" }
 roboelectric = { group  = "org.robolectric", name = "robolectric", version.ref = "robolectric" }
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
 androidx-junit = { group = "androidx.test.ext", name = "junit", version.ref = "junitVersion" }
