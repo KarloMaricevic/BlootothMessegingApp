@@ -46,12 +46,12 @@ fun NoContactsIndicator(
         MultiplatformIcon(
             imageKey = NO_CONTACTS_ICON,
             imageResolver = imageResolver,
-            contentDescription = stringResolver.getString(DEFAULT_ICON_CONTENT_DESCRIPTION),
             modifier = Modifier
                 .size(150.dp)
                 .align(Alignment.CenterHorizontally)
                 .padding(bottom = 10.dp),
-            tint = MaterialTheme.colorScheme.onSurface,
+            contentDescription = stringResolver.getString(DEFAULT_ICON_CONTENT_DESCRIPTION),
+            tint = MaterialTheme.colorScheme.onSurface,,
         )
         Text(
             text = stringResolver.getString(NO_CONTACTS_MESSAGE),

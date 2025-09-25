@@ -40,8 +40,8 @@ fun NewChatFloatingButton(
             MultiplatformIcon(
                 imageKey = CHAT_ICON,
                 imageResolver = imageResolver,
-                contentDescription = stringResolver.getString(DEFAULT_ICON_CONTENT_DESCRIPTION),
                 modifier = Modifier.padding(end = 8.dp),
+                contentDescription = stringResolver.getString(DEFAULT_ICON_CONTENT_DESCRIPTION),,
             )
             Text(text = stringResolver.getString(NEW_CHAT))
         }

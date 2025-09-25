@@ -6,6 +6,7 @@ import com.karlomaricevic.bluetoothmessagingapp.feature.chat.mappers.ChatMessage
 import com.karlomaricevic.bluetoothmessagingapp.feature.chat.mappers.DateIndicatorMapper
 import com.karlomaricevic.bluetoothmessagingapp.feature.chat.mappers.SeparatorMapper
 import com.karlomaricevic.bluetoothmessagingapp.feature.chat.viewmodel.ChatViewModel
+import kotlinx.coroutines.CoroutineScope
 import org.kodein.di.DI
 import org.kodein.di.bind
 import org.kodein.di.factory
@@ -16,7 +17,8 @@ val chatScreenModule = DI.Module("ChatScreenModule") {
     bind<ChatMessageMapper>() with provider { ChatMessageMapper(instance()) }
     bind<DateIndicatorMapper>() with provider { DateIndicatorMapper() }
     bind<SeparatorMapper>() with provider { SeparatorMapper() }
-    bind<ChatViewModel>() with factory { savedStateHandle: SavedStateHandle ->
+    bind<ChatViewModel>() with factory { arg: Pair<SavedStateHandle, CoroutineScope> ->
+        val (savedStateHandle, vmScope) = arg
         ChatViewModel(
             savedStateHandle = savedStateHandle,
             getMessages = instance(),
@@ -33,7 +35,8 @@ val chatScreenModule = DI.Module("ChatScreenModule") {
             dateIndicatorMapper = instance(),
             separatorMapper = instance(),
             ioDispatcher = instance(tag = IoDispatcherTag),
-            navigator = instance()
+            navigator = instance(),
+            vmScope = vmScope,
         )
     }
 }

@@ -97,13 +97,13 @@ fun AddDeviceScreen(
             MultiplatformIcon(
                 imageKey = AddDeviceScreenImageKeys.BACK_ICON,
                 imageResolver = imageResolver,
-                contentDescription = stringResolver.getString(BACK_CONTENT_DESCRIPTION),
                 modifier = Modifier
                     .padding(start = 4.dp, bottom = 8.dp)
                     .clip(CircleShape)
                     .clickable { onEvent(OnBackClicked) }
                     .padding(12.dp)
-                    .size(16.dp)
+                    .size(16.dp),
+                contentDescription = stringResolver.getString(BACK_CONTENT_DESCRIPTION),
             )
         }
 
@@ -207,6 +207,10 @@ private fun AddDeviceStartSearchPreview() {
                 override fun ensureGpsEnabled(onResult: (Boolean) -> Unit) {
                 }
 
+                override fun requestVoicePermission(onResult: (Boolean) -> Unit) {
+                    TODO("Not yet implemented")
+                }
+
             },
         )
     }
@@ -239,6 +243,9 @@ private fun AddDeviceDeviceListPreview() {
                 override fun ensureGpsEnabled(onResult: (Boolean) -> Unit) {
                 }
 
+                override fun requestVoicePermission(onResult: (Boolean) -> Unit) {
+                }
+
             },
             onEvent = {},
         )
@@ -266,6 +273,9 @@ private fun AddDeviceMakeDeviceVisibleErrorPreview() {
                 }
 
                 override fun ensureGpsEnabled(onResult: (Boolean) -> Unit) {
+                }
+
+                override fun requestVoicePermission(onResult: (Boolean) -> Unit) {
                 }
 
             },
@@ -300,6 +310,10 @@ private fun AddDeviceConnectingToDeviceErrorErrorPreview() {
                 }
 
                 override fun ensureGpsEnabled(onResult: (Boolean) -> Unit) {
+                }
+
+                override fun requestVoicePermission(onResult: (Boolean) -> Unit) {
+
                 }
 
             },

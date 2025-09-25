@@ -13,7 +13,6 @@ import com.karlomaricevic.bluetoothmessagingapp.feature.chat.models.ChatItem
 import com.karlomaricevic.bluetoothmessagingapp.feature.chat.models.ChatItem.ChatMessage.Audio
 import com.karlomaricevic.bluetoothmessagingapp.feature.chat.models.ChatScreenEffect
 import com.karlomaricevic.bluetoothmessagingapp.feature.chat.models.ChatScreenEffect.*
-import com.karlomaricevic.bluetoothmessagingapp.feature.shared.BaseViewModel
 import com.karlomaricevic.bluetoothmessagingapp.domain.audio.DeleteAudio
 import com.karlomaricevic.bluetoothmessagingapp.domain.audio.GetAudioPlayer
 import com.karlomaricevic.bluetoothmessagingapp.domain.audio.GetVoiceRecorder
@@ -38,10 +37,12 @@ import com.karlomaricevic.bluetoothmessagingapp.feature.chat.models.ChatScreenEv
 import com.karlomaricevic.bluetoothmessagingapp.feature.chat.models.ChatScreenState
 import com.karlomaricevic.bluetoothmessagingapp.feature.chat.navigation.ChatNavigator
 import com.karlomaricevic.bluetoothmessagingapp.feature.chat.navigation.ChatRouter
+import com.karlomaricevic.bluetoothmessagingapp.feature.shared.NewBaseViewModel
 import com.karlomaricevic.bluetoothmessagingapp.feature.shared.TIMEOUT_DELAY
 import com.karlomaricevic.bluetoothmessagingapp.feature.shared.extensions.combine
 import java.util.Calendar
 import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -71,7 +72,8 @@ class ChatViewModel(
     private val separatorMapper: SeparatorMapper,
     private val ioDispatcher: CoroutineDispatcher,
     private val navigator: ChatNavigator,
-) : BaseViewModel<ChatScreenEvent>() {
+    private val vmScope: CoroutineScope,
+): NewBaseViewModel<ChatScreenEvent>(vmScope)  {
 
     private val address: String = savedStateHandle.get<String>(ChatRouter.ADDRESS_PARAM)
         ?: error("Address not provided")
@@ -112,7 +114,7 @@ class ChatViewModel(
                 }
             }
         }
-        .stateIn(viewModelScope, SharingStarted.Lazily, emptyList())
+        .stateIn(vmScope, SharingStarted.Lazily, emptyList())
 
     private var voiceRecordingFilePath: String? = null
 
@@ -125,7 +127,7 @@ class ChatViewModel(
         messages,
         ::ChatScreenState,
     ).stateIn(
-        scope = viewModelScope,
+        scope = vmScope,
         started = SharingStarted.WhileSubscribed(TIMEOUT_DELAY),
         initialValue = ChatScreenState(
             showConnectToDeviceButton = !isConnectedTo(address)
@@ -136,7 +138,7 @@ class ChatViewModel(
     val viewEffect = _viewEffect.receiveAsFlow()
 
     init {
-        viewModelScope.launch(ioDispatcher) {
+        launch(ioDispatcher) {
             getConnectionStateNotifier().collect { connectedDevices ->
                 showConnectToDeviceButton.update { connectedDevices?.address == address }
             }
@@ -145,9 +147,9 @@ class ChatViewModel(
 
     override fun onEvent(event: ChatScreenEvent) {
         when (event) {
-            is OnBackClicked -> viewModelScope.launch { navigator.navigateBack() }
+            is OnBackClicked -> launch { navigator.navigateBack() }
             is OnTextChanged -> textToSend.update { event.text }
-            is OnSendClicked -> viewModelScope.launch(ioDispatcher) {
+            is OnSendClicked -> launch(ioDispatcher) {
                 when (inputMode.value) {
                     TEXT -> sendText(message = textToSend.value, address = address)
 
@@ -166,7 +168,7 @@ class ChatViewModel(
 
             is OnConnectClicked -> startServerAndPeriodicallyTryToConnectToAddress()
 
-            is OnSendImageClicked -> viewModelScope.launch(ioDispatcher) {
+            is OnSendImageClicked -> launch(ioDispatcher) {
                 sendImage(imageUri = event.uri, address = address).collect { state ->
                     if (state == SENDING) {
                         _viewEffect.trySend(ScrollToBottom)
@@ -201,7 +203,7 @@ class ChatViewModel(
             is OnPausePlayingAudioMessage -> audioPlayer.pause()
                 .onRight { audioMessagePlaying.update { current -> current?.copy(isPlaying = false) } }
 
-            is ChatScreenEvent.OnPlayAudioMessage -> viewModelScope.launch(ioDispatcher) {
+            is ChatScreenEvent.OnPlayAudioMessage -> launch(ioDispatcher) {
                 val currentPlayingMessage = audioMessagePlaying.value
                 val settingUp = if (currentPlayingMessage == null || currentPlayingMessage.id != event.message.id) {
                     audioPlayer.stop()
@@ -219,13 +221,13 @@ class ChatViewModel(
 
     private fun startServerAndPeriodicallyTryToConnectToAddress() {
         isTryingToConnect.update { true }
-        viewModelScope.launch(ioDispatcher) {
+        launch(ioDispatcher) {
             connectToKnownContact.invoke(address)
             isTryingToConnect.update { false }
         }
     }
 
-    override fun onCleared() {
+    fun onCleared() {
         audioPlayer.release()
         voiceRecorder.release()
     }

@@ -15,17 +15,24 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.karlomaricevic.bluetoothmessagingapp.designsystem.blue
 import com.karlomaricevic.bluetoothmessagingapp.feature.R
+import com.karlomaricevic.bluetoothmessagingapp.feature.chat.resolvers.ChatStringResolver
+import com.karlomaricevic.bluetoothmessagingapp.feature.chat.resolvers.models.ChatScreenStringKeys
+import com.karlomaricevic.bluetoothmessagingapp.feature.chat.resolvers.models.ChatScreenStringKeys.CHAT_SCREEN_CONNECT_TO_DEVICE_BUTTON
+import com.karlomaricevic.bluetoothmessagingapp.feature.chat.resolvers.models.ChatScreenStringKeys.DEFAULT_ANIMATION_LABEL
+import com.karlomaricevic.bluetoothmessagingapp.feature.shared.resolvers.StringResolver
 
 @Composable
 fun ConnectToButton(
     isConnecting: Boolean,
     onClick: (() -> Unit)?,
-    modifier: Modifier = Modifier,
+    stringResolver: StringResolver<ChatScreenStringKeys>,
+    modifier: Modifier = Modifier
 ) {
     Box(modifier
         .clip(RoundedCornerShape(bottomEnd = 8.dp, bottomStart = 8.dp))
@@ -39,12 +46,12 @@ fun ConnectToButton(
     ) {
         AnimatedContent(
             targetState = isConnecting,
-            label = stringResource(R.string.default_animation_label),
+            label = stringResolver.getString(DEFAULT_ANIMATION_LABEL),
         ) { isConnecting ->
             if (isConnecting) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Text(
-                        text = stringResource(R.string.chat_screen_connecting_label),
+                        text = stringResolver.getString(CHAT_SCREEN_CONNECT_TO_DEVICE_BUTTON),
                         modifier = Modifier.padding(end = 4.dp),
                     )
                     CircularProgressIndicator(
@@ -54,7 +61,7 @@ fun ConnectToButton(
                     )
                 }
             } else {
-                Text(text = stringResource(R.string.chat_screen_connect_to_device_button))
+                Text(text =stringResolver.getString(CHAT_SCREEN_CONNECT_TO_DEVICE_BUTTON))
             }
         }
     }
@@ -63,11 +70,19 @@ fun ConnectToButton(
 @Preview
 @Composable
 fun ConnectToButtonPreview() {
-    ConnectToButton(isConnecting = true, onClick = {})
+    ConnectToButton(
+        isConnecting = true,
+        stringResolver = ChatStringResolver(LocalContext.current),
+        onClick = {},
+    )
 }
 
 @Preview
 @Composable
 fun ConnectToButtonNotConnectingPreview() {
-    ConnectToButton(isConnecting = false, onClick = {})
+    ConnectToButton(
+        isConnecting = false,
+        stringResolver = ChatStringResolver(LocalContext.current),
+        onClick = {}
+    )
 }

@@ -1,0 +1,11 @@
+package com.karlomaricevic.bluetoothmessagingapp.feature.chat.resolvers.models
+
+enum class ChatScreenStringKeys {
+    DEFAULT_ICON_CONTENT_DESCRIPTION,
+    CHAT_SCREEN_MESSAGE_HINT,
+    CHAT_SCREEN_RECORDING_INDICATOR,
+    CHAT_SCREEN_STOPPED_RECORDING_INDICATOR,
+    CHAT_SCREEN_CONNECTING_LABEL,
+    CHAT_SCREEN_CONNECT_TO_DEVICE_BUTTON,
+    DEFAULT_ANIMATION_LABEL,
+}

@@ -12,7 +12,9 @@ import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.runtime.Composable
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
+import com.google.accompanist.permissions.PermissionStatus
 import com.google.accompanist.permissions.rememberMultiplePermissionsState
+import com.google.accompanist.permissions.rememberPermissionState
 
 @OptIn(ExperimentalPermissionsApi::class)
 @Composable
@@ -50,6 +52,8 @@ fun rememberAndroidDevicePermissionsHandler(
         )
     )
 
+    val voicePermissionLauncher = rememberPermissionState(permission = Manifest.permission.RECORD_AUDIO)
+
     return object : DevicePermissionsHandler {
 
         override fun requestDiscoverable(onResult: (Boolean) -> Unit) {
@@ -80,6 +84,14 @@ fun rememberAndroidDevicePermissionsHandler(
                 onResult(true)
             } else {
                 gpsLauncher.launch(Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS))
+            }
+        }
+
+        override fun requestVoicePermission(onResult: (Boolean) -> Unit) {
+            if(voicePermissionLauncher.status == PermissionStatus.Granted) {
+                onResult(true)
+            } else {
+                voicePermissionLauncher.launchPermissionRequest()
             }
         }
     }

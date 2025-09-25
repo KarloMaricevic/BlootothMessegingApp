@@ -11,8 +11,11 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
+import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.createSavedStateHandle
+import androidx.lifecycle.viewmodel.CreationExtras
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
@@ -25,6 +28,7 @@ import com.karlomaricevic.bluetoothmessagingapp.feature.addDevice.viewmodel.AddD
 import com.karlomaricevic.bluetoothmessagingapp.feature.addDevice.viewmodel.AndroidAddDeviceViewModel
 import com.karlomaricevic.bluetoothmessagingapp.feature.chat.ChatScreen
 import com.karlomaricevic.bluetoothmessagingapp.feature.chat.navigation.ChatRouter
+import com.karlomaricevic.bluetoothmessagingapp.feature.chat.viewmodel.AndroidChatViewModel
 import com.karlomaricevic.bluetoothmessagingapp.feature.chat.viewmodel.ChatViewModel
 import com.karlomaricevic.bluetoothmessagingapp.feature.contacts.ContactsScreen
 import com.karlomaricevic.bluetoothmessagingapp.feature.contacts.navigation.ContactsRouter
@@ -65,12 +69,30 @@ fun BluetoothMessagingAppNavigation(
         ) {
             composable(ChatRouter.route()) { entry ->
                 val viewModel by di.instance<ChatViewModel>()
+                val factory: (SavedStateHandle, CoroutineScope) -> ChatViewModel =
+                    { handle, scope ->
+                        di.direct.factory<Pair<SavedStateHandle, CoroutineScope>, ChatViewModel>()
+                            .invoke(handle to scope)
+                    }
+                val androidVM: AndroidChatViewModel = viewModel(
+                    factory = object : ViewModelProvider.Factory {
+                        @Suppress("UNCHECKED_CAST")
+                        override fun <T : ViewModel> create(modelClass: Class<T>, extras: CreationExtras): T {
+                            val savedStateHandle = extras.createSavedStateHandle()
+                            return AndroidChatViewModel { scope ->
+                                factory(savedStateHandle, scope)
+                            } as T
+                        }
+                    }
+                )
                 val contactName = entry.arguments?.getString(ChatRouter.CONTACT_NAME_PARAM)
                     ?: error("Contact name not provided")
                 ChatScreen(
-                    viewModel = viewModel,
+                    state = androidVM.state.collectAsState().value,
                     contactName = contactName,
+                    onEvent = androidVM::onEvent,
                     scaffoldState = snackbarHostState,
+                    effectFlow = viewModel.viewEffect,
                 )
             }
             composable(ContactsRouter.route()) {

@@ -10,7 +10,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -24,21 +23,33 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
-import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.karlomaricevic.bluetoothmessagingapp.designsystem.BluetoothMessagingAppTheme
 import com.karlomaricevic.bluetoothmessagingapp.designsystem.black
-import com.karlomaricevic.bluetoothmessagingapp.feature.R
-import com.karlomaricevic.bluetoothmessagingapp.domain.messaging.models.SendMessageStatus.*
+import com.karlomaricevic.bluetoothmessagingapp.domain.messaging.models.SendMessageStatus.NOT_SENT
+import com.karlomaricevic.bluetoothmessagingapp.domain.messaging.models.SendMessageStatus.SENDING
+import com.karlomaricevic.bluetoothmessagingapp.domain.messaging.models.SendMessageStatus.SENT
 import com.karlomaricevic.bluetoothmessagingapp.feature.chat.models.ChatItem.ChatMessage.Audio
 import com.karlomaricevic.bluetoothmessagingapp.feature.chat.models.ChatScreenEvent
+import com.karlomaricevic.bluetoothmessagingapp.feature.chat.resolvers.ChatImageResolver
+import com.karlomaricevic.bluetoothmessagingapp.feature.chat.resolvers.ChatStringResolver
+import com.karlomaricevic.bluetoothmessagingapp.feature.chat.resolvers.models.ChatScreenImageKeys
+import com.karlomaricevic.bluetoothmessagingapp.feature.chat.resolvers.models.ChatScreenImageKeys.PAUSE_ICON
+import com.karlomaricevic.bluetoothmessagingapp.feature.chat.resolvers.models.ChatScreenImageKeys.PLAY_ICON
+import com.karlomaricevic.bluetoothmessagingapp.feature.chat.resolvers.models.ChatScreenStringKeys
+import com.karlomaricevic.bluetoothmessagingapp.feature.chat.resolvers.models.ChatScreenStringKeys.DEFAULT_ICON_CONTENT_DESCRIPTION
+import com.karlomaricevic.bluetoothmessagingapp.feature.shared.MultiplatformIcon
+import com.karlomaricevic.bluetoothmessagingapp.feature.shared.resolvers.ImageResolver
+import com.karlomaricevic.bluetoothmessagingapp.feature.shared.resolvers.StringResolver
 
 @Composable
 fun AudioChatBox(
     message: Audio,
     onInteraction: (ChatScreenEvent) -> Unit,
+    stringResolver: StringResolver<ChatScreenStringKeys>,
+    imageResolver: ImageResolver<ChatScreenImageKeys>,
     modifier: Modifier = Modifier,
 ) {
     Box(modifier = modifier.fillMaxWidth()) {
@@ -73,9 +84,9 @@ fun AudioChatBox(
                 .padding(start = 12.dp, end = 20.dp)
                 .padding(vertical = 10.dp)
         ) {
-            Icon(
-                painter = painterResource(if (message.isPlaying) R.drawable.ic_pause else R.drawable.ic_play),
-                contentDescription = stringResource(R.string.default_icon_content_description),
+            MultiplatformIcon(
+                imageKey = if(message.isPlaying) PAUSE_ICON else PLAY_ICON,
+                imageResolver = imageResolver,
                 modifier = Modifier
                     .clickable(
                         indication = null,
@@ -92,6 +103,7 @@ fun AudioChatBox(
                     )
                     .padding(end = 10.dp)
                     .size(32.dp),
+                contentDescription = stringResolver.getString(DEFAULT_ICON_CONTENT_DESCRIPTION),
                 tint = MaterialTheme.colorScheme.onSurface,
             )
             Box(modifier = Modifier
@@ -157,6 +169,8 @@ fun AudioChatSendingBoxPreview() {
                 state = SENDING,
                 timestamp = 0,
             ),
+            stringResolver = ChatStringResolver(LocalContext.current),
+            imageResolver = ChatImageResolver(),
             onInteraction = {},
         )
     }
@@ -175,6 +189,8 @@ fun AudioChatSentBoxPreview() {
                 state = SENT,
                 timestamp = 0,
             ),
+            stringResolver = ChatStringResolver(LocalContext.current),
+            imageResolver = ChatImageResolver(),
             onInteraction = {},
         )
     }
@@ -193,6 +209,8 @@ fun AudioChatNotSentBoxPreview() {
                 state = NOT_SENT,
                 timestamp = 0,
             ),
+            stringResolver = ChatStringResolver(LocalContext.current),
+            imageResolver = ChatImageResolver(),
             onInteraction = {},
         )
     }

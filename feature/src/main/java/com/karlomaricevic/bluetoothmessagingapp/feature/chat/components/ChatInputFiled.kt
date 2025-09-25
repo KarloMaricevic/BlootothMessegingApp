@@ -28,6 +28,7 @@ import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.SolidColor
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.PlatformTextStyle
@@ -41,12 +42,22 @@ import com.karlomaricevic.bluetoothmessagingapp.designsystem.gray500
 import com.karlomaricevic.bluetoothmessagingapp.designsystem.white
 import com.karlomaricevic.bluetoothmessagingapp.feature.R
 import com.karlomaricevic.bluetoothmessagingapp.feature.chat.models.ChatInputMode
-import com.karlomaricevic.bluetoothmessagingapp.feature.chat.models.ChatInputMode.*
+import com.karlomaricevic.bluetoothmessagingapp.feature.chat.models.ChatInputMode.TEXT
+import com.karlomaricevic.bluetoothmessagingapp.feature.chat.models.ChatInputMode.VOICE
 import com.karlomaricevic.bluetoothmessagingapp.feature.chat.models.ChatScreenEvent
 import com.karlomaricevic.bluetoothmessagingapp.feature.chat.models.ChatScreenEvent.OnDeleteVoiceRecordingClicked
 import com.karlomaricevic.bluetoothmessagingapp.feature.chat.models.ChatScreenEvent.OnSendClicked
 import com.karlomaricevic.bluetoothmessagingapp.feature.chat.models.ChatScreenEvent.OnStopRecordingVoiceClicked
 import com.karlomaricevic.bluetoothmessagingapp.feature.chat.models.ChatScreenEvent.OnTextChanged
+import com.karlomaricevic.bluetoothmessagingapp.feature.chat.resolvers.ChatImageResolver
+import com.karlomaricevic.bluetoothmessagingapp.feature.chat.resolvers.ChatStringResolver
+import com.karlomaricevic.bluetoothmessagingapp.feature.chat.resolvers.models.ChatScreenImageKeys
+import com.karlomaricevic.bluetoothmessagingapp.feature.chat.resolvers.models.ChatScreenImageKeys.SEND_ICON
+import com.karlomaricevic.bluetoothmessagingapp.feature.chat.resolvers.models.ChatScreenStringKeys
+import com.karlomaricevic.bluetoothmessagingapp.feature.chat.resolvers.models.ChatScreenStringKeys.DEFAULT_ICON_CONTENT_DESCRIPTION
+import com.karlomaricevic.bluetoothmessagingapp.feature.shared.MultiplatformIcon
+import com.karlomaricevic.bluetoothmessagingapp.feature.shared.resolvers.ImageResolver
+import com.karlomaricevic.bluetoothmessagingapp.feature.shared.resolvers.StringResolver
 
 @Composable
 fun ChatInputFiled(
@@ -56,6 +67,8 @@ fun ChatInputFiled(
     onInteraction: (ChatScreenEvent) -> Unit,
     onGalleryClicked: () -> Unit,
     onMicrophoneClicked: () -> Unit,
+    stringResolver: StringResolver<ChatScreenStringKeys>,
+    imageResolver: ImageResolver<ChatScreenImageKeys>,
     modifier: Modifier = Modifier,
 ) {
     Row(
@@ -78,9 +91,10 @@ fun ChatInputFiled(
                 modifier = Modifier.weight(1f, true),
             )
         }
-        Icon(
-            painter = painterResource(R.drawable.ic_send),
-            contentDescription = stringResource(R.string.default_icon_content_description),
+        MultiplatformIcon(
+            imageKey = SEND_ICON,
+            imageResolver = imageResolver,
+            contentDescription = stringResolver.getString(DEFAULT_ICON_CONTENT_DESCRIPTION),
             modifier = Modifier
                 .padding(bottom = 1.dp)
                 .clip(CircleShape)
@@ -281,6 +295,8 @@ fun ChatTextInputPreview() {
             inputMode = TEXT,
             isRecording = false,
             onMicrophoneClicked = {},
+            stringResolver = ChatStringResolver(LocalContext.current),
+            imageResolver = ChatImageResolver(),
         )
     }
 }
@@ -296,6 +312,8 @@ private fun ChatVoiceInputPreview() {
             inputMode = VOICE,
             isRecording = false,
             onMicrophoneClicked = {},
+            stringResolver = ChatStringResolver(LocalContext.current),
+            imageResolver = ChatImageResolver(),
         )
     }
 }
