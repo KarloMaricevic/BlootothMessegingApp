@@ -51,7 +51,7 @@ fun NoContactsIndicator(
                 .align(Alignment.CenterHorizontally)
                 .padding(bottom = 10.dp),
             contentDescription = stringResolver.getString(DEFAULT_ICON_CONTENT_DESCRIPTION),
-            tint = MaterialTheme.colorScheme.onSurface,,
+            tint = MaterialTheme.colorScheme.onSurface,
         )
         Text(
             text = stringResolver.getString(NO_CONTACTS_MESSAGE),

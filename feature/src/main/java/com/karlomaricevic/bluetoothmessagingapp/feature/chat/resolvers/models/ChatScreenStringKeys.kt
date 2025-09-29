@@ -1,6 +1,7 @@
 package com.karlomaricevic.bluetoothmessagingapp.feature.chat.resolvers.models
 
 enum class ChatScreenStringKeys {
+    MICROPHONE_BUTTON_CONTENT_DESCRIPTION,
     DEFAULT_ICON_CONTENT_DESCRIPTION,
     CHAT_SCREEN_MESSAGE_HINT,
     CHAT_SCREEN_RECORDING_INDICATOR,

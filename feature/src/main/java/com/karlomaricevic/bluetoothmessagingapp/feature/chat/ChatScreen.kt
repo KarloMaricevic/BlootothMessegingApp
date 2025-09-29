@@ -10,6 +10,7 @@ import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
+import androidx.compose.foundation.ScrollState
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
@@ -59,6 +60,7 @@ import com.karlomaricevic.bluetoothmessagingapp.feature.chat.resolvers.models.Ch
 import com.karlomaricevic.bluetoothmessagingapp.feature.chat.resolvers.models.ChatScreenStringKeys
 import com.karlomaricevic.bluetoothmessagingapp.feature.shared.DevicePermissionsHandler
 import com.karlomaricevic.bluetoothmessagingapp.feature.shared.SimplifiedSimpleLazyColumn
+import com.karlomaricevic.bluetoothmessagingapp.feature.shared.rememberAndroidDevicePermissionsHandler
 import com.karlomaricevic.bluetoothmessagingapp.feature.shared.resolvers.ImageResolver
 import com.karlomaricevic.bluetoothmessagingapp.feature.shared.resolvers.StringResolver
 import kotlinx.coroutines.flow.Flow
@@ -72,8 +74,11 @@ fun ChatScreen(
     stringResolver: StringResolver<ChatScreenStringKeys> = ChatStringResolver(LocalContext.current),
     imageResolver: ImageResolver<ChatScreenImageKeys> = ChatImageResolver(),
     contactName: String,
+    permissionHandler: DevicePermissionsHandler = rememberAndroidDevicePermissionsHandler(
+        context = LocalContext.current,
+        activity = LocalContext.current as Activity
+    ),
     scaffoldState: SnackbarHostState,
-    permissionsHandler: DevicePermissionsHandler,
 ) {
     val context = LocalContext.current
     val galleryLauncher = rememberLauncherForActivityResult(
@@ -101,6 +106,8 @@ fun ChatScreen(
         ChatScreenToolbar(
             contactName = contactName,
             onInteraction = onEvent,
+            stringResolver = stringResolver,
+            imageResolver = imageResolver,
         )
         Box(Modifier.weight(weight = 1f, fill = true)) {
             SimplifiedSimpleLazyColumn(
@@ -159,12 +166,14 @@ fun ChatScreen(
                     }
                 },
                 onMicrophoneClicked = {
-                    permissionsHandler.requestVoicePermission { granted ->
+                    permissionHandler.requestVoicePermission { granted ->
                         if (granted) {
                             onEvent(OnStartRecordingVoiceClicked)
                         }
                     }
-                }
+                },
+                imageResolver = imageResolver,
+                stringResolver = stringResolver,
             )
         }
     }
@@ -184,7 +193,7 @@ fun ChatScreenConnectedWithMessagesPreview() {
             effectFlow = flowOf(),
             contactName = "John Smith",
             scaffoldState = SnackbarHostState(),
-            permissionsHandler = object : DevicePermissionsHandler {
+            permissionHandler = object : DevicePermissionsHandler {
                 override fun requestDiscoverable(onResult: (Boolean) -> Unit) {}
                 override fun requestScanPermissions(onResult: (Boolean) -> Unit) {}
                 override fun enableBluetooth(onResult: (Boolean) -> Unit) {}
@@ -208,7 +217,7 @@ fun ChatScreenNotConnectedWithMessagesPreview() {
             effectFlow = flowOf(),
             contactName = "John Smith",
             scaffoldState = SnackbarHostState(),
-            permissionsHandler = object : DevicePermissionsHandler {
+            permissionHandler = object : DevicePermissionsHandler {
                 override fun requestDiscoverable(onResult: (Boolean) -> Unit) {}
                 override fun requestScanPermissions(onResult: (Boolean) -> Unit) {}
                 override fun enableBluetooth(onResult: (Boolean) -> Unit) {}
@@ -234,7 +243,7 @@ fun ChatScreenConnectedWithVoiceInputPreview() {
             effectFlow = flowOf(),
             contactName = "John Smith",
             scaffoldState = SnackbarHostState(),
-            permissionsHandler = object : DevicePermissionsHandler {
+            permissionHandler = object : DevicePermissionsHandler {
                 override fun requestDiscoverable(onResult: (Boolean) -> Unit) {}
                 override fun requestScanPermissions(onResult: (Boolean) -> Unit) {}
                 override fun enableBluetooth(onResult: (Boolean) -> Unit) {}

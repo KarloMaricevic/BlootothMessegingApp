@@ -42,6 +42,7 @@ dependencies {
     implementation(project(":data"))
     implementation(project(":bluetooth"))
     implementation(project(":feature"))
+    implementation(project(":feature2"))
     implementation(project(":designSystem"))
 
     implementation(libs.androidx.core.ktx)
@@ -49,12 +50,14 @@ dependencies {
     implementation(libs.androidx.splashscreen)
     implementation(libs.androidx.navigation.compose)
 
+    // Compose
     implementation(libs.androidx.compose.activity)
     implementation(libs.androidx.compose.ui)
     implementation(libs.androidx.compose.foundation)
     implementation(libs.androidx.compose.material)
     implementation(libs.androidx.compose.runtime)
 
+    // Di
     implementation(libs.kodein.di)
 
     testImplementation(libs.junit)

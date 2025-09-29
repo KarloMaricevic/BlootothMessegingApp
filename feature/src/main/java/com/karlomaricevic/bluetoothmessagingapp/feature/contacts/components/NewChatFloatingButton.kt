@@ -41,7 +41,7 @@ fun NewChatFloatingButton(
                 imageKey = CHAT_ICON,
                 imageResolver = imageResolver,
                 modifier = Modifier.padding(end = 8.dp),
-                contentDescription = stringResolver.getString(DEFAULT_ICON_CONTENT_DESCRIPTION),,
+                contentDescription = stringResolver.getString(DEFAULT_ICON_CONTENT_DESCRIPTION),
             )
             Text(text = stringResolver.getString(NEW_CHAT))
         }

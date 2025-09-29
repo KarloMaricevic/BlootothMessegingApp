@@ -4,7 +4,7 @@ import com.karlomaricevic.bluetoothmessagingapp.app.navigation.NavigationEvent.D
 import com.karlomaricevic.bluetoothmessagingapp.app.navigation.Navigator
 import com.karlomaricevic.bluetoothmessagingapp.feature.addDevice.navigation.AddDeviceScreenRouter
 import com.karlomaricevic.bluetoothmessagingapp.feature.chat.navigation.ChatRouter
-import com.karlomaricevic.bluetoothmessagingapp.feature.contacts.navigation.ContactsNavigator
+import com.karlomaricevic.bluetoothmessagingapp.feature2.contacts.navigation.ContactsNavigator
 
 class ContactNavigatorImpl(private val navigator: Navigator) : ContactsNavigator {
 

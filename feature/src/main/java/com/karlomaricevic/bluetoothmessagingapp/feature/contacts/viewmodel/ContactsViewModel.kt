@@ -31,6 +31,7 @@ class ContactsViewModel(
     override fun onEvent(event: ContactScreenEvent) {
         when (event) {
             is OnAddContactClicked -> launch {
+                val i  = vmScope.coroutineContext
                 navigator.navigateToAddDeviceScreen()
             }
 

@@ -17,7 +17,7 @@ import com.karlomaricevic.bluetoothmessagingapp.domain.contacts.contactsDomainMo
 import com.karlomaricevic.bluetoothmessagingapp.domain.messaging.messagingDomainModule
 import com.karlomaricevic.bluetoothmessagingapp.feature.addDevice.addDeviceScreenModule
 import com.karlomaricevic.bluetoothmessagingapp.feature.chat.chatScreenModule
-import com.karlomaricevic.bluetoothmessagingapp.feature.contacts.contactsScreenModule
+import com.karlomaricevic.bluetoothmessagingapp.feature2.contacts.contactsScreenModule
 import com.karlomaricevic.bluetoothmessagingapp.platform.platformModule
 import org.kodein.di.DI
 

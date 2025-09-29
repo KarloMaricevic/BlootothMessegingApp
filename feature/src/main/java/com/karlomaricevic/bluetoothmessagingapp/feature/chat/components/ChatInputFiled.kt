@@ -55,6 +55,7 @@ import com.karlomaricevic.bluetoothmessagingapp.feature.chat.resolvers.models.Ch
 import com.karlomaricevic.bluetoothmessagingapp.feature.chat.resolvers.models.ChatScreenImageKeys.SEND_ICON
 import com.karlomaricevic.bluetoothmessagingapp.feature.chat.resolvers.models.ChatScreenStringKeys
 import com.karlomaricevic.bluetoothmessagingapp.feature.chat.resolvers.models.ChatScreenStringKeys.DEFAULT_ICON_CONTENT_DESCRIPTION
+import com.karlomaricevic.bluetoothmessagingapp.feature.chat.resolvers.models.ChatScreenStringKeys.MICROPHONE_BUTTON_CONTENT_DESCRIPTION
 import com.karlomaricevic.bluetoothmessagingapp.feature.shared.MultiplatformIcon
 import com.karlomaricevic.bluetoothmessagingapp.feature.shared.resolvers.ImageResolver
 import com.karlomaricevic.bluetoothmessagingapp.feature.shared.resolvers.StringResolver
@@ -88,6 +89,7 @@ fun ChatInputFiled(
             VOICE -> VoiceInputBox(
                 isRecording = isRecording,
                 onInteraction = onInteraction,
+                stringResolver = stringResolver,
                 modifier = Modifier.weight(1f, true),
             )
         }
@@ -177,6 +179,7 @@ private fun TextInputBox(
 private fun VoiceInputBox(
     isRecording: Boolean,
     onInteraction: (ChatScreenEvent) -> Unit,
+    stringResolver: StringResolver<ChatScreenStringKeys>,
     modifier: Modifier = Modifier,
 ) {
     Row(
@@ -184,7 +187,7 @@ private fun VoiceInputBox(
     ) {
         Icon(
             painter = painterResource(id = R.drawable.ic_delete),
-            contentDescription = stringResource(R.string.default_icon_content_description),
+            contentDescription = stringResolver.getString(MICROPHONE_BUTTON_CONTENT_DESCRIPTION),
             modifier = Modifier
                 .padding(4.dp)
                 .clip(RoundedCornerShape(4.dp))

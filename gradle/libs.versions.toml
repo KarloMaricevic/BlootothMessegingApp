@@ -1,11 +1,12 @@
 [versions]
-agp = "8.12.0"
-kotlin = "2.0.21"
+agp = "8.11.1"
+kotlin = "2.2.20"
 arrow = "1.2.0-RC"
-ksp = "2.0.21-1.0.27"
+ksp = "2.2.20-2.0.2"
 coorutineCore = "1.10.2"
 coorutinesTest = "1.8.0"
-lifecycle = "2.6.2"
+lifecycle = "2.9.4"
+moko-resources = "0.25.0"
 appcompat = "1.6.1"
 splashScreen = "1.0.1"
 appcompanistPermissions = "0.31.0-alpha"
@@ -29,6 +30,12 @@ espressoCore = "3.7.0"
 material = "1.12.0"
 jetbrainsKotlinJvm = "2.0.21"
 uiTestJunit4 = "1.9.1"
+kotlinStdlib = "2.2.20"
+kotlinTest = "2.2.20"
+runner = "1.5.2"
+core = "1.5.0"
+uiToolingPreview = "1.9.2"
+uiTooling = "1.9.2"
 
 [libraries]
 coroutines-core = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-core", version.ref = "coorutineCore" }
@@ -39,9 +46,17 @@ androidx-appcompat = { group = "androidx.appcompat", name = "appcompat", version
 androidx-splashscreen = { group = "androidx.core", name = "core-splashscreen", version.ref = "splashScreen" }
 appcompanist-permissions = { group = "com.google.accompanist", name = "accompanist-permissions", version.ref = "appcompanistPermissions" }
 androidx-lifecycle-viewmodel = { group = "androidx.lifecycle", name = "lifecycle-viewmodel-ktx", version.ref = "lifecycle" }
+
+# Database
 sqldelight-runtime = { module = "app.cash.sqldelight:runtime", version.ref = "sqldelight" }
 sqldelight-coroutines = { module = "app.cash.sqldelight:coroutines-extensions", version.ref = "sqldelight" }
 sqldelight-android-driver = { module = "app.cash.sqldelight:android-driver", version.ref = "sqldelight" }
+
+# KMM Viewmodel
+androidx-lifecycle-viewmodel-compose = { group = "org.jetbrains.androidx.lifecycle", name = "lifecycle-viewmodel-compose", version.ref = "lifecycle" }
+
+# Di
+kodein-di = { group = "org.kodein.di", name = "kodein-di", version.ref = "kodein-di" }
 
 androidx-compose-activity = { group = "androidx.activity", name = "activity-compose", version.ref = "compose-activity" }
 androidx-navigation-compose = { group = "androidx.navigation", name = "navigation-compose", version.ref = "navigation" }
@@ -52,8 +67,6 @@ androidx-compose-ui = { group = "androidx.compose.ui", name = "ui", version.ref 
 androidx-compose-foundation = { group = "androidx.compose.foundation", name = "foundation", version.ref = "compose" }
 androidx-compose-ui-tooling = { group = "androidx.compose.ui", name = "ui-tooling", version.ref = "compose" }
 androidx-compose-ui-tooling-preview = { group = "androidx.compose.ui", name = "ui-tooling-preview", version.ref = "compose" }
-
-kodein-di = { group = "org.kodein.di", name = "kodein-di", version.ref = "kodein-di" }
 
 timber = { group = "com.jakewharton.timber", name = "timber", version.ref = "timber" }
 
@@ -71,8 +84,16 @@ androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = 
 androidx-junit = { group = "androidx.test.ext", name = "junit", version.ref = "junitVersion" }
 androidx-espresso-core = { group = "androidx.test.espresso", name = "espresso-core", version.ref = "espressoCore" }
 material = { group = "com.google.android.material", name = "material", version.ref = "material" }
+kotlin-stdlib = { group = "org.jetbrains.kotlin", name = "kotlin-stdlib", version.ref = "kotlinStdlib" }
+kotlin-test = { group = "org.jetbrains.kotlin", name = "kotlin-test", version.ref = "kotlinTest" }
+androidx-runner = { group = "androidx.test", name = "runner", version.ref = "runner" }
+androidx-core = { group = "androidx.test", name = "core", version.ref = "core" }
+androidx-ui-tooling-preview = { group = "androidx.compose.ui", name = "ui-tooling-preview", version.ref = "uiToolingPreview" }
+androidx-ui-tooling = { group = "androidx.compose.ui", name = "ui-tooling", version.ref = "uiTooling" }
 
 [plugins]
+kotlinMultiplatform = { id = "org.jetbrains.kotlin.multiplatform", version.ref = "kotlin" }
+compose = { id = "org.jetbrains.compose", version = "1.9.0" }
 androidApplication = { id = "com.android.application", version.ref = "agp" }
 androidLibrary = { id = "com.android.library", version.ref = "agp" }
 jetbrainsKotlinAndroid = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
@@ -80,3 +101,5 @@ jetbrainsKotlinJvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "jetbrains
 sqldelight = { id = "app.cash.sqldelight", version.ref = "sqldelight" }
 compose-compiler = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }
 ksp = { id = "com.google.devtools.ksp", version.ref = "ksp" }
+android-kotlin-multiplatform-library = { id = "com.android.kotlin.multiplatform.library", version.ref = "agp" }
+moko-resources = { id = "dev.icerock.mobile.multiplatform-resources", version.ref = "moko-resources" }

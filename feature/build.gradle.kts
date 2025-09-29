@@ -74,6 +74,9 @@ dependencies {
     implementation(libs.kodein.di)
 
     testImplementation(libs.junit)
+    testImplementation(libs.kotest)
+    testImplementation(libs.mockK)
+    testImplementation(libs.turbine)
     androidTestImplementation(libs.kotest)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.ui.test.junit4)
